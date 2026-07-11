@@ -1,0 +1,142 @@
+<div class="sales-history-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>Historial de Ventas</h1>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="goToNewSale()"
+      class="new-sale-btn">
+      <mat-icon>add</mat-icon>
+      Nueva Venta
+    </button>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <form [formGroup]="searchControl">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-icon matPrefix>search</mat-icon>
+        <input 
+          matInput 
+          formControlName="search" 
+          placeholder="Buscar por nombre de producto">
+      </mat-form-field>
+    </form>
+  </div>
+
+  <!-- Date Filters and Summary -->
+  <div class="filters-summary-container">
+    <!-- Date Filters -->
+    <div class="date-filters">
+      <form [formGroup]="dateRangeForm">
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>calendar_today</mat-icon>
+          <input 
+            matInput 
+            [matDatepicker]="startDatePicker" 
+            formControlName="startDate"
+            placeholder="Fecha Inicio">
+          <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #startDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>event</mat-icon>
+          <input 
+            matInput 
+            [matDatepicker]="endDatePicker" 
+            formControlName="endDate"
+            placeholder="Fecha Fin">
+          <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #endDatePicker></mat-datepicker>
+        </mat-form-field>
+      </form>
+
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="onSearch()"
+        [disabled]="isLoading"
+        class="search-btn">
+        <mat-icon *ngIf="!isLoading">search</mat-icon>
+        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+        <span *ngIf="!isLoading">Buscar</span>
+      </button>
+    </div>
+
+    <!-- Summary Panel -->
+    <div class="summary-panel" *ngIf="sales.length > 0">
+      <mat-card>
+        <mat-card-content>
+          <div class="summary-item">
+            <span class="summary-label">Total Ventas:</span>
+            <span class="summary-value">{{ summary.totalSales }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Ingresos Totales:</span>
+            <span class="summary-value">{{ formatCurrency(summary.totalRevenue) }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Ganancia Total:</span>
+            <span class="summary-value" [ngClass]="getProfitColorClass(summary.totalProfit)">
+              {{ formatCurrency(summary.totalProfit) }}
+            </span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && filteredSales.length === 0">
+    <mat-icon>receipt_long</mat-icon>
+    <p>No se encontraron ventas para el rango de fechas seleccionado</p>
+  </div>
+
+  <!-- Sales Cards -->
+  <div class="sales-grid" *ngIf="!isLoading && filteredSales.length > 0">
+    <mat-card class="sale-card" *ngFor="let sale of filteredSales">
+      <mat-card-content>
+        <div class="sale-header">
+          <h3>{{ sale.productName || 'N/A' }}</h3>
+          <span class="sale-number">#{{ sale.saleNumber }}</span>
+        </div>
+        
+        <div class="sale-details">
+          <div class="detail-row">
+            <span class="label">Cantidad:</span>
+            <span class="value">{{ sale.quantity }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Precio Original:</span>
+            <span class="value">{{ formatCurrency(sale.originalTotalPrice) }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Precio Final:</span>
+            <span class="value">{{ formatCurrency(sale.totalSalePrice) }}</span>
+          </div>
+          
+          <div class="detail-row profit-row">
+            <span class="label">Ganancia:</span>
+            <span class="value" [ngClass]="getProfitColorClass(calculateProfit(sale))">
+              {{ formatCurrency(calculateProfit(sale)) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="sale-footer">
+          <span class="sale-date">{{ sale.saleDate | date:'medium' }}</span>
+          <span class="sale-notes" *ngIf="sale.notes">{{ sale.notes }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

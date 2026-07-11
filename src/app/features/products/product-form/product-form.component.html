@@ -1,0 +1,46 @@
+<form [formGroup]="formGroup!" (ngSubmit)="submit()" class="product-form">
+  <h2 mat-dialog-title>{{ title }}</h2>
+
+  <mat-dialog-content>
+    <div class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ i18nService.translate('PRODUCTS.FORM.NAME') }}</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ i18nService.translate('PRODUCTS.FORM.STOCK') }}</mat-label>
+        <input matInput type="number" formControlName="stock" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ i18nService.translate('PRODUCTS.FORM.REAL_COST') }}</mat-label>
+        <input matInput type="number" formControlName="realCost" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ i18nService.translate('PRODUCTS.FORM.UNIT_REAL_COST') }}</mat-label>
+        <input matInput type="number" formControlName="unitRealCost" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ i18nService.translate('PRODUCTS.FORM.UNIT_PUBLIC_COST') }}</mat-label>
+        <input matInput type="number" formControlName="unitPublicCost" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ i18nService.translate('PRODUCTS.FORM.DESCRIPTION') }}</mat-label>
+        <textarea matInput formControlName="description"></textarea>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancel()">
+      {{ i18nService.translate('PRODUCTS.FORM.CANCEL') }}
+    </button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitDisabled">
+      {{ submitLabel }}
+    </button>
+  </mat-dialog-actions>
+</form>

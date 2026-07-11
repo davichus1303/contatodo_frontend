@@ -1,0 +1,260 @@
+.sales-history-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 500;
+  }
+
+  .new-sale-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.search-bar {
+  margin-bottom: 24px;
+
+  .full-width {
+    width: 100%;
+  }
+}
+
+.filters-summary-container {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.date-filters {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-width: 300px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .search-btn {
+    min-width: 120px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+}
+
+.summary-panel {
+  flex: 1;
+  min-width: 250px;
+
+  mat-card {
+    background: #f5f5f5;
+  }
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e0e0e0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .summary-label {
+      font-weight: 500;
+      color: #666;
+    }
+
+    .summary-value {
+      font-weight: 600;
+      font-size: 18px;
+
+      &.profit-positive {
+        color: #4caf50;
+      }
+
+      &.profit-negative {
+        color: #f44336;
+      }
+
+      &.profit-neutral {
+        color: #000;
+      }
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+
+  mat-icon {
+    font-size: 64px;
+    height: 64px;
+    width: 64px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 18px;
+    margin: 0;
+  }
+}
+
+.sales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.sale-card {
+  mat-card-content {
+    padding: 16px;
+  }
+
+  .sale-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .sale-number {
+      background: #1976d2;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+
+  .sale-details {
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+
+      .label {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .value {
+        font-weight: 500;
+        font-size: 16px;
+
+        &.profit-positive {
+          color: #4caf50;
+        }
+
+        &.profit-negative {
+          color: #f44336;
+        }
+
+        &.profit-neutral {
+          color: #000;
+        }
+      }
+
+      &.profit-row {
+        padding-top: 12px;
+        border-top: 1px dashed #e0e0e0;
+        margin-top: 8px;
+      }
+    }
+  }
+
+  .sale-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #999;
+
+    .sale-notes {
+      font-style: italic;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .new-sale-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .filters-summary-container {
+    flex-direction: column;
+  }
+
+  .date-filters {
+    flex-direction: column;
+
+    mat-form-field {
+      width: 100%;
+    }
+
+    .search-btn {
+      width: 100%;
+    }
+  }
+
+  .sales-grid {
+    grid-template-columns: 1fr;
+  }
+}

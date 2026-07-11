@@ -1,0 +1,73 @@
+.modules-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  .left-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .menu-button {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+
+      .menu-label {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .right-section {
+    display: flex;
+    align-items: center;
+
+    .logout-button {
+      color: #666;
+
+      &:hover {
+        color: #f44336;
+      }
+    }
+  }
+}
+
+.modules-menu {
+  min-width: 200px;
+
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  .no-modules {
+    padding: 1rem;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

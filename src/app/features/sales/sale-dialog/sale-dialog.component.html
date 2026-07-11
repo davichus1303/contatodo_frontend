@@ -1,0 +1,74 @@
+<h2 mat-dialog-title>Crear Venta</h2>
+
+<mat-dialog-content>
+  <div class="product-info">
+    <div class="info-row">
+      <span class="label">Producto:</span>
+      <span class="value">{{ data.product.name }}</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Código:</span>
+      <span class="value">{{ data.product.code }}</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Stock:</span>
+      <span class="value">{{ data.product.stock }}</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Precio Público:</span>
+      <span class="value">{{ formatCurrency(data.product.unitPublicCost) }}</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Costo Real:</span>
+      <span class="value">{{ formatCurrency(data.product.unitRealCost) }}</span>
+    </div>
+  </div>
+
+  <form [formGroup]="saleForm" class="sale-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Cantidad</mat-label>
+      <input matInput type="number" formControlName="quantity" min="1" max="{{ data.product.stock }}">
+      <mat-error *ngIf="saleForm.get('quantity')?.hasError('required')">
+        Cantidad es requerida
+      </mat-error>
+      <mat-error *ngIf="saleForm.get('quantity')?.hasError('min')">
+        Cantidad debe ser al menos 1
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Precio Final de Venta</mat-label>
+      <input matInput type="number" formControlName="totalSalePrice" min="0" step="0.01">
+      <mat-error *ngIf="saleForm.get('totalSalePrice')?.hasError('required')">
+        Precio de venta es requerido
+      </mat-error>
+      <mat-error *ngIf="saleForm.get('totalSalePrice')?.hasError('min')">
+        Precio de venta debe ser mayor a 0
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Notas (opcional)</mat-label>
+      <textarea matInput formControlName="notes" rows="2"></textarea>
+    </mat-form-field>
+
+    <div class="calculations">
+      <div class="calc-row">
+        <span class="label">Costo Total:</span>
+        <span class="value">{{ formatCurrency(totalCost) }}</span>
+      </div>
+      <div class="calc-row">
+        <span class="label">Ganancia:</span>
+        <span class="value" [ngClass]="getProfitColorClass()">{{ formatCurrency(profit) }}</span>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isLoading">Cancelar</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isLoading">
+    <mat-spinner *ngIf="isLoading" diameter="20" class="spinner"></mat-spinner>
+    <span *ngIf="!isLoading">Guardar</span>
+  </button>
+</mat-dialog-actions>

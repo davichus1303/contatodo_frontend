@@ -1,0 +1,54 @@
+<div class="sales-container">
+  <div class="header-actions">
+    <button 
+      mat-raised-button 
+      color="accent" 
+      (click)="goToSalesHistory()"
+      class="history-btn">
+      <mat-icon>history</mat-icon>
+      Historial de Ventas
+    </button>
+  </div>
+
+  <div class="search-bar">
+    <form [formGroup]="searchControl">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput formControlName="search" placeholder="Buscar por nombre o código">
+      </mat-form-field>
+    </form>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <div *ngIf="!isLoading && filteredProducts.length === 0" class="empty-state">
+    <mat-icon>inventory_2</mat-icon>
+    <p>No hay productos disponibles</p>
+  </div>
+
+  <div class="products-grid" *ngIf="!isLoading">
+    <mat-card *ngFor="let product of filteredProducts" class="product-card" (click)="openSaleDialog(product)">
+      <mat-card-header>
+        <mat-card-title>{{ product.name }}</mat-card-title>
+        <mat-card-subtitle>Código: {{ product.code }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="product-info">
+          <div class="info-item">
+            <mat-icon>inventory</mat-icon>
+            <span>Stock: {{ product.stock }}</span>
+          </div>
+          <div class="info-item">
+            <mat-icon>attach_money</mat-icon>
+            <span>Precio: {{ formatCurrency(product.unitPublicCost) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button color="primary">Vender</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

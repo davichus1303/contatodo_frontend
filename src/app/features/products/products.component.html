@@ -1,0 +1,78 @@
+<div class="products-page">
+  <div class="page-header">
+    <div>
+      <h1>{{ i18nService.translate('PRODUCTS.TITLE') }}</h1>
+      <p>{{ i18nService.translate('PRODUCTS.SUBTITLE') }}</p>
+    </div>
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()" [disabled]="isSaving()">
+        <mat-icon>add</mat-icon>
+        <span>{{ i18nService.translate('PRODUCTS.ADD_PRODUCT') }}</span>
+      </button>
+      <button mat-stroked-button (click)="goToSales()">
+        <mat-icon>arrow_back</mat-icon>
+        <span>{{ i18nService.translate('PRODUCTS.BACK_TO_SALES') }}</span>
+      </button>
+    </div>
+  </div>
+
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>{{ i18nService.translate('PRODUCTS.SEARCH_PLACEHOLDER') }}</mat-label>
+    <input matInput [formControl]="searchControl" />
+  </mat-form-field>
+
+  <div class="sort-controls">
+    <button mat-button (click)="setSort('name')">
+      {{ i18nService.translate('PRODUCTS.SORT.NAME') }}
+      <mat-icon>{{ sortBy() === 'name' ? (sortDirection() === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</mat-icon>
+    </button>
+    <button mat-button (click)="setSort('price')">
+      {{ i18nService.translate('PRODUCTS.SORT.PRICE') }}
+      <mat-icon>{{ sortBy() === 'price' ? (sortDirection() === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</mat-icon>
+    </button>
+    <button mat-button (click)="setSort('stock')">
+      {{ i18nService.translate('PRODUCTS.SORT.STOCK') }}
+      <mat-icon>{{ sortBy() === 'stock' ? (sortDirection() === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</mat-icon>
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (filteredProducts().length === 0) {
+    <div class="empty-state">
+      <mat-icon>inventory_2</mat-icon>
+      <p>{{ i18nService.translate('PRODUCTS.EMPTY_STATE') }}</p>
+    </div>
+  } @else {
+    <div class="products-grid">
+      @for (product of filteredProducts(); track product.id) {
+        <mat-card class="product-card">
+          <div class="product-image">
+            @if (product.urlPhoto) {
+              <img [src]="product.urlPhoto" [alt]="product.name" />
+            } @else {
+              <mat-icon>inventory_2</mat-icon>
+            }
+          </div>
+          <mat-card-content>
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description }}</p>
+            <div class="product-meta">
+              <span><strong>{{ i18nService.translate('PRODUCTS.CARDS.STOCK') }}</strong> {{ product.stock }}</span>
+              <span><strong>{{ i18nService.translate('PRODUCTS.CARDS.CODE') }}</strong> {{ product.code }}</span>
+              <span><strong>{{ i18nService.translate('PRODUCTS.CARDS.REAL_COST') }}</strong> {{ product.realCost }}</span>
+              <span><strong>{{ i18nService.translate('PRODUCTS.CARDS.UNIT_PUBLIC_COST') }}</strong> {{ product.unitPublicCost }}</span>
+            </div>
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <button mat-stroked-button color="primary" (click)="openEditDialog(product)" [disabled]="isSaving()">
+              {{ i18nService.translate('PRODUCTS.EDIT_PRODUCT') }}
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

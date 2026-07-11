@@ -1,0 +1,38 @@
+<header class="modules-navigation">
+  <div class="left-section">
+    <button 
+      mat-button 
+      [matMenuTriggerFor]="modulesMenu"
+      (click)="openMenu()"
+      class="menu-button">
+      <mat-icon>menu</mat-icon>
+      <span class="menu-label">{{ i18nService.translate('MODULES_NAVIGATION.MODULES') }}</span>
+    </button>
+
+    <mat-menu #modulesMenu="matMenu" class="modules-menu">
+      @if (isLoading()) {
+        <div class="loading">
+          <mat-icon class="spinner">refresh</mat-icon>
+          <span>{{ i18nService.translate('MODULES_NAVIGATION.LOADING') }}</span>
+        </div>
+      } @else {
+        @for (module of modules(); track module.id) {
+          <button mat-menu-item (click)="navigateToModule(module.link)">
+            <span>{{ module.name }}</span>
+          </button>
+        }
+        @if (modules().length === 0) {
+          <div class="no-modules">
+            <span>{{ i18nService.translate('MODULES_NAVIGATION.NO_MODULES_AVAILABLE') }}</span>
+          </div>
+        }
+      }
+    </mat-menu>
+  </div>
+
+  <div class="right-section">
+    <button mat-icon-button (click)="logout()" class="logout-button" [matTooltip]="i18nService.translate('MODULES_NAVIGATION.LOGOUT')">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </div>
+</header>

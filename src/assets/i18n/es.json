@@ -1,0 +1,120 @@
+{
+  "login": {
+    "title": "Contatodo",
+    "subtitle": "Iniciar sesión",
+    "email": "Email",
+    "password": "Contraseña",
+    "loginButton": "Iniciar sesión",
+    "emailRequired": "Email es requerido",
+    "emailInvalid": "Por favor ingrese un email válido",
+    "passwordRequired": "Contraseña es requerida"
+  },
+  "sales": {
+    "title": "Ventas",
+    "searchPlaceholder": "Buscar por nombre o código",
+    "noProducts": "No hay productos disponibles",
+    "sell": "Vender",
+    "createSale": "Crear Venta",
+    "product": "Producto",
+    "code": "Código",
+    "stock": "Stock",
+    "publicPrice": "Precio Público",
+    "realCost": "Costo Real",
+    "quantity": "Cantidad",
+    "finalSalePrice": "Precio Final de Venta",
+    "notes": "Notas (opcional)",
+    "totalCost": "Costo Total",
+    "profit": "Ganancia",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "quantityRequired": "Cantidad es requerida",
+    "quantityMin": "Cantidad debe ser al menos 1",
+    "salePriceRequired": "Precio de venta es requerido",
+    "salePriceMin": "Precio de venta debe ser mayor a 0",
+    "saleCreated": "Venta creada exitosamente",
+    "errorLoadingProducts": "Error cargando productos",
+    "errorCreatingSale": "Error creando venta"
+  },
+  "toolbar": {
+    "logout": "Cerrar sesión"
+  },
+  "navigation": {
+    "sales": "Ventas",
+    "products": "Productos"
+  },
+  "SALES_HISTORY": {
+    "TITLE": "Historial de Ventas",
+    "NEW_SALE": "Nueva Venta",
+    "SEARCH_PLACEHOLDER": "Buscar por nombre de producto",
+    "START_DATE": "Fecha Inicio",
+    "END_DATE": "Fecha Fin",
+    "SEARCH": "Buscar",
+    "TOTAL_SALES": "Total Ventas",
+    "TOTAL_REVENUE": "Ingresos Totales",
+    "TOTAL_PROFIT": "Ganancia Total",
+    "NO_SALES_FOUND": "No se encontraron ventas para el rango de fechas seleccionado",
+    "QUANTITY": "Cantidad",
+    "ORIGINAL_PRICE": "Precio Original",
+    "FINAL_PRICE": "Precio Final",
+    "PROFIT": "Ganancia",
+    "ERROR_LOADING_SALES": "Error cargando ventas"
+  },
+  "GENERAL": {
+    "CLOSE": "Cerrar"
+  },
+  "MODULES_NAVIGATION": {
+    "MODULES": "Módulos",
+    "LOADING": "Cargando...",
+    "NO_MODULES_AVAILABLE": "No hay módulos disponibles",
+    "LOGOUT": "Cerrar sesión"
+  },
+  "PRODUCTS": {
+    "TITLE": "Productos",
+    "SUBTITLE": "Gestiona tus productos",
+    "ADD_PRODUCT": "Agregar producto",
+    "BACK_TO_SALES": "Volver a ventas",
+    "SEARCH_PLACEHOLDER": "Buscar por nombre",
+    "EDIT_PRODUCT": "Editar producto",
+    "EMPTY_STATE": "No hay productos disponibles",
+    "SORT": {
+      "NAME": "Nombre",
+      "PRICE": "Precio",
+      "STOCK": "Stock"
+    },
+    "CARDS": {
+      "STOCK": "Stock",
+      "CODE": "Código",
+      "REAL_COST": "Costo real",
+      "UNIT_PUBLIC_COST": "Precio público"
+    },
+    "MODAL": {
+      "CREATE_TITLE": "Crear nuevo producto",
+      "EDIT_TITLE": "Editar producto"
+    },
+    "FORM": {
+      "NAME": "Nombre",
+      "DESCRIPTION": "Descripción",
+      "STOCK": "Stock",
+      "REAL_COST": "Costo real",
+      "UNIT_REAL_COST": "Costo unitario",
+      "UNIT_PUBLIC_COST": "Precio unitario",
+      "ACTIVE": "Activo",
+      "CANCEL": "Cancelar",
+      "CREATE": "Crear",
+      "SAVE_CHANGES": "Guardar cambios"
+    },
+    "CONFIRMATION": {
+      "TITLE": "Confirmar actualización",
+      "MESSAGE": "¿Estás seguro de que deseas actualizar este producto?",
+      "CANCEL": "Cancelar",
+      "CONFIRM": "Guardar"
+    },
+    "MESSAGES": {
+      "CREATED": "Producto creado correctamente",
+      "UPDATED": "Producto actualizado correctamente",
+      "ERROR_LOADING_PRODUCTS": "Error cargando productos",
+      "ERROR_CREATING_PRODUCT": "Error creando producto",
+      "ERROR_UPDATING_PRODUCT": "Error actualizando producto"
+    }
+  }
+}
