@@ -1,0 +1,98 @@
+name: Frontend Deploy to EC2
+
+on:
+  workflow_run:
+    workflows: ["CI - Contatodo Web"]
+    types:
+      - completed
+    branches:
+      - master
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: master
+
+    env:
+      # PROVISIONAL IMAGE LINK - Update this after generating the image in GitHub
+      REGISTRY_IMAGE: ghcr.io/davichus1303/contatodo-web
+      EC2_APP_DIR: ${{ vars.EC2_APP_DIR || '/opt/contatodo-web' }}
+      SSH_HOST: ${{ vars.SSH_HOST || secrets.SSH_HOST }}
+      SSH_USER: ${{ vars.SSH_USER || secrets.SSH_USER }}
+      SSH_PORT: ${{ vars.SSH_PORT || secrets.SSH_PORT }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Resolve image reference
+        id: image
+        shell: bash
+        run: |
+          branch="${{ github.event.workflow_run.head_branch }}"
+          sha="${{ github.event.workflow_run.head_sha }}"
+          image_ref="${REGISTRY_IMAGE}:${branch}-${sha::7}"
+
+          echo "image_ref=${image_ref}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate docker-compose env file
+        shell: bash
+        env:
+          DEPLOY_IMAGE: ${{ steps.image.outputs.image_ref }}
+        run: |
+          mkdir -p .deploy-out
+          {
+            printf 'CONTATODO_WEB_IMAGE=%s\n' "$DEPLOY_IMAGE"
+          } > .deploy-out/contatodo-web.env
+          chmod 755 .deploy-out
+          chmod 644 .deploy-out/contatodo-web.env
+
+      - name: Validate SSH deployment settings
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          required_ssh_settings=(
+            SSH_HOST
+            SSH_USER
+            SSH_PORT
+            SSH_PRIVATE_KEY
+          )
+
+          for setting_name in "${required_ssh_settings[@]}"; do
+            if [ -z "${!setting_name}" ]; then
+              echo "::error::${setting_name} is required in the GitHub environment named master"
+              exit 1
+            fi
+          done
+
+      - name: Upload deployment bundle to EC2
+        uses: appleboy/scp-action@0.1.7
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ env.SSH_PORT }}
+          source: ".deploy-out/contatodo-web.env,deploy/docker-compose.ec2.yml,deploy/deploy-ec2.sh"
+          target: "/tmp/contatodo-web-deploy-${{ github.run_id }}"
+          overwrite: true
+
+      - name: Deploy frontend on EC2
+        uses: appleboy/ssh-action@1.2.0
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ env.SSH_PORT }}
+          script: |
+            set -eu
+            bundle_dir="/tmp/contatodo-web-deploy-${{ github.run_id }}"
+            
+            # Update docker-compose with the image reference
+            CONTATODO_WEB_IMAGE=$(cat "$bundle_dir/.deploy-out/contatodo-web.env" | grep CONTATODO_WEB_IMAGE | cut -d= -f2)
+            sed -i "s|\${CONTATODO_WEB_IMAGE:?CONTATODO_WEB_IMAGE is required}|$CONTATODO_WEB_IMAGE|g" "$bundle_dir/deploy/docker-compose.ec2.yml"
+            
+            chmod +x "$bundle_dir/deploy/deploy-ec2.sh"
+            "$bundle_dir/deploy/deploy-ec2.sh" "$bundle_dir" "${{ env.EC2_APP_DIR }}"
