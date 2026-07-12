@@ -16,8 +16,7 @@ jobs:
       name: master
 
     env:
-      # PROVISIONAL IMAGE LINK - Update this after generating the image in GitHub
-      REGISTRY_IMAGE: ghcr.io/davichus1303/contatodo-web
+      REGISTRY_IMAGE: ghcr.io/davichus1303/contatodo_frontend/contatodo-web
       EC2_APP_DIR: ${{ vars.EC2_APP_DIR || '/opt/contatodo-web' }}
       SSH_HOST: ${{ vars.SSH_HOST || secrets.SSH_HOST }}
       SSH_USER: ${{ vars.SSH_USER || secrets.SSH_USER }}
