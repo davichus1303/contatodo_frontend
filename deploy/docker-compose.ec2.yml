@@ -5,8 +5,14 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    networks:
+      - contatodo-network
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  contatodo-network:
+    external: true

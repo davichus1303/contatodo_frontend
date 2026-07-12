@@ -11,6 +11,9 @@ cp "$BUNDLE_DIR/deploy/docker-compose.ec2.yml" "$COMPOSE_FILE"
 
 cd "$APP_DIR"
 
+# Create network if it doesn't exist
+docker network create contatodo-network 2>/dev/null || true
+
 docker compose -f "$COMPOSE_FILE" pull
 docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 docker image prune -af
