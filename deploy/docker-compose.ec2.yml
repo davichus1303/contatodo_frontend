@@ -1,0 +1,12 @@
+services:
+  frontend:
+    image: ${CONTATODO_WEB_IMAGE:?CONTATODO_WEB_IMAGE is required}
+    container_name: contatodo-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
