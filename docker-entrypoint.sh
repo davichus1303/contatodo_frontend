@@ -20,6 +20,8 @@ EOF
 echo "Generated env.js with BASE_URL: ${BACKEND_URL:-http://localhost:8080}"
 echo "File contents:"
 cat "$ENV_FILE"
+echo "File permissions:"
+ls -la "$ENV_FILE"
 
 # Start Nginx
 echo "Starting Nginx..."
