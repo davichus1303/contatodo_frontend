@@ -42,6 +42,7 @@ jobs:
           DEPLOY_IMAGE: ${{ steps.image.outputs.image_ref }}
           BACKEND_URL: ${{ vars.BACKEND_URL || secrets.BACKEND_URL }}
         run: |
+          echo "BACKEND_URL value: $BACKEND_URL"
           mkdir -p .deploy-out
           {
             printf 'CONTATODO_WEB_IMAGE=%s\n' "$DEPLOY_IMAGE"
@@ -49,6 +50,8 @@ jobs:
           } > .deploy-out/contatodo-web.env
           chmod 755 .deploy-out
           chmod 644 .deploy-out/contatodo-web.env
+          echo "Generated .env file contents:"
+          cat .deploy-out/contatodo-web.env
 
       - name: Validate SSH deployment settings
         shell: bash
