@@ -40,10 +40,12 @@ jobs:
         shell: bash
         env:
           DEPLOY_IMAGE: ${{ steps.image.outputs.image_ref }}
+          BACKEND_URL: ${{ vars.BACKEND_URL || secrets.BACKEND_URL }}
         run: |
           mkdir -p .deploy-out
           {
             printf 'CONTATODO_WEB_IMAGE=%s\n' "$DEPLOY_IMAGE"
+            printf 'BACKEND_URL=%s\n' "$BACKEND_URL"
           } > .deploy-out/contatodo-web.env
           chmod 755 .deploy-out
           chmod 644 .deploy-out/contatodo-web.env
@@ -88,10 +90,6 @@ jobs:
           script: |
             set -eu
             bundle_dir="/tmp/contatodo-web-deploy-${{ github.run_id }}"
-            
-            # Update docker-compose with the image reference
-            CONTATODO_WEB_IMAGE=$(cat "$bundle_dir/.deploy-out/contatodo-web.env" | grep CONTATODO_WEB_IMAGE | cut -d= -f2)
-            sed -i "s|\${CONTATODO_WEB_IMAGE:?CONTATODO_WEB_IMAGE is required}|$CONTATODO_WEB_IMAGE|g" "$bundle_dir/deploy/docker-compose.ec2.yml"
             
             chmod +x "$bundle_dir/deploy/deploy-ec2.sh"
             "$bundle_dir/deploy/deploy-ec2.sh" "$bundle_dir" "${{ env.EC2_APP_DIR }}"
