@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    environment:
+      - BACKEND_URL=${BACKEND_URL:?BACKEND_URL is required}
     networks:
       - contatodo-network
     logging:
