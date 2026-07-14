@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/contatodo-web
+  IMAGE_NAME: davichus1303/contatodo_frontend/contatodo-web
 
 jobs:
   build:

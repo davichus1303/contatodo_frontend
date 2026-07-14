@@ -31,6 +31,10 @@ COPY --from=build /app/dist/contatodo_web/browser /usr/share/nginx/html
 # Copy custom Nginx configuration
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
+# Copy entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

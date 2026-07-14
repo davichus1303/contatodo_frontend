@@ -16,8 +16,7 @@ jobs:
       name: master
 
     env:
-      # PROVISIONAL IMAGE LINK - Update this after generating the image in GitHub
-      REGISTRY_IMAGE: ghcr.io/davichus1303/contatodo-web
+      REGISTRY_IMAGE: ghcr.io/davichus1303/contatodo_frontend/contatodo-web
       EC2_APP_DIR: ${{ vars.EC2_APP_DIR || '/opt/contatodo-web' }}
       SSH_HOST: ${{ vars.SSH_HOST || secrets.SSH_HOST }}
       SSH_USER: ${{ vars.SSH_USER || secrets.SSH_USER }}
@@ -41,13 +40,18 @@ jobs:
         shell: bash
         env:
           DEPLOY_IMAGE: ${{ steps.image.outputs.image_ref }}
+          BACKEND_URL: ${{ vars.BACKEND_URL || secrets.BACKEND_URL }}
         run: |
+          echo "BACKEND_URL value: $BACKEND_URL"
           mkdir -p .deploy-out
           {
             printf 'CONTATODO_WEB_IMAGE=%s\n' "$DEPLOY_IMAGE"
+            printf 'BACKEND_URL=%s\n' "$BACKEND_URL"
           } > .deploy-out/contatodo-web.env
           chmod 755 .deploy-out
           chmod 644 .deploy-out/contatodo-web.env
+          echo "Generated .env file contents:"
+          cat .deploy-out/contatodo-web.env
 
       - name: Validate SSH deployment settings
         shell: bash
@@ -69,7 +73,7 @@ jobs:
           done
 
       - name: Upload deployment bundle to EC2
-        uses: appleboy/scp-action@0.1.7
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
@@ -80,7 +84,7 @@ jobs:
           overwrite: true
 
       - name: Deploy frontend on EC2
-        uses: appleboy/ssh-action@1.2.0
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
@@ -89,10 +93,6 @@ jobs:
           script: |
             set -eu
             bundle_dir="/tmp/contatodo-web-deploy-${{ github.run_id }}"
-            
-            # Update docker-compose with the image reference
-            CONTATODO_WEB_IMAGE=$(cat "$bundle_dir/.deploy-out/contatodo-web.env" | grep CONTATODO_WEB_IMAGE | cut -d= -f2)
-            sed -i "s|\${CONTATODO_WEB_IMAGE:?CONTATODO_WEB_IMAGE is required}|$CONTATODO_WEB_IMAGE|g" "$bundle_dir/deploy/docker-compose.ec2.yml"
             
             chmod +x "$bundle_dir/deploy/deploy-ec2.sh"
             "$bundle_dir/deploy/deploy-ec2.sh" "$bundle_dir" "${{ env.EC2_APP_DIR }}"
