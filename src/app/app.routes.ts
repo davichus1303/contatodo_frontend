@@ -3,6 +3,8 @@ import { LoginComponent } from './features/login/login.component';
 import { SalesComponent } from './features/sales/sales.component';
 import { SalesHistoryComponent } from './features/sales/sales-history/sales-history.component';
 import { ProductsComponent } from './features/products/products.component';
+import { AcquisitionsComponent } from './features/acquisitions/acquisitions.component';
+import { NewAcquisitionComponent } from './features/acquisitions/new-acquisition.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
 
@@ -25,6 +27,16 @@ export const routes: Routes = [
   {
     path: 'products',
     component: ProductsComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'acquisitions',
+    component: AcquisitionsComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'acquisitions/new',
+    component: NewAcquisitionComponent,
     canActivate: [AuthGuard]
   },
   {

@@ -22,6 +22,8 @@ export const BASE_URL = getEnvValue('BASE_URL', 'http://localhost:8080');
 export const SLASH = getEnvValue('SLASH', '/');
 export const PRODUCTS = getEnvValue('PRODUCTS', 'products');
 export const SALES = getEnvValue('SALES', 'sales');
+export const ACQUISITIONS = getEnvValue('ACQUISITIONS', 'acquisitions');
 
 export const PRODUCTS_URL = `${BASE_URL}${SLASH}${PRODUCTS}`;
 export const SALES_URL = `${BASE_URL}${SLASH}${SALES}`;
+export const ACQUISITIONS_URL = `${BASE_URL}${SLASH}${ACQUISITIONS}`;
