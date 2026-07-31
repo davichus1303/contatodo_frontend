@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
+import { I18nService } from '../../shared/utils/i18n.util';
 
 /**
  * Application navigation component.
@@ -19,7 +20,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./navigation.component.scss']
 })
 export class NavigationComponent {
-  constructor(private router: Router) {}
+  private readonly router = inject(Router);
+  readonly i18nService = inject(I18nService);
 
   /**
    * Navigates to the sales page.
@@ -33,5 +35,12 @@ export class NavigationComponent {
    */
   navigateToProducts(): void {
     this.router.navigate(['/products']);
+  }
+
+  /**
+   * Navigates to the acquisitions page.
+   */
+  navigateToAcquisitions(): void {
+    this.router.navigate(['/acquisitions']);
   }
 }

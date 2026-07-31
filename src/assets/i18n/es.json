@@ -40,7 +40,8 @@
   },
   "navigation": {
     "sales": "Ventas",
-    "products": "Productos"
+    "products": "Productos",
+    "acquisitions": "Compras"
   },
   "SALES_HISTORY": {
     "TITLE": "Historial de Ventas",
@@ -97,7 +98,7 @@
       "STOCK": "Stock",
       "REAL_COST": "Costo real",
       "UNIT_REAL_COST": "Costo unitario",
-      "UNIT_PUBLIC_COST": "Precio unitario",
+      "UNIT_PUBLIC_COST": "Precio público unitario",
       "ACTIVE": "Activo",
       "CANCEL": "Cancelar",
       "CREATE": "Crear",
@@ -115,6 +116,58 @@
       "ERROR_LOADING_PRODUCTS": "Error cargando productos",
       "ERROR_CREATING_PRODUCT": "Error creando producto",
       "ERROR_UPDATING_PRODUCT": "Error actualizando producto"
+    }
+  },
+  "ACQUISITIONS": {
+    "TITLE": "Adquisiciones",
+    "SUBTITLE": "Gestiona tus adquisiciones de mercancía",
+    "NEW_ACQUISITION": "Nueva Adquisición",
+    "BACK": "Volver",
+    "START_DATE": "Fecha Inicio",
+    "END_DATE": "Fecha Fin",
+    "TOTAL_INVESTMENT": "Inversión Total",
+    "NO_ACQUISITIONS_FOUND": "No se encontraron adquisiciones para el rango de fechas seleccionado",
+    "TYPE": "Tipo",
+    "QUANTITY": "Cantidad",
+    "REAL_COST": "Costo Real",
+    "UNIT_REAL_COST": "Costo Unitario Real",
+    "UNIT_PUBLIC_COST": "Costo Unitario Público",
+    "DATE": "Fecha",
+    "SUPPLIER": "Proveedor",
+    "FORM": {
+      "PRODUCT": "Producto",
+      "PRODUCT_SEARCH_PLACEHOLDER": "Buscar un producto o escribir para crear uno nuevo",
+      "CREATE_NEW_PRODUCT": "Crear Nuevo Producto",
+      "NEW_PRODUCT_DETAILS": "Detalles del Nuevo Producto",
+      "PRODUCT_NAME": "Nombre del Producto",
+      "DESCRIPTION": "Descripción",
+      "CODE": "Código",
+      "INITIAL_STOCK": "Stock Inicial",
+      "PHOTO_URL": "URL de Foto (opcional)",
+      "CURRENT_PRODUCT_INFO": "Información del Producto Actual",
+      "CURRENT_STOCK": "Stock Actual",
+      "CURRENT_REAL_COST": "Costo Real Actual",
+      "CURRENT_UNIT_REAL_COST": "Costo Unitario Real Actual",
+      "CURRENT_UNIT_PUBLIC_COST": "Costo Unitario Público Actual",
+      "ACQUISITION_TYPE": "Tipo de Adquisición",
+      "REAL_COST": "Costo Real",
+      "UNIT_REAL_COST": "Costo Unitario Real",
+      "UNIT_PUBLIC_COST": "Costo Unitario Público",
+      "SUPPLIER": "Proveedor (opcional)",
+      "INVOICE_NUMBER": "Número de Factura (opcional)",
+      "OBSERVATIONS": "Observaciones",
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar Adquisición"
+    },
+    "CONFIRMATION": {
+      "TITLE": "Confirmar Adquisición",
+      "MESSAGE": "¿Estás seguro de que deseas registrar esta adquisición?"
+    },
+    "MESSAGES": {
+      "ERROR_LOADING_ACQUISITIONS": "Error cargando adquisiciones",
+      "ERROR_LOADING_PRODUCTS": "Error cargando productos",
+      "ACQUISITION_REGISTERED_SUCCESSFULLY": "Adquisición registrada exitosamente",
+      "ERROR_REGISTERING_ACQUISITION": "Error registrando adquisición"
     }
   }
 }

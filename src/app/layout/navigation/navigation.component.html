@@ -1,10 +1,14 @@
 <mat-nav-list>
   <a mat-list-item (click)="navigateToSales()">
     <mat-icon mat-list-icon>point_of_sale</mat-icon>
-    <span mat-line>Ventas</span>
+    <span mat-line>{{ i18nService.translate('navigation.sales') }}</span>
   </a>
   <a mat-list-item (click)="navigateToProducts()">
     <mat-icon mat-list-icon>inventory_2</mat-icon>
-    <span mat-line>Productos</span>
+    <span mat-line>{{ i18nService.translate('navigation.products') }}</span>
+  </a>
+  <a mat-list-item (click)="navigateToAcquisitions()">
+    <mat-icon mat-list-icon>shopping_cart</mat-icon>
+    <span mat-line>{{ i18nService.translate('navigation.acquisitions') }}</span>
   </a>
 </mat-nav-list>
