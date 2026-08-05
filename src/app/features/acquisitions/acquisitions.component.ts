@@ -50,7 +50,15 @@ export class AcquisitionsComponent implements OnDestroy {
   readonly isLoading = signal<boolean>(false);
 
   readonly totalInvestment = computed(() => {
-    return this.acquisitions().reduce((sum: number, acquisition: Acquisition) => sum + acquisition.realCost, 0);
+    return this.acquisitions()
+      .filter((acquisition: Acquisition) => !acquisition.productName || acquisition.productName === 'Unknown')
+      .reduce((sum: number, acquisition: Acquisition) => sum + acquisition.realCost, 0);
+  });
+
+  readonly totalExpenses = computed(() => {
+    return this.acquisitions()
+      .filter((acquisition: Acquisition) => acquisition.productName && acquisition.productName !== 'Unknown')
+      .reduce((sum: number, acquisition: Acquisition) => sum + acquisition.realCost, 0);
   });
 
   constructor() {

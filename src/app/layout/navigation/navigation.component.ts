@@ -43,4 +43,11 @@ export class NavigationComponent {
   navigateToAcquisitions(): void {
     this.router.navigate(['/acquisitions']);
   }
+
+  /**
+   * Navigates to the acquisition type catalog page.
+   */
+  navigateToAcquisitionTypeCatalog(): void {
+    this.router.navigate(['/acquisition-type-catalog']);
+  }
 }

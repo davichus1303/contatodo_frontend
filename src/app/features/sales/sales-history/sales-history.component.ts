@@ -11,8 +11,12 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { SalesService } from '../sales.service';
+import { AcquisitionsService } from '../../acquisitions/acquisitions.service';
 import { Sale } from '../../../shared/models/sale.model';
+import { Acquisition } from '../../../shared/models/acquisition.model';
+import { I18nService } from '../../../shared/utils/i18n.util';
 import { GENERAL_CONSTANTS } from '../../../shared/constants/general.constants';
+import { SALES_HISTORY_CONSTANTS } from './sales-history.constants';
 
 /**
  * Sales History page component.
@@ -38,19 +42,24 @@ import { GENERAL_CONSTANTS } from '../../../shared/constants/general.constants';
 export class SalesHistoryComponent implements OnInit {
   sales: Sale[] = [];
   filteredSales: Sale[] = [];
+  acquisitions: Acquisition[] = [];
   dateRangeForm: FormGroup;
   searchControl: FormGroup;
   isLoading = false;
   summary = {
     totalSales: 0,
     totalRevenue: 0,
-    totalProfit: 0
+    totalProfit: 0,
+    totalExpenses: 0,
+    grossProfit: 0
   };
 
   private salesService = inject(SalesService);
+  private acquisitionsService = inject(AcquisitionsService);
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
+  readonly i18nService = inject(I18nService);
 
   constructor() {
     const today = new Date();
@@ -86,19 +95,59 @@ export class SalesHistoryComponent implements OnInit {
     const startDate = this.dateRangeForm.get('startDate')?.value;
     const endDate = this.dateRangeForm.get('endDate')?.value;
 
-    this.salesService.getSalesByDateRange(startDate, endDate).subscribe({
+    const formattedStartDate = this.getFormatedDate(startDate);
+    const formattedEndDate = this.getFormatedDate(endDate, SALES_HISTORY_CONSTANTS.DATE.DEFAULT_END_TIME);
+    
+    this.salesService.getSalesByDateRange(formattedStartDate, formattedEndDate).subscribe({
       next: (response: any) => {
         this.sales = response.data || [];
         this.filteredSales = [...this.sales];
+        this.loadAcquisitions(formattedStartDate, formattedEndDate);
+      },
+      error: (error: any) => {
+        this.snackBar.open(
+          this.i18nService.translate('SALES_HISTORY.ERROR_LOADING_SALES'),
+          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
+          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
+        );
+        this.isLoading = false;
+      }
+    });
+  }
+
+  /**
+   * Formats a date to the required format for the API.
+   * @param date The date to format.
+   * @param defaultTime The default time to use if no time is provided.
+   * @returns The formatted date.
+   */
+  private getFormatedDate(date: Date, defaultTime: string = SALES_HISTORY_CONSTANTS.DATE.DEFAULT_START_TIME): Date {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(SALES_HISTORY_CONSTANTS.DATE.MONTH_PADDING, SALES_HISTORY_CONSTANTS.STRING_ZERO);
+    const day = String(date.getDate()).padStart(SALES_HISTORY_CONSTANTS.DATE.DAY_PADDING, SALES_HISTORY_CONSTANTS.STRING_ZERO);
+    const datePart = `${year}${SALES_HISTORY_CONSTANTS.DATE.DATE_SEPARATOR}${month}${SALES_HISTORY_CONSTANTS.DATE.DATE_SEPARATOR}${day}`;
+    const timePart = defaultTime;
+    return new Date(`${datePart}${SALES_HISTORY_CONSTANTS.DATE.DATE_TIME_SEPARATOR}${timePart}`);
+  }
+
+  /**
+   * Loads acquisitions for the selected date range.
+   */
+  private loadAcquisitions(startDate: Date, endDate: Date): void {
+    this.acquisitionsService.getAcquisitions(startDate, endDate).subscribe({
+      next: (response: any) => {
+        this.acquisitions = response.data || [];
         this.calculateSummary();
         this.isLoading = false;
       },
       error: (error: any) => {
         this.snackBar.open(
-          'Error cargando ventas',
-          'Cerrar',
+          this.i18nService.translate('SALES_HISTORY.ERROR_LOADING_ACQUISITIONS'),
+          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
           { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
         );
+        this.acquisitions = [];
+        this.calculateSummary();
         this.isLoading = false;
       }
     });
@@ -125,13 +174,21 @@ export class SalesHistoryComponent implements OnInit {
    * Calculates summary statistics.
    */
   private calculateSummary(): void {
+    const totalProfit = this.sales.reduce((sum, sale) => {
+      const profit = (sale.totalSalePrice || 0) - (sale.totalCost || 0);
+      return sum + profit;
+    }, 0);
+
+    const totalExpenses = this.acquisitions
+      .filter((acquisition: Acquisition) => acquisition.productName && acquisition.productName !== 'Unknown' && acquisition.productName !== '0')
+      .reduce((sum: number, acquisition: Acquisition) => sum + acquisition.realCost, 0);
+
     this.summary = {
       totalSales: this.sales.length,
       totalRevenue: this.sales.reduce((sum, sale) => sum + (sale.totalSalePrice || 0), 0),
-      totalProfit: this.sales.reduce((sum, sale) => {
-        const profit = (sale.totalSalePrice || 0) - (sale.totalCost || 0);
-        return sum + profit;
-      }, 0)
+      totalProfit: totalProfit,
+      totalExpenses: totalExpenses,
+      grossProfit: totalProfit - totalExpenses
     };
   }
 

@@ -52,16 +52,25 @@
     "SEARCH": "Buscar",
     "TOTAL_SALES": "Total Ventas",
     "TOTAL_REVENUE": "Ingresos Totales",
+    "TOTAL_EXPENSES": "Gastos Totales",
     "TOTAL_PROFIT": "Ganancia Total",
+    "GROSS_PROFIT": "Utilidad Bruta",
     "NO_SALES_FOUND": "No se encontraron ventas para el rango de fechas seleccionado",
     "QUANTITY": "Cantidad",
     "ORIGINAL_PRICE": "Precio Original",
     "FINAL_PRICE": "Precio Final",
     "PROFIT": "Ganancia",
-    "ERROR_LOADING_SALES": "Error cargando ventas"
+    "ERROR_LOADING_SALES": "Error cargando ventas",
+    "ERROR_LOADING_ACQUISITIONS": "Error cargando adquisiciones"
   },
   "GENERAL": {
     "CLOSE": "Cerrar"
+  },
+  "AUTH": {
+    "MESSAGES": {
+      "SESSION_EXPIRED": "Tu sesión ha expirado. Inicia sesión nuevamente.",
+      "FORBIDDEN": "No tienes permisos para realizar esta acción."
+    }
   },
   "MODULES_NAVIGATION": {
     "MODULES": "Módulos",
@@ -126,6 +135,7 @@
     "START_DATE": "Fecha Inicio",
     "END_DATE": "Fecha Fin",
     "TOTAL_INVESTMENT": "Inversión Total",
+    "TOTAL_EXPENSES": "Gastos Totales",
     "NO_ACQUISITIONS_FOUND": "No se encontraron adquisiciones para el rango de fechas seleccionado",
     "TYPE": "Tipo",
     "QUANTITY": "Cantidad",
@@ -168,6 +178,74 @@
       "ERROR_LOADING_PRODUCTS": "Error cargando productos",
       "ACQUISITION_REGISTERED_SUCCESSFULLY": "Adquisición registrada exitosamente",
       "ERROR_REGISTERING_ACQUISITION": "Error registrando adquisición"
+    }
+  },
+  "ACQUISITION_TYPE_CATALOG": {
+    "TITLE": "Catálogo de Tipos de Adquisición",
+    "SUBTITLE": "Gestiona tus tipos de adquisición",
+    "NEW_BUTTON": "Nuevo Tipo de Adquisición",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por nombre"
+    },
+    "SORT": {
+      "LABEL": "Ordenar por",
+      "OPTIONS": {
+        "NAME_ASC": "Nombre Ascendente",
+        "NAME_DESC": "Nombre Descendente",
+        "ACTIVE_FIRST": "Activos Primero",
+        "INACTIVE_FIRST": "Inactivos Primero"
+      }
+    },
+    "EMPTY_STATE": "No se encontraron tipos de adquisición",
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Activar/Desactivar"
+    },
+    "MODAL": {
+      "CREATE_TITLE": "Nuevo Tipo de Adquisición",
+      "EDIT_TITLE": "Editar Tipo de Adquisición",
+      "NAME": "Nombre",
+      "DESCRIPTION": "Descripción",
+      "AFFECTS_INVENTORY": "Afecta inventario",
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar"
+    },
+    "VALIDATION": {
+      "NAME_REQUIRED": "El nombre es requerido"
+    },
+    "CONFIRMATION": {
+      "TITLE": "Confirmación",
+      "MESSAGE": "La información del Tipo de Adquisición será modificada. ¿Deseas continuar?",
+      "CANCEL": "Cancelar",
+      "CONFIRM": "Confirmar"
+    },
+    "DELETE": {
+      "TITLE": "Eliminar",
+      "MESSAGE": "Se eliminará el Tipo de Adquisición seleccionado. ¿Deseas continuar?",
+      "CANCEL": "Cancelar",
+      "CONFIRM": "Eliminar",
+      "ERROR": "Error eliminando tipo de adquisición"
+    },
+    "MESSAGES": {
+      "ERROR_LOADING": "Error cargando tipos de adquisición",
+      "CREATED": "Tipo de adquisición creado exitosamente",
+      "UPDATED": "Tipo de adquisición actualizado exitosamente",
+      "ERROR_CREATING": "Error creando tipo de adquisición",
+      "ERROR_UPDATING": "Error actualizando tipo de adquisición",
+      "CONFIRM_DEACTIVATE_TITLE": "Desactivar",
+      "CONFIRM_ACTIVATE_TITLE": "Activar",
+      "CONFIRM_DEACTIVATE_MESSAGE": "Se desactivará el tipo de adquisición seleccionado y no podrá usarse en el sistema. ¿Deseas continuar?",
+      "CONFIRM_ACTIVATE_MESSAGE": "Se activará el tipo de adquisición seleccionado y podrá usarse en el sistema. ¿Deseas continuar?",
+      "CONFIRM": "Aceptar",
+      "CANCEL": "Cancelar",
+      "UPDATE_SUCCESS": "Tipo de adquisición actualizado exitosamente",
+      "UPDATE_ERROR": "Error actualizando tipo de adquisición"
     }
   }
 }

@@ -7,7 +7,7 @@ export interface CreateAcquisitionRequest {
   description?: string;
   quantity: number;
   realCost: number;
-  unitPublicCost: number;
+  unitPublicCost?: number;
   supplierOid?: string;
   supplierName?: string;
   invoiceNumber?: string;

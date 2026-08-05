@@ -70,17 +70,27 @@
       <mat-card>
         <mat-card-content>
           <div class="summary-item">
-            <span class="summary-label">Total Ventas:</span>
+            <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.TOTAL_SALES') }}:</span>
             <span class="summary-value">{{ summary.totalSales }}</span>
           </div>
           <div class="summary-item">
-            <span class="summary-label">Ingresos Totales:</span>
+            <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.TOTAL_REVENUE') }}:</span>
             <span class="summary-value">{{ formatCurrency(summary.totalRevenue) }}</span>
           </div>
           <div class="summary-item">
-            <span class="summary-label">Ganancia Total:</span>
+            <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.TOTAL_EXPENSES') }}:</span>
+            <span class="summary-value">{{ formatCurrency(summary.totalExpenses) }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.TOTAL_PROFIT') }}:</span>
             <span class="summary-value" [ngClass]="getProfitColorClass(summary.totalProfit)">
               {{ formatCurrency(summary.totalProfit) }}
+            </span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.GROSS_PROFIT') }}:</span>
+            <span class="summary-value" [ngClass]="getProfitColorClass(summary.grossProfit)">
+              {{ formatCurrency(summary.grossProfit) }}
             </span>
           </div>
         </mat-card-content>

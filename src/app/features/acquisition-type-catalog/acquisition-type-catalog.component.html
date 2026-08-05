@@ -1,0 +1,78 @@
+<div class="acquisition-type-catalog-page">
+  <div class="page-header">
+    <div>
+      <h1>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.TITLE') }}</h1>
+      <p>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.SUBTITLE') }}</p>
+    </div>
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        <span>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.NEW_BUTTON') }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.SEARCH.LABEL') }}</mat-label>
+      <input matInput [formControl]="searchControl" [placeholder]="i18nService.translate('ACQUISITION_TYPE_CATALOG.SEARCH.PLACEHOLDER')" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="sort-field">
+      <mat-label>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.SORT.LABEL') }}</mat-label>
+      <mat-select [formControl]="sortControl">
+        @for (option of sortOptions; track option.value) {
+          <mat-option [value]="option.value">{{ i18nService.translate(option.labelKey) }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (filteredAcquisitionTypes().length === 0) {
+    <div class="empty-state">
+      <mat-icon>category</mat-icon>
+      <p>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.EMPTY_STATE') }}</p>
+    </div>
+  } @else {
+    <div class="acquisition-types-grid">
+      @for (type of filteredAcquisitionTypes(); track type.id) {
+        <mat-card class="acquisition-type-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3>{{ type.name }}</h3>
+              <span [class]="getStatusBadgeClass(type.isActive)" class="status-badge">
+                {{
+                  type.isActive
+                    ? i18nService.translate('ACQUISITION_TYPE_CATALOG.STATUS.ACTIVE')
+                    : i18nService.translate('ACQUISITION_TYPE_CATALOG.STATUS.INACTIVE')
+                }}
+              </span>
+            </div>
+            @if (type.description) {
+              <p class="description">{{ type.description }}</p>
+            }
+            <div class="card-actions">
+              <button mat-icon-button color="primary" [title]="i18nService.translate('ACQUISITION_TYPE_CATALOG.ACTIONS.EDIT')" (click)="openEditDialog(type)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button mat-icon-button color="warn" [title]="i18nService.translate('ACQUISITION_TYPE_CATALOG.ACTIONS.DELETE')" (click)="openDeleteDialog(type)">
+                <i class="bi bi-trash"></i>
+              </button>
+              <mat-slide-toggle
+                [checked]="type.isActive"
+                [disabled]="isUpdating(type.id)"
+                (change)="onToggleChange(type, $event)"
+                [title]="i18nService.translate('ACQUISITION_TYPE_CATALOG.ACTIONS.TOGGLE_STATUS')"
+              ></mat-slide-toggle>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>
