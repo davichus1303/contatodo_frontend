@@ -28,8 +28,13 @@
     </mat-form-field>
   </div>
 
-  <div class="total-investment">
-    <strong>{{ i18nService.translate('ACQUISITIONS.TOTAL_INVESTMENT') }}:</strong> {{ formatCurrency(totalInvestment()) }}
+  <div class="totals-container">
+    <div class="total-investment">
+      <strong>{{ i18nService.translate('ACQUISITIONS.TOTAL_INVESTMENT') }}:</strong> {{ formatCurrency(totalInvestment()) }}
+    </div>
+    <div class="total-expenses">
+      <strong>{{ i18nService.translate('ACQUISITIONS.TOTAL_EXPENSES') }}:</strong> {{ formatCurrency(totalExpenses()) }}
+    </div>
   </div>
 
   @if (isLoading()) {
@@ -51,8 +56,12 @@
               <span><strong>{{ i18nService.translate('ACQUISITIONS.TYPE') }}:</strong> {{ acquisition.acquisitionType }}</span>
               <span><strong>{{ i18nService.translate('ACQUISITIONS.QUANTITY') }}:</strong> {{ acquisition.quantity }}</span>
               <span><strong>{{ i18nService.translate('ACQUISITIONS.REAL_COST') }}:</strong> {{ formatCurrency(acquisition.realCost) }}</span>
-              <span><strong>{{ i18nService.translate('ACQUISITIONS.UNIT_REAL_COST') }}:</strong> {{ formatCurrency(acquisition.unitRealCost) }}</span>
-              <span><strong>{{ i18nService.translate('ACQUISITIONS.UNIT_PUBLIC_COST') }}:</strong> {{ formatCurrency(acquisition.unitPublicCost) }}</span>
+              @if (acquisition.unitRealCost) {
+                <span><strong>{{ i18nService.translate('ACQUISITIONS.UNIT_REAL_COST') }}:</strong> {{ formatCurrency(acquisition.unitRealCost) }}</span>
+              }
+              @if (acquisition.unitPublicCost) {
+                <span><strong>{{ i18nService.translate('ACQUISITIONS.UNIT_PUBLIC_COST') }}:</strong> {{ formatCurrency(acquisition.unitPublicCost) }}</span>
+              }
               <span><strong>{{ i18nService.translate('ACQUISITIONS.DATE') }}:</strong> {{ formatDate(acquisition.acquisitionDate) }}</span>
               @if (acquisition.supplierName) {
                 <span><strong>{{ i18nService.translate('ACQUISITIONS.SUPPLIER') }}:</strong> {{ acquisition.supplierName }}</span>

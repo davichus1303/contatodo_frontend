@@ -11,4 +11,8 @@
     <mat-icon mat-list-icon>shopping_cart</mat-icon>
     <span mat-line>{{ i18nService.translate('navigation.acquisitions') }}</span>
   </a>
+  <a mat-list-item (click)="navigateToAcquisitionTypeCatalog()">
+    <mat-icon mat-list-icon>category</mat-icon>
+    <span mat-line>{{ i18nService.translate('navigation.acquisitionTypeCatalog') }}</span>
+  </a>
 </mat-nav-list>

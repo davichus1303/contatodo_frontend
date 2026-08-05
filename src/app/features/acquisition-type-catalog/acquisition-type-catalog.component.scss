@@ -1,4 +1,4 @@
-.acquisitions-page {
+.acquisition-type-catalog-page {
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
@@ -39,36 +39,15 @@
     margin-bottom: 24px;
     flex-wrap: wrap;
 
-    .date-field {
+    .search-field {
+      flex: 2;
+      min-width: 200px;
+    }
+
+    .sort-field {
       flex: 1;
       min-width: 200px;
     }
-  }
-
-  .totals-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    gap: 16px;
-  }
-
-  .total-investment,
-  .total-expenses {
-    font-size: 18px;
-    padding: 16px;
-    background-color: #f5f5f5;
-    border-radius: 8px;
-    white-space: nowrap;
-  }
-
-  .total-investment {
-    text-align: left;
-  }
-
-  .total-expenses {
-    text-align: right;
-    color: red;
   }
 
   .loading-state,
@@ -94,31 +73,63 @@
     }
   }
 
-  .acquisitions-grid {
+  .acquisition-types-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
 
-    .acquisition-card {
+    .acquisition-type-card {
       mat-card-content {
-        h3 {
-          margin: 0 0 16px 0;
-          font-size: 18px;
-          font-weight: 500;
-        }
-
-        .acquisition-details {
+        .card-header {
           display: flex;
-          flex-direction: column;
-          gap: 8px;
-          font-size: 14px;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+          gap: 12px;
 
-          span {
-            color: rgba(0, 0, 0, 0.8);
+          h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+            flex: 1;
           }
 
-          strong {
-            color: rgba(0, 0, 0, 0.6);
+          .status-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+
+            &.active {
+              background-color: #e8f5e9;
+              color: #2e7d32;
+            }
+
+            &.inactive {
+              background-color: #fff3e0;
+              color: #ef6c00;
+            }
+          }
+        }
+
+        .description {
+          margin: 0 0 16px 0;
+          color: rgba(0, 0, 0, 0.7);
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .card-actions {
+          display: flex;
+          gap: 8px;
+          justify-content: flex-end;
+          align-items: center;
+
+          i.bi {
+            font-size: 18px;
+            line-height: 1;
+            color: currentColor;
           }
         }
       }
@@ -127,7 +138,7 @@
 }
 
 @media (max-width: 768px) {
-  .acquisitions-page {
+  .acquisition-type-catalog-page {
     padding: 16px;
 
     .page-header {
@@ -147,12 +158,13 @@
     .filters {
       flex-direction: column;
 
-      .date-field {
+      .search-field,
+      .sort-field {
         width: 100%;
       }
     }
 
-    .acquisitions-grid {
+    .acquisition-types-grid {
       grid-template-columns: 1fr;
     }
   }

@@ -1,0 +1,22 @@
+.acquisition-type-dialog-form {
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  mat-dialog-actions {
+    button {
+      min-width: 88px;
+    }
+
+    mat-spinner {
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
+}

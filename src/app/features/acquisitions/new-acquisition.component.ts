@@ -68,7 +68,7 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   readonly isNewProduct = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
-  readonly acquisitionTypes = signal<{ id: string; name: string }[]>([]);
+  readonly acquisitionTypes = signal<AcquisitionType[]>([]);
 
   // Signals for reactive computation (initialized in ngOnInit)
   readonly realCost = signal(0);
@@ -86,12 +86,25 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
 
   readonly isFormValid = computed(() => {
     const hasProduct = this.selectedProduct() !== null || this.isNewProduct();
-    return hasProduct &&
-           this.acquisitionForm.get('acquisitionTypeOid')?.valid &&
-           (this.isNewProduct() || this.acquisitionForm.get('quantity')?.valid) &&
-           this.acquisitionForm.get('realCost')?.valid &&
-           this.acquisitionForm.get('unitPublicCost')?.valid &&
-           (!this.isNewProduct() || this.productFieldsValid());
+    const acquisitionTypeValid = this.acquisitionForm.get('acquisitionTypeOid')?.valid;
+    const quantityValid = this.acquisitionForm.get('quantity')?.valid;
+    const realCostValid = this.acquisitionForm.get('realCost')?.valid;
+    
+    if (this.affectsInventory()) {
+      // When affectsInventory is true, all inventory-related fields are required
+      return hasProduct &&
+             acquisitionTypeValid &&
+             quantityValid &&
+             realCostValid &&
+             this.acquisitionForm.get('unitPublicCost')?.valid &&
+             (!this.isNewProduct() || this.productFieldsValid());
+    } else {
+      // When affectsInventory is false, basic fields are required (including quantity)
+      return hasProduct &&
+             acquisitionTypeValid &&
+             quantityValid &&
+             realCostValid;
+    }
   });
 
   readonly unitRealCost = computed(() => {
@@ -102,13 +115,25 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     return qty > 0 ? cost / qty : 0;
   });
 
+  readonly selectedAcquisitionTypeId = signal<string | null>(null);
+
+  readonly selectedAcquisitionType = computed(() => {
+    const id = this.selectedAcquisitionTypeId();
+    return this.acquisitionTypes().find(t => t.id === id) ?? null;
+  });
+
+  readonly affectsInventory = computed(() => {
+    const type = this.selectedAcquisitionType();
+    return type?.affectsInventory ?? false;
+  });
+
   constructor() {
     this.acquisitionForm = this.fb.group({
       productSearch: [null],
       acquisitionTypeOid: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(1)]],
       realCost: [0, [Validators.required, Validators.min(0)]],
-      unitPublicCost: [0, [Validators.required, Validators.min(0)]],
+      unitPublicCost: [0, [Validators.min(0)]],
       supplierName: [''],
       invoiceNumber: [''],
       observations: [''],
@@ -138,12 +163,79 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     * Checks if the acquisition form is valid.
   */
   public isAqcisitionFormValid(): boolean | undefined {
-    let isAqcisitionFormValid: boolean | undefined = false;
-    isAqcisitionFormValid  = this.acquisitionForm.get('acquisitionTypeOid')?.valid &&
-    this.acquisitionForm.get('quantity')?.valid &&
-    this.acquisitionForm.get('realCost')?.valid &&
-    this.acquisitionForm.get('unitPublicCost')?.valid && this.productFieldsValid();
-    return isAqcisitionFormValid;
+    const acquisitionTypeValid = this.acquisitionForm.get('acquisitionTypeOid')?.valid;
+    const realCostValid = this.acquisitionForm.get('realCost')?.valid;
+    
+    if (this.affectsInventory()) {
+      // When affectsInventory is true, all inventory-related fields are required
+      return acquisitionTypeValid &&
+             this.acquisitionForm.get('quantity')?.valid &&
+             realCostValid &&
+             this.acquisitionForm.get('unitPublicCost')?.valid &&
+             this.productFieldsValid();
+    } else {
+      // When affectsInventory is false, only basic fields are required
+      return acquisitionTypeValid && realCostValid;
+    }
+  }
+
+  /**
+   * Handles changes in the acquisition type selection.
+   * Updates form validation and clears hidden field values when switching between types.
+   */
+  onAcquisitionTypeChange(): void {
+    const selectedId = this.acquisitionForm.get('acquisitionTypeOid')?.value;
+    this.selectedAcquisitionTypeId.set(selectedId);
+    this.updateValidationBasedOnAcquisitionType();
+  }
+
+  /**
+   * Updates form validation based on the selected acquisition type.
+   * When affectsInventory is false, removes required validators from hidden fields.
+   * When affectsInventory is true, adds required validators back.
+   * Also clears values when switching from affectsInventory=true to false.
+   */
+  private updateValidationBasedOnAcquisitionType(): void {
+    const unitPublicCostControl = this.acquisitionForm.get('unitPublicCost');
+    const quantityControl = this.acquisitionForm.get('quantity');
+    const newProductDescriptionControl = this.acquisitionForm.get('newProductDescription');
+    const newProductStockControl = this.acquisitionForm.get('newProductStock');
+    const newProductUrlPhotoControl = this.acquisitionForm.get('newProductUrlPhoto');
+
+    const selectedId = this.acquisitionForm.get('acquisitionTypeOid')?.value;
+    const selectedType = this.acquisitionTypes().find(type => type.id === selectedId);
+    const affectsInv = selectedType?.affectsInventory ?? false;
+
+    if (affectsInv) {
+      // Add required validators back
+      unitPublicCostControl?.setValidators([Validators.required, Validators.min(0)]);
+      quantityControl?.setValidators([Validators.required, Validators.min(1)]);
+      newProductDescriptionControl?.setValidators([Validators.required]);
+    } else {
+      // Remove required validators and clear values
+      unitPublicCostControl?.clearValidators();
+      unitPublicCostControl?.setValue(0);
+      unitPublicCostControl?.updateValueAndValidity();
+
+      quantityControl?.clearValidators();
+      quantityControl?.setValue(1);
+      quantityControl?.updateValueAndValidity();
+
+      newProductDescriptionControl?.clearValidators();
+      newProductDescriptionControl?.setValue('');
+      newProductDescriptionControl?.updateValueAndValidity();
+
+      newProductStockControl?.setValue(0);
+      newProductStockControl?.updateValueAndValidity();
+
+      newProductUrlPhotoControl?.setValue('');
+      newProductUrlPhotoControl?.updateValueAndValidity();
+    }
+
+    // Always update validity
+    unitPublicCostControl?.updateValueAndValidity();
+    quantityControl?.updateValueAndValidity();
+    newProductDescriptionControl?.updateValueAndValidity();
   }
 
   /**
@@ -154,8 +246,7 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response: ApiResponse<AcquisitionType[]>) => {
-        const types = response.data?.map(type => ({ id: type.id, name: type.name })) || [];
-        this.acquisitionTypes.set(types);
+        this.acquisitionTypes.set(response.data ?? []);
       },
       error: () => {
         this.snackBar.open(
@@ -176,9 +267,7 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.productSearchInput?.nativeElement?.focus();
-    }, ACQUISITIONS_CONSTANTS.DIALOG.FOCUS_DELAY_MS);
+    // No auto-focus on any form element
   }
 
   /**
@@ -328,18 +417,42 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
       productName: this.isNewProduct() 
         ? productName 
         : productName,
-      description: this.isNewProduct() 
-        ? this.acquisitionForm.get('newProductDescription')?.value || ''
-        : undefined,
       quantity: this.isNewProduct() 
-        ? this.acquisitionForm.get('newProductStock')?.value || 0
+        ? (this.acquisitionForm.get('newProductStock')?.value || 1)
         : this.acquisitionForm.get('quantity')?.value,
-      realCost: this.acquisitionForm.get('realCost')?.value,
-      unitPublicCost: this.acquisitionForm.get('unitPublicCost')?.value,
-      supplierName: this.acquisitionForm.get('supplierName')?.value || undefined,
-      invoiceNumber: this.acquisitionForm.get('invoiceNumber')?.value || undefined,
-      observations: this.acquisitionForm.get('observations')?.value || undefined
+      realCost: this.acquisitionForm.get('realCost')?.value
     };
+
+    // Only include optional fields if they have values
+    const supplierName = this.acquisitionForm.get('supplierName')?.value;
+    if (supplierName) {
+      request.supplierName = supplierName;
+    }
+
+    const invoiceNumber = this.acquisitionForm.get('invoiceNumber')?.value;
+    if (invoiceNumber) {
+      request.invoiceNumber = invoiceNumber;
+    }
+
+    const observations = this.acquisitionForm.get('observations')?.value;
+    if (observations) {
+      request.observations = observations;
+    }
+
+    // Only include inventory-related fields when affectsInventory is true
+    if (this.affectsInventory()) {
+      const unitPublicCost = this.acquisitionForm.get('unitPublicCost')?.value;
+      if (unitPublicCost) {
+        request.unitPublicCost = unitPublicCost;
+      }
+      
+      if (this.isNewProduct()) {
+        const description = this.acquisitionForm.get('newProductDescription')?.value;
+        if (description) {
+          request.description = description;
+        }
+      }
+    }
 
     this.acquisitionsService.createAcquisition(request).pipe(
       takeUntil(this.destroy$)
@@ -384,9 +497,6 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     });
     this.selectedProduct.set(null);
     this.isNewProduct.set(false);
-    setTimeout(() => {
-      this.productSearchInput?.nativeElement?.focus();
-    }, ACQUISITIONS_CONSTANTS.DIALOG.FOCUS_DELAY_MS);
   }
 
   /**

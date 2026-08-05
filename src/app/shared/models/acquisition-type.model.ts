@@ -7,6 +7,7 @@ export interface AcquisitionType {
   description?: string;
   isActive: boolean;
   isDeleted: boolean;
+  affectsInventory?: boolean;
   createdDate?: string;
   updatedDate?: string;
 }

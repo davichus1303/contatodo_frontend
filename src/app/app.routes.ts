@@ -5,6 +5,7 @@ import { SalesHistoryComponent } from './features/sales/sales-history/sales-hist
 import { ProductsComponent } from './features/products/products.component';
 import { AcquisitionsComponent } from './features/acquisitions/acquisitions.component';
 import { NewAcquisitionComponent } from './features/acquisitions/new-acquisition.component';
+import { AcquisitionTypeCatalogComponent } from './features/acquisition-type-catalog/acquisition-type-catalog.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
 
@@ -37,6 +38,11 @@ export const routes: Routes = [
   {
     path: 'acquisitions/new',
     component: NewAcquisitionComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'acquisition-type-catalog',
+    component: AcquisitionTypeCatalogComponent,
     canActivate: [AuthGuard]
   },
   {
