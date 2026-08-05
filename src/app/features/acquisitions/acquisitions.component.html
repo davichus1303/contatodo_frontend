@@ -1,0 +1,75 @@
+<div class="acquisitions-page">
+  <div class="page-header">
+    <div>
+      <h1>{{ i18nService.translate('ACQUISITIONS.TITLE') }}</h1>
+      <p>{{ i18nService.translate('ACQUISITIONS.SUBTITLE') }}</p>
+    </div>
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="goToNewAcquisition()">
+        <mat-icon>add</mat-icon>
+        <span>{{ i18nService.translate('ACQUISITIONS.NEW_ACQUISITION') }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="date-field">
+      <mat-label>{{ i18nService.translate('ACQUISITIONS.START_DATE') }}</mat-label>
+      <input matInput [formControl]="startDateControl" [matDatepicker]="startDatePicker" />
+      <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #startDatePicker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="date-field">
+      <mat-label>{{ i18nService.translate('ACQUISITIONS.END_DATE') }}</mat-label>
+      <input matInput [formControl]="endDateControl" [matDatepicker]="endDatePicker" />
+      <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #endDatePicker></mat-datepicker>
+    </mat-form-field>
+  </div>
+
+  <div class="totals-container">
+    <div class="total-investment">
+      <strong>{{ i18nService.translate('ACQUISITIONS.TOTAL_INVESTMENT') }}:</strong> {{ formatCurrency(totalInvestment()) }}
+    </div>
+    <div class="total-expenses">
+      <strong>{{ i18nService.translate('ACQUISITIONS.TOTAL_EXPENSES') }}:</strong> {{ formatCurrency(totalExpenses()) }}
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (acquisitions().length === 0) {
+    <div class="empty-state">
+      <mat-icon>inventory_2</mat-icon>
+      <p>{{ i18nService.translate('ACQUISITIONS.NO_ACQUISITIONS_FOUND') }}</p>
+    </div>
+  } @else {
+    <div class="acquisitions-grid">
+      @for (acquisition of acquisitions(); track acquisition.id) {
+        <mat-card class="acquisition-card">
+          <mat-card-content>
+            <h3>{{ acquisition.productName }}</h3>
+            <div class="acquisition-details">
+              <span><strong>{{ i18nService.translate('ACQUISITIONS.TYPE') }}:</strong> {{ acquisition.acquisitionType }}</span>
+              <span><strong>{{ i18nService.translate('ACQUISITIONS.QUANTITY') }}:</strong> {{ acquisition.quantity }}</span>
+              <span><strong>{{ i18nService.translate('ACQUISITIONS.REAL_COST') }}:</strong> {{ formatCurrency(acquisition.realCost) }}</span>
+              @if (acquisition.unitRealCost) {
+                <span><strong>{{ i18nService.translate('ACQUISITIONS.UNIT_REAL_COST') }}:</strong> {{ formatCurrency(acquisition.unitRealCost) }}</span>
+              }
+              @if (acquisition.unitPublicCost) {
+                <span><strong>{{ i18nService.translate('ACQUISITIONS.UNIT_PUBLIC_COST') }}:</strong> {{ formatCurrency(acquisition.unitPublicCost) }}</span>
+              }
+              <span><strong>{{ i18nService.translate('ACQUISITIONS.DATE') }}:</strong> {{ formatDate(acquisition.acquisitionDate) }}</span>
+              @if (acquisition.supplierName) {
+                <span><strong>{{ i18nService.translate('ACQUISITIONS.SUPPLIER') }}:</strong> {{ acquisition.supplierName }}</span>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

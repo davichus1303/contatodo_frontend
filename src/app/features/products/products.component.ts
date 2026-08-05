@@ -17,6 +17,7 @@ import { ProductFormPayload } from '../../shared/dto/product-request.dto';
 import { ApiResponse } from '../../shared/interfaces/api-response.interface';
 import { I18nService } from '../../shared/utils/i18n.util';
 import { GENERAL_CONSTANTS } from '../../shared/constants/general.constants';
+import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-products',
@@ -144,9 +145,15 @@ export class ProductsComponent {
   }
 
   private confirmUpdate(product: Product, payload: ProductFormPayload): void {
+    const dialogData: ConfirmationDialogData = {
+      titleKey: 'PRODUCTS.CONFIRMATION.TITLE',
+      messageKey: 'PRODUCTS.CONFIRMATION.MESSAGE',
+      cancelKey: 'PRODUCTS.CONFIRMATION.CANCEL',
+      confirmKey: 'PRODUCTS.CONFIRMATION.CONFIRM'
+    };
     const confirmation = this.dialog.open(ConfirmationDialogComponent, {
       width: '320px',
-      data: { productName: product.name }
+      data: dialogData
     });
 
     confirmation.afterClosed().subscribe((confirmed: boolean | undefined) => {
@@ -189,23 +196,4 @@ export class ProductsComponent {
   goToSales(): void {
     this.router.navigate(['/sales']);
   }
-}
-
-@Component({
-  selector: 'app-confirmation-dialog',
-  standalone: true,
-  imports: [CommonModule, MatButtonModule, MatDialogModule],
-  template: `
-    <h2 mat-dialog-title>{{ i18nService.translate('PRODUCTS.CONFIRMATION.TITLE') }}</h2>
-    <mat-dialog-content>
-      <p>{{ i18nService.translate('PRODUCTS.CONFIRMATION.MESSAGE') }}</p>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>{{ i18nService.translate('PRODUCTS.CONFIRMATION.CANCEL') }}</button>
-      <button mat-raised-button color="primary" [mat-dialog-close]="true">{{ i18nService.translate('PRODUCTS.CONFIRMATION.CONFIRM') }}</button>
-    </mat-dialog-actions>
-  `
-})
-export class ConfirmationDialogComponent {
-  readonly i18nService = inject(I18nService);
 }
