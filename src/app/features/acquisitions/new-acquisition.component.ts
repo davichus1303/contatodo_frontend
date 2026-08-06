@@ -64,6 +64,7 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
 
   readonly acquisitionForm: FormGroup;
   readonly filteredProducts = signal<Product[]>([]);
+  readonly filteredOptions = signal<Product[]>([]);
   readonly selectedProduct = signal<Product | null>(null);
   readonly isNewProduct = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
@@ -74,15 +75,6 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   readonly realCost = signal(0);
   readonly quantity = signal(1);
   readonly newProductStock = signal(0);
-
-  readonly filteredOptions = computed(() => {
-    const searchValue = this.acquisitionForm.get('productSearch')?.value;
-    const searchTerm = typeof searchValue === 'string' ? searchValue.toLowerCase() : '';
-    const products = this.filteredProducts();
-    return searchTerm
-      ? products.filter(p => p.name.toLowerCase().includes(searchTerm))
-      : products.slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS);
-  });
 
   readonly isFormValid = computed(() => {
     const hasProduct = this.selectedProduct() !== null || this.isNewProduct();
@@ -259,11 +251,7 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngOnInit(): void {
-    this.acquisitionForm.get('productSearch')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((value: string) => {
-        this.onProductSearchChange(value);
-      });
+    // Product search filtering is now handled via input event in HTML
   }
 
   ngAfterViewInit(): void {
@@ -278,7 +266,9 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response: ApiResponse<Product[]>) => {
-        this.filteredProducts.set(response.data ?? []);
+        const products = (response.data ?? []).filter(p => p.stock >= 0);
+        this.filteredProducts.set(products);
+        this.filteredOptions.set(products.slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS));
       },
       error: () => {
         this.snackBar.open(
@@ -291,6 +281,25 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
+   * Filters products by name based on search term.
+   *
+   * @param event Input event containing the search term.
+   */
+  filterByProductName(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    const searchTerm = inputElement.value;
+    const term = searchTerm.toLowerCase();
+    const allProducts = this.filteredProducts();
+    
+    if (!term) {
+      this.filteredOptions.set(allProducts.slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS));
+    } else {
+      const filtered = allProducts.filter(p => p.name.toLowerCase().includes(term));
+      this.filteredOptions.set(filtered);
+    }
+  }
+
+  /**
    * Handles changes in the product search field.
    *
    * @param value Current search value.
@@ -299,18 +308,23 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     if (!value) {
       this.selectedProduct.set(null);
       this.isNewProduct.set(false);
+      this.filteredOptions.set(this.filteredProducts().slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS));
       return;
     }
 
     if (typeof value === 'string') {
-      if (value.trim() === '') {
+      if (value.trim() === GENERAL_CONSTANTS.EMPTY) {
         this.selectedProduct.set(null);
         this.isNewProduct.set(false);
+        this.filteredOptions.set(this.filteredProducts().slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS));
         return;
       }
 
-      const searchTerm = value.toLowerCase();
-      const matchedProduct = this.filteredProducts().find(p => p.name.toLowerCase() === searchTerm);
+      const term = value.toLowerCase();
+      const filtered = this.filteredProducts().filter(p => p.name.toLowerCase().includes(term));
+      this.filteredOptions.set(filtered);
+
+      const matchedProduct = this.filteredProducts().find(p => p.name.toLowerCase() === term);
 
       if (matchedProduct) {
         this.selectProduct(matchedProduct);
@@ -466,6 +480,7 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
           { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
         );
         this.resetForm();
+        this.loadProducts();
       },
       error: (error: { error?: { message?: string } }) => {
         this.isSaving.set(false);
