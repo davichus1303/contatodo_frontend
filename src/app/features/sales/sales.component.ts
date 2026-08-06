@@ -128,7 +128,7 @@ export class SalesComponent implements OnInit {
   }
 
   /**
-   * Formats a number as currency.
+   * @description Formats a number as currency.
    *
    * @param value Number to format.
    * @returns Formatted currency string.
