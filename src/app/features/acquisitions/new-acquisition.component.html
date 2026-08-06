@@ -29,7 +29,8 @@
             #productSearchInput
             formControlName="productSearch" 
             [matAutocomplete]="productAuto" 
-            [placeholder]="i18nService.translate('ACQUISITIONS.FORM.PRODUCT_SEARCH_PLACEHOLDER')" 
+            [placeholder]="i18nService.translate('ACQUISITIONS.FORM.PRODUCT_SEARCH_PLACEHOLDER')"
+            (input)="filterByProductName($event)"
           />
           <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct">
             @for (option of filteredOptions(); track option.id) {

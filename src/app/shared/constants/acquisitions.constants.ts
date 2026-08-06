@@ -22,6 +22,6 @@ export const ACQUISITIONS_CONSTANTS = {
     FOCUS_DELAY_MS: 100
   },
   AUTOCOMPLETE: {
-    MAX_RESULTS: 10
+    MAX_RESULTS: 1000
   }
 };

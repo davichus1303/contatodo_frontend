@@ -11,5 +11,7 @@ export const GENERAL_CONSTANTS = {
   CURRENCY: {
     LOCALE: 'es-PE',
     CURRENCY_CODE: 'PEN'
-  }
+  },
+  // Strings
+  EMPTY: ''
 };
