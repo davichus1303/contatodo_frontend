@@ -16,10 +16,29 @@
           <span>{{ i18nService.translate('MODULES_NAVIGATION.LOADING') }}</span>
         </div>
       } @else {
-        @for (module of modules(); track module.id) {
-          <button mat-menu-item (click)="navigateToModule(module.link)">
-            <span>{{ module.name }}</span>
+        @if (currentView() === 'full') {
+          @for (module of nonCatalogModules(); track module.id) {
+            <button mat-menu-item (click)="navigateToModule(module.link)">
+              <span>{{ module.name }}</span>
+            </button>
+          }
+          @if (catalogModules().length > 0) {
+            <button mat-menu-item (click)="showCatalogs($event)">
+              <mat-icon>folder_open</mat-icon>
+              <span>{{ i18nService.translate('MODULES_NAVIGATION.CATALOGS') }}</span>
+            </button>
+          }
+        } @else {
+          <button mat-menu-item (click)="showFullMenu($event)">
+            <mat-icon>arrow_back</mat-icon>
+            <span>{{ i18nService.translate('MODULES_NAVIGATION.BACK_TO_FULL_MENU') }}</span>
           </button>
+          <mat-divider></mat-divider>
+          @for (module of catalogModules(); track module.id) {
+            <button mat-menu-item (click)="navigateToModule(module.link)">
+              <span>{{ module.name }}</span>
+            </button>
+          }
         }
         @if (modules().length === 0) {
           <div class="no-modules">
