@@ -3,9 +3,9 @@
  */
 export interface CreateAcquisitionRequest {
   acquisitionTypeOid: string;
-  productName: string;
+  productName?: string;
   description?: string;
-  quantity: number;
+  quantity?: number;
   realCost: number;
   unitPublicCost?: number;
   supplierOid?: string;
