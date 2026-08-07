@@ -70,6 +70,7 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
   readonly acquisitionTypes = signal<AcquisitionType[]>([]);
+  readonly productSearchValue = signal<string | Product | null>(null);
 
   // Signals for reactive computation (initialized in ngOnInit)
   readonly realCost = signal(0);
@@ -77,13 +78,14 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   readonly newProductStock = signal(0);
 
   readonly isFormValid = computed(() => {
-    const hasProduct = this.selectedProduct() !== null || this.isNewProduct();
     const acquisitionTypeValid = this.acquisitionForm.get('acquisitionTypeOid')?.valid;
-    const quantityValid = this.acquisitionForm.get('quantity')?.valid;
-    const realCostValid = this.acquisitionForm.get('realCost')?.valid;
+    const realCostValue = this.realCost();
+    const realCostValid = realCostValue !== null && realCostValue !== undefined && realCostValue >= 0;
+    const productSearchValue = this.productSearchValue();
     
     if (this.affectsInventory()) {
-      // When affectsInventory is true, all inventory-related fields are required
+      const hasProduct = this.selectedProduct() !== null || this.isNewProduct();
+      const quantityValid = this.acquisitionForm.get('quantity')?.valid;
       return hasProduct &&
              acquisitionTypeValid &&
              quantityValid &&
@@ -91,13 +93,45 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
              this.acquisitionForm.get('unitPublicCost')?.valid &&
              (!this.isNewProduct() || this.productFieldsValid());
     } else {
-      // When affectsInventory is false, basic fields are required (including quantity)
-      return hasProduct &&
+      // When affectsInventory is false, basic fields are required including product name
+      const hasProductName = productSearchValue != null && 
+        (typeof productSearchValue === 'string' ? productSearchValue.trim() !== '' : true);
+      return hasProductName &&
              acquisitionTypeValid &&
-             quantityValid &&
              realCostValid;
     }
   });
+
+  /**
+   * Traditional function to check if the form is valid.
+   * Called actively by the button to ensure reactivity.
+   */
+  isFormValidFn(): boolean {
+    const acquisitionTypeValid = this.acquisitionForm.get('acquisitionTypeOid')?.valid ?? false;
+    const realCostValue = this.realCost();
+    const realCostValid = realCostValue !== null
+      && realCostValue !== undefined
+      && realCostValue > 0;
+    const productSearchValue = this.productSearchValue();
+    
+    if (this.affectsInventory()) {
+      const hasProduct = this.selectedProduct() !== null || this.isNewProduct();
+      const quantityValid = this.acquisitionForm.get('quantity')?.valid ?? false;
+      const unitPublicCostValid = this.acquisitionForm.get('unitPublicCost')?.valid ?? false;
+      return hasProduct &&
+             acquisitionTypeValid &&
+             quantityValid &&
+             realCostValid &&
+             unitPublicCostValid &&
+             (!this.isNewProduct() || this.productFieldsValid());
+    } else {
+      const hasProductName = productSearchValue != null && 
+        (typeof productSearchValue === 'string' ? productSearchValue.trim() !== '' : true);
+      return hasProductName &&
+             acquisitionTypeValid &&
+             realCostValid;
+    }
+  }
 
   readonly unitRealCost = computed(() => {
     const cost = this.realCost();
@@ -148,6 +182,10 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     this.acquisitionForm.get('newProductStock')?.valueChanges.subscribe(value => {
       this.newProductStock.set(value || 0);
     });
+    this.acquisitionForm.get('productSearch')?.valueChanges.subscribe(value => {
+      this.productSearchValue.set(value);
+    });
+    
   }
 
 
@@ -160,8 +198,9 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     
     if (this.affectsInventory()) {
       // When affectsInventory is true, all inventory-related fields are required
+      const quantityValid = this.acquisitionForm.get('quantity')?.valid;
       return acquisitionTypeValid &&
-             this.acquisitionForm.get('quantity')?.valid &&
+             quantityValid &&
              realCostValid &&
              this.acquisitionForm.get('unitPublicCost')?.valid &&
              this.productFieldsValid();
@@ -421,21 +460,45 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
 
     this.isSaving.set(true);
 
-    const productSearchValue = this.acquisitionForm.get('productSearch')?.value;
-    const productName = typeof productSearchValue === 'string' 
-      ? productSearchValue 
-      : productSearchValue?.name || '';
-
     const request: CreateAcquisitionRequest = {
       acquisitionTypeOid: this.acquisitionForm.get('acquisitionTypeOid')?.value,
-      productName: this.isNewProduct() 
-        ? productName 
-        : productName,
-      quantity: this.isNewProduct() 
-        ? (this.acquisitionForm.get('newProductStock')?.value || 1)
-        : this.acquisitionForm.get('quantity')?.value,
       realCost: this.acquisitionForm.get('realCost')?.value
     };
+
+    // Handle product-related fields
+    if (this.affectsInventory()) {
+      // When affectsInventory is true, use product selection
+      const productSearchValue = this.acquisitionForm.get('productSearch')?.value;
+      const productName = typeof productSearchValue === 'string' 
+        ? productSearchValue 
+        : productSearchValue?.name || '';
+
+      request.productName = this.isNewProduct() 
+        ? productName 
+        : productName;
+      request.quantity = this.isNewProduct() 
+        ? (this.acquisitionForm.get('newProductStock')?.value || 1)
+        : this.acquisitionForm.get('quantity')?.value;
+
+      const unitPublicCost = this.acquisitionForm.get('unitPublicCost')?.value;
+      if (unitPublicCost) {
+        request.unitPublicCost = unitPublicCost;
+      }
+      
+      if (this.isNewProduct()) {
+        const description = this.acquisitionForm.get('newProductDescription')?.value;
+        if (description) {
+          request.description = description;
+        }
+      }
+    } else {
+      // When affectsInventory is false, use product search value as product name
+      const productSearchValue = this.acquisitionForm.get('productSearch')?.value;
+      if (productSearchValue && typeof productSearchValue === 'string') {
+        request.productName = productSearchValue.trim();
+      }
+      request.quantity = this.acquisitionForm.get('quantity')?.value;
+    }
 
     // Only include optional fields if they have values
     const supplierName = this.acquisitionForm.get('supplierName')?.value;

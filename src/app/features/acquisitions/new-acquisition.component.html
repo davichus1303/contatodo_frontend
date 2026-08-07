@@ -23,27 +23,36 @@
         <!-- Product Search -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>{{ i18nService.translate('ACQUISITIONS.FORM.PRODUCT') }}</mat-label>
-          <input 
-            type="text" 
-            matInput 
-            #productSearchInput
-            formControlName="productSearch" 
-            [matAutocomplete]="productAuto" 
-            [placeholder]="i18nService.translate('ACQUISITIONS.FORM.PRODUCT_SEARCH_PLACEHOLDER')"
-            (input)="filterByProductName($event)"
-          />
-          <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct">
-            @for (option of filteredOptions(); track option.id) {
-              <mat-option [value]="option" (onSelectionChange)="selectProduct(option)">
-                {{ option.name }}
-              </mat-option>
-            }
-            @if (acquisitionForm.get('productSearch')?.value && !selectedProduct()) {
-              <mat-option (onSelectionChange)="selectNewProductOption()">
-                <strong>{{ i18nService.translate('ACQUISITIONS.FORM.CREATE_NEW_PRODUCT') }}: "{{ acquisitionForm.get('productSearch')?.value }}"</strong>
-              </mat-option>
-            }
-          </mat-autocomplete>
+          @if (affectsInventory()) {
+            <input 
+              type="text" 
+              matInput 
+              #productSearchInput
+              formControlName="productSearch" 
+              [matAutocomplete]="productAuto" 
+              [placeholder]="i18nService.translate('ACQUISITIONS.FORM.PRODUCT_SEARCH_PLACEHOLDER')"
+              (input)="filterByProductName($event)"
+            />
+            <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct">
+              @for (option of filteredOptions(); track option.id) {
+                <mat-option [value]="option" (onSelectionChange)="selectProduct(option)">
+                  {{ option.name }}
+                </mat-option>
+              }
+              @if (acquisitionForm.get('productSearch')?.value && !selectedProduct()) {
+                <mat-option (onSelectionChange)="selectNewProductOption()">
+                  <strong>{{ i18nService.translate('ACQUISITIONS.FORM.CREATE_NEW_PRODUCT') }}: "{{ acquisitionForm.get('productSearch')?.value }}"</strong>
+                </mat-option>
+              }
+            </mat-autocomplete>
+          } @else {
+            <input 
+              type="text" 
+              matInput 
+              formControlName="productSearch" 
+              [placeholder]="i18nService.translate('ACQUISITIONS.FORM.PRODUCT_SEARCH_PLACEHOLDER')"
+            />
+          }
         </mat-form-field>
 
         <!-- New Product Fields (shown dynamically) -->
@@ -142,7 +151,7 @@
             color="primary" 
             type="button" 
             (click)="onSave()"
-            [disabled]="!isAqcisitionFormValid()"
+            [disabled]="!isFormValidFn()"
           >
             @if (isSaving()) {
               <mat-spinner diameter="20"></mat-spinner>
