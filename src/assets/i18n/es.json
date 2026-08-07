@@ -76,7 +76,9 @@
     "MODULES": "Módulos",
     "LOADING": "Cargando...",
     "NO_MODULES_AVAILABLE": "No hay módulos disponibles",
-    "LOGOUT": "Cerrar sesión"
+    "LOGOUT": "Cerrar sesión",
+    "CATALOGS": "Catálogos",
+    "BACK_TO_FULL_MENU": "Volver"
   },
   "PRODUCTS": {
     "TITLE": "Productos",

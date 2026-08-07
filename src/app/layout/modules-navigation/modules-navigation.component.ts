@@ -1,8 +1,9 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../core/auth/auth.service';
 import { ModulesService } from '../../features/modules/modules.service';
@@ -10,6 +11,7 @@ import { Module } from '../../shared/models/module.model';
 import { Router } from '@angular/router';
 import { ApiResponse } from '../../shared/interfaces/api-response.interface';
 import { I18nService } from '../../shared/utils/i18n.util';
+import { MODULES_NAVIGATION_CONSTANTS } from '../../shared/constants/modules-navigation.constants';
 
 /**
  * Modules navigation component displayed at the top of authenticated pages.
@@ -22,6 +24,7 @@ import { I18nService } from '../../shared/utils/i18n.util';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    MatDividerModule,
     MatTooltipModule
   ],
   templateUrl: './modules-navigation.component.html',
@@ -37,6 +40,15 @@ export class ModulesNavigationComponent {
   modules = signal<Module[]>([]);
   isLoading = signal<boolean>(false);
   menuOpen = signal<boolean>(false);
+  currentView = signal<'full' | 'catalogs'>('full');
+
+  readonly catalogModules = computed(() => 
+    this.modules().filter(m => m.category === MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG)
+  );
+
+  readonly nonCatalogModules = computed(() => 
+    this.modules().filter(m => !m.category || m.category !== MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG)
+  );
 
   /**
    * Opens the modules menu and loads modules if not already loaded.
@@ -74,6 +86,24 @@ export class ModulesNavigationComponent {
   navigateToModule(link: string): void {
     this.router.navigate([link]);
     this.menuOpen.set(false);
+  }
+
+  /**
+   * Shows the catalogs submenu.
+   */
+  showCatalogs(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.currentView.set('catalogs');
+  }
+
+  /**
+   * Shows the full menu.
+   */
+  showFullMenu(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.currentView.set('full');
   }
 
   /**
