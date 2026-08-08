@@ -93,6 +93,12 @@
               {{ formatCurrency(summary.grossProfit) }}
             </span>
           </div>
+          <div class="summary-item">
+            <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.PROFIT_BEFORE_TAXES') }}:</span>
+            <span class="summary-value" [ngClass]="getProfitColorClass(summary.profitBeforeTaxes)">
+              {{ formatCurrency(summary.profitBeforeTaxes) }}
+            </span>
+          </div>
         </mat-card-content>
       </mat-card>
     </div>
