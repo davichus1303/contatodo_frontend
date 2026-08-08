@@ -24,8 +24,10 @@ export const PRODUCTS = getEnvValue('PRODUCTS', 'products');
 export const SALES = getEnvValue('SALES', 'sales');
 export const ACQUISITIONS = getEnvValue('ACQUISITIONS', 'acquisitions');
 export const ACQUISITION_TYPES = getEnvValue('ACQUISITION_TYPES', 'acquisition-types');
+export const EXPENSES = getEnvValue('EXPENSES', 'expenses');
 
 export const PRODUCTS_URL = `${BASE_URL}${SLASH}${PRODUCTS}`;
 export const SALES_URL = `${BASE_URL}${SLASH}${SALES}`;
 export const ACQUISITIONS_URL = `${BASE_URL}${SLASH}${ACQUISITIONS}`;
 export const ACQUISITION_TYPES_URL = `${BASE_URL}${SLASH}${ACQUISITION_TYPES}`;
+export const EXPENSES_URL = `${BASE_URL}${SLASH}${EXPENSES}`;
