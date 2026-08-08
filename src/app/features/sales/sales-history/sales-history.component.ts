@@ -11,9 +11,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { SalesService } from '../sales.service';
-import { AcquisitionsService } from '../../acquisitions/acquisitions.service';
+import { ExpensesService } from '../../expenses/expenses.service';
 import { Sale } from '../../../shared/models/sale.model';
-import { Acquisition } from '../../../shared/models/acquisition.model';
 import { I18nService } from '../../../shared/utils/i18n.util';
 import { GENERAL_CONSTANTS } from '../../../shared/constants/general.constants';
 import { SALES_HISTORY_CONSTANTS } from './sales-history.constants';
@@ -42,7 +41,6 @@ import { SALES_HISTORY_CONSTANTS } from './sales-history.constants';
 export class SalesHistoryComponent implements OnInit {
   sales: Sale[] = [];
   filteredSales: Sale[] = [];
-  acquisitions: Acquisition[] = [];
   dateRangeForm: FormGroup;
   searchControl: FormGroup;
   isLoading = false;
@@ -51,11 +49,12 @@ export class SalesHistoryComponent implements OnInit {
     totalRevenue: 0,
     totalProfit: 0,
     totalExpenses: 0,
-    grossProfit: 0
+    grossProfit: 0,
+    profitBeforeTaxes: 0
   };
 
   private salesService = inject(SalesService);
-  private acquisitionsService = inject(AcquisitionsService);
+  private expensesService = inject(ExpensesService);
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
@@ -81,6 +80,18 @@ export class SalesHistoryComponent implements OnInit {
     this.searchControl.get('search')?.valueChanges.subscribe(value => {
       this.filterSales(value);
     });
+
+    // Reload total expenses when date range changes
+    this.dateRangeForm.get('startDate')?.valueChanges.subscribe(() => {
+      if (this.sales.length > 0) {
+        this.loadTotalExpenses();
+      }
+    });
+    this.dateRangeForm.get('endDate')?.valueChanges.subscribe(() => {
+      if (this.sales.length > 0) {
+        this.loadTotalExpenses();
+      }
+    });
   }
 
   /**
@@ -102,7 +113,7 @@ export class SalesHistoryComponent implements OnInit {
       next: (response: any) => {
         this.sales = response.data || [];
         this.filteredSales = [...this.sales];
-        this.loadAcquisitions(formattedStartDate, formattedEndDate);
+        this.loadTotalExpenses();
       },
       error: (error: any) => {
         this.snackBar.open(
@@ -131,22 +142,43 @@ export class SalesHistoryComponent implements OnInit {
   }
 
   /**
-   * Loads acquisitions for the selected date range.
+   * Formats a date as YYYY-MM-DD string for the expenses API.
+   * @param date Date to format.
+   * @returns Formatted date string.
    */
-  private loadAcquisitions(startDate: Date, endDate: Date): void {
-    this.acquisitionsService.getAcquisitions(startDate, endDate).subscribe({
+  private formatDateForApi(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
+   * Loads total expenses for the selected date range using the new backend endpoint.
+   */
+  private loadTotalExpenses(): void {
+    const startDate = this.dateRangeForm.get('startDate')?.value;
+    const endDate = this.dateRangeForm.get('endDate')?.value;
+
+    const startDateStr = this.formatDateForApi(startDate);
+    const endDateStr = this.formatDateForApi(endDate);
+
+    this.expensesService.getTotalExpensesByDateRange({
+      startDate: startDateStr,
+      endDate: endDateStr
+    }).subscribe({
       next: (response: any) => {
-        this.acquisitions = response.data || [];
+        this.summary.totalExpenses = response.data?.total || 0;
         this.calculateSummary();
         this.isLoading = false;
       },
       error: (error: any) => {
         this.snackBar.open(
-          this.i18nService.translate('SALES_HISTORY.ERROR_LOADING_ACQUISITIONS'),
+          this.i18nService.translate('SALES_HISTORY.ERROR_LOADING_EXPENSES'),
           GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
           { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
         );
-        this.acquisitions = [];
+        this.summary.totalExpenses = 0;
         this.calculateSummary();
         this.isLoading = false;
       }
@@ -179,16 +211,21 @@ export class SalesHistoryComponent implements OnInit {
       return sum + profit;
     }, 0);
 
-    const totalExpenses = this.acquisitions
-      .filter((acquisition: Acquisition) => acquisition.productName && acquisition.productName !== 'Unknown' && acquisition.productName !== '0')
-      .reduce((sum: number, acquisition: Acquisition) => sum + acquisition.realCost, 0);
+    const totalRevenue = this.sales.reduce((sum, sale) => sum + (sale.totalSalePrice || 0), 0);
+
+    // Gross Profit is the profit after considering the real cost of products sold
+    const grossProfit = totalProfit;
+
+    // Profit Before Taxes = Gross Profit - Total Expenses
+    const profitBeforeTaxes = grossProfit - this.summary.totalExpenses;
 
     this.summary = {
       totalSales: this.sales.length,
-      totalRevenue: this.sales.reduce((sum, sale) => sum + (sale.totalSalePrice || 0), 0),
+      totalRevenue: totalRevenue,
       totalProfit: totalProfit,
-      totalExpenses: totalExpenses,
-      grossProfit: totalProfit - totalExpenses
+      totalExpenses: this.summary.totalExpenses,
+      grossProfit: grossProfit,
+      profitBeforeTaxes: profitBeforeTaxes
     };
   }
 
