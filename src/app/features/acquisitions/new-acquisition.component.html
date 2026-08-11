@@ -78,7 +78,7 @@
         }
 
         <!-- Existing Product Info (shown when product is selected) -->
-        @if (selectedProduct() && !isNewProduct()) {
+        @if (selectedProduct() && !isNewProduct() && affectsInventory()) {
           <div class="product-info">
             <h3>{{ i18nService.translate('ACQUISITIONS.FORM.CURRENT_PRODUCT_INFO') }}</h3>
             <div class="info-grid">
@@ -90,11 +90,20 @@
           </div>
         }
 
-        <!-- Quantity -->
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>{{ i18nService.translate('ACQUISITIONS.QUANTITY') }}</mat-label>
-          <input matInput type="number" formControlName="quantity" min="1" />
-        </mat-form-field>
+        <!-- Quantity (only for existing products) -->
+        @if (!isNewProduct() && affectsInventory()) {
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>{{ i18nService.translate('ACQUISITIONS.QUANTITY') }}</mat-label>
+            <input matInput type="number" formControlName="quantity" min="1" />
+          </mat-form-field>
+        } @else {
+          @if (!affectsInventory()) {
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>{{ i18nService.translate('ACQUISITIONS.QUANTITY') }}</mat-label>
+              <input matInput type="number" formControlName="quantity" min="1" />
+            </mat-form-field>
+          }
+        }
 
         <!-- Real Cost -->
         <mat-form-field appearance="outline" class="half-width">

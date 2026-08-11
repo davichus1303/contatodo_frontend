@@ -1,5 +1,5 @@
 <mat-toolbar color="primary">
-  <span>Contatodo</span>
+  <span>{{ i18nService.translate('APP.NAME') }}</span>
   <span class="spacer"></span>
   <span class="user-info">{{ userName }}</span>
   <button mat-icon-button (click)="logout()" aria-label="Logout">

@@ -66,16 +66,15 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   readonly filteredProducts = signal<Product[]>([]);
   readonly filteredOptions = signal<Product[]>([]);
   readonly selectedProduct = signal<Product | null>(null);
-  readonly isNewProduct = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
   readonly acquisitionTypes = signal<AcquisitionType[]>([]);
   readonly productSearchValue = signal<string | Product | null>(null);
 
   // Signals for reactive computation (initialized in ngOnInit)
-  readonly realCost = signal(0);
-  readonly quantity = signal(1);
-  readonly newProductStock = signal(0);
+  readonly realCost = signal(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
+  readonly quantity = signal(ACQUISITIONS_CONSTANTS.NUMBERS.ONE);
+  readonly newProductStock = signal(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
 
   readonly isFormValid = computed(() => {
     const acquisitionTypeValid = this.acquisitionForm.get('acquisitionTypeOid')?.valid;
@@ -85,7 +84,9 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     
     if (this.affectsInventory()) {
       const hasProduct = this.selectedProduct() !== null || this.isNewProduct();
-      const quantityValid = this.acquisitionForm.get('quantity')?.valid;
+      const quantityValid = this.isNewProduct() 
+        ? (this.acquisitionForm.get('newProductStock')?.value > 0)
+        : this.acquisitionForm.get('quantity')?.valid;
       return hasProduct &&
              acquisitionTypeValid &&
              quantityValid &&
@@ -103,6 +104,31 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   });
 
   /**
+   * Traditional method to check if the product is new (not in database).
+   * Searches for the product name in the loaded products from the database.
+   * 
+   * @returns true if product doesn't exist in database, false if it exists
+   */
+  isNewProduct(): boolean {
+    const productSearchValue = this.productSearchValue();
+    if (!productSearchValue || typeof productSearchValue !== 'string') {
+      return false;
+    }
+    
+    const searchTerm = productSearchValue.trim().toLowerCase();
+    if (!searchTerm) {
+      return false;
+    }
+    
+    // Search for exact match in database products
+    const existsInDatabase = this.filteredProducts().some(p => 
+      p.name.toLowerCase() === searchTerm
+    );
+    
+    return !existsInDatabase;
+  }
+
+  /**
    * Traditional function to check if the form is valid.
    * Called actively by the button to ensure reactivity.
    */
@@ -116,7 +142,9 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     
     if (this.affectsInventory()) {
       const hasProduct = this.selectedProduct() !== null || this.isNewProduct();
-      const quantityValid = this.acquisitionForm.get('quantity')?.valid ?? false;
+      const quantityValid = this.isNewProduct() 
+        ? (this.acquisitionForm.get('newProductStock')?.value > 0)
+        : (this.acquisitionForm.get('quantity')?.valid ?? false);
       const unitPublicCostValid = this.acquisitionForm.get('unitPublicCost')?.valid ?? false;
       return hasProduct &&
              acquisitionTypeValid &&
@@ -174,13 +202,13 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
 
     // Subscribe to form control changes to update signals
     this.acquisitionForm.get('realCost')?.valueChanges.subscribe(value => {
-      this.realCost.set(value || 0);
+      this.realCost.set(value || ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
     });
     this.acquisitionForm.get('quantity')?.valueChanges.subscribe(value => {
-      this.quantity.set(value || 1);
+      this.quantity.set(value || ACQUISITIONS_CONSTANTS.NUMBERS.ONE);
     });
     this.acquisitionForm.get('newProductStock')?.valueChanges.subscribe(value => {
-      this.newProductStock.set(value || 0);
+      this.newProductStock.set(value || ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
     });
     this.acquisitionForm.get('productSearch')?.valueChanges.subscribe(value => {
       this.productSearchValue.set(value);
@@ -245,21 +273,21 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     } else {
       // Remove required validators and clear values
       unitPublicCostControl?.clearValidators();
-      unitPublicCostControl?.setValue(0);
+      unitPublicCostControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
       unitPublicCostControl?.updateValueAndValidity();
 
       quantityControl?.clearValidators();
-      quantityControl?.setValue(1);
+      quantityControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ONE);
       quantityControl?.updateValueAndValidity();
 
       newProductDescriptionControl?.clearValidators();
-      newProductDescriptionControl?.setValue('');
+      newProductDescriptionControl?.setValue(ACQUISITIONS_CONSTANTS.STRINGS.EMPTY);
       newProductDescriptionControl?.updateValueAndValidity();
 
-      newProductStockControl?.setValue(0);
+      newProductStockControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
       newProductStockControl?.updateValueAndValidity();
 
-      newProductUrlPhotoControl?.setValue('');
+      newProductUrlPhotoControl?.setValue(ACQUISITIONS_CONSTANTS.STRINGS.EMPTY);
       newProductUrlPhotoControl?.updateValueAndValidity();
     }
 
@@ -346,7 +374,6 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   onProductSearchChange(value: string | Product): void {
     if (!value) {
       this.selectedProduct.set(null);
-      this.isNewProduct.set(false);
       this.filteredOptions.set(this.filteredProducts().slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS));
       return;
     }
@@ -354,7 +381,6 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
     if (typeof value === 'string') {
       if (value.trim() === GENERAL_CONSTANTS.EMPTY) {
         this.selectedProduct.set(null);
-        this.isNewProduct.set(false);
         this.filteredOptions.set(this.filteredProducts().slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS));
         return;
       }
@@ -367,9 +393,6 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
 
       if (matchedProduct) {
         this.selectProduct(matchedProduct);
-      } else {
-        this.isNewProduct.set(true);
-        this.selectedProduct.set(null);
       }
     }
   }
@@ -381,7 +404,6 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
    */
   selectProduct(product: Product): void {
     this.selectedProduct.set(product);
-    this.isNewProduct.set(false);
     this.acquisitionForm.patchValue({
       productSearch: product,
       realCost: product.realCost,
@@ -393,7 +415,6 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
    * Selects the option to create a new product.
    */
   selectNewProductOption(): void {
-    this.isNewProduct.set(true);
     this.selectedProduct.set(null);
     this.acquisitionForm.patchValue({
       realCost: 0,
@@ -471,7 +492,7 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
       const productSearchValue = this.acquisitionForm.get('productSearch')?.value;
       const productName = typeof productSearchValue === 'string' 
         ? productSearchValue 
-        : productSearchValue?.name || '';
+        : productSearchValue?.name || ACQUISITIONS_CONSTANTS.STRINGS.EMPTY;
 
       request.productName = this.isNewProduct() 
         ? productName 
@@ -562,19 +583,18 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
   resetForm(): void {
     this.acquisitionForm.reset({
       productSearch: null,
-      acquisitionTypeOid: '',
-      quantity: 1,
-      realCost: 0,
-      unitPublicCost: 0,
-      supplierName: '',
-      invoiceNumber: '',
-      observations: '',
-      newProductDescription: '',
-      newProductStock: 0,
-      newProductUrlPhoto: ''
+      acquisitionTypeOid: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY,
+      quantity: ACQUISITIONS_CONSTANTS.NUMBERS.ONE,
+      realCost: ACQUISITIONS_CONSTANTS.NUMBERS.ZERO,
+      unitPublicCost: ACQUISITIONS_CONSTANTS.NUMBERS.ZERO,
+      supplierName: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY,
+      invoiceNumber: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY,
+      observations: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY,
+      newProductDescription: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY,
+      newProductStock: ACQUISITIONS_CONSTANTS.NUMBERS.ZERO,
+      newProductUrlPhoto: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY
     });
     this.selectedProduct.set(null);
-    this.isNewProduct.set(false);
   }
 
   /**
@@ -584,7 +604,7 @@ export class NewAcquisitionComponent implements OnInit, AfterViewInit, OnDestroy
    * @returns Product name or empty string.
    */
   displayProduct(product?: Product): string {
-    return product ? product.name : '';
+    return product ? product.name : ACQUISITIONS_CONSTANTS.STRINGS.EMPTY;
   }
 
   /**
