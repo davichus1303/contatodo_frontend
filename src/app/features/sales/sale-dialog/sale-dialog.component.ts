@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -13,6 +13,7 @@ import { Product } from '../../../shared/models/product.model';
 import { CreateSaleRequest } from '../../../shared/dto/create-sale-request.dto';
 import { SALES_CONSTANTS } from '../../../shared/constants/sales.constants';
 import { GENERAL_CONSTANTS } from '../../../shared/constants/general.constants';
+import { I18nService } from '../../../shared/utils/i18n.util';
 
 /**
  * Dialog component for creating a sale.
@@ -39,6 +40,7 @@ export class SaleDialogComponent {
   isLoading = false;
   totalCost = 0;
   profit = 0;
+  readonly i18nService = inject(I18nService);
 
   constructor(
     private dialogRef: MatDialogRef<SaleDialogComponent>,

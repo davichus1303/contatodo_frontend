@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -13,6 +13,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { LoginRequest } from '../../shared/dto/login-request.dto';
 import { LOGIN_CONSTANTS } from '../../shared/constants/login.constants';
 import { GENERAL_CONSTANTS } from '../../shared/constants/general.constants';
+import { I18nService } from '../../shared/utils/i18n.util';
 
 /**
  * Login page component.
@@ -37,6 +38,7 @@ export class LoginComponent {
   loginForm: FormGroup;
   isLoading = false;
   hidePassword = true;
+  readonly i18nService = inject(I18nService);
 
   constructor(
     private fb: FormBuilder,

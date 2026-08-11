@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../core/auth/auth.service';
 import { Router } from '@angular/router';
+import { I18nService } from '../../shared/utils/i18n.util';
 
 /**
  * Application toolbar component.
@@ -20,6 +21,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./toolbar.component.scss']
 })
 export class ToolbarComponent {
+  readonly i18nService = inject(I18nService);
+
   constructor(
     private authService: AuthService,
     private router: Router
