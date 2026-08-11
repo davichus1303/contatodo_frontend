@@ -1,14 +1,14 @@
 <div class="sales-history-container">
   <!-- Header -->
   <div class="header">
-    <h1>Historial de Ventas</h1>
+    <h1>{{ i18nService.translate('SALES_HISTORY.TITLE') }}</h1>
     <button 
       mat-raised-button 
       color="primary" 
       (click)="goToNewSale()"
       class="new-sale-btn">
       <mat-icon>add</mat-icon>
-      Nueva Venta
+      {{ i18nService.translate('SALES_HISTORY.NEW_SALE') }}
     </button>
   </div>
 
@@ -20,7 +20,7 @@
         <input 
           matInput 
           formControlName="search" 
-          placeholder="Buscar por nombre de producto">
+          [placeholder]="i18nService.translate('SALES_HISTORY.SEARCH_PLACEHOLDER')">
       </mat-form-field>
     </form>
   </div>
@@ -36,7 +36,7 @@
             matInput 
             [matDatepicker]="startDatePicker" 
             formControlName="startDate"
-            placeholder="Fecha Inicio">
+            [placeholder]="i18nService.translate('SALES_HISTORY.START_DATE')">
           <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
           <mat-datepicker #startDatePicker></mat-datepicker>
         </mat-form-field>
@@ -47,7 +47,7 @@
             matInput 
             [matDatepicker]="endDatePicker" 
             formControlName="endDate"
-            placeholder="Fecha Fin">
+            [placeholder]="i18nService.translate('SALES_HISTORY.END_DATE')">
           <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
           <mat-datepicker #endDatePicker></mat-datepicker>
         </mat-form-field>
@@ -61,7 +61,7 @@
         class="search-btn">
         <mat-icon *ngIf="!isLoading">search</mat-icon>
         <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-        <span *ngIf="!isLoading">Buscar</span>
+        <span *ngIf="!isLoading">{{ i18nService.translate('SALES_HISTORY.SEARCH') }}</span>
       </button>
     </div>
 
@@ -112,7 +112,7 @@
   <!-- Empty State -->
   <div class="empty-state" *ngIf="!isLoading && filteredSales.length === 0">
     <mat-icon>receipt_long</mat-icon>
-    <p>No se encontraron ventas para el rango de fechas seleccionado</p>
+    <p>{{ i18nService.translate('SALES_HISTORY.NO_SALES_FOUND') }}</p>
   </div>
 
   <!-- Sales Cards -->
@@ -120,28 +120,28 @@
     <mat-card class="sale-card" *ngFor="let sale of filteredSales">
       <mat-card-content>
         <div class="sale-header">
-          <h3>{{ sale.productName || 'N/A' }}</h3>
+          <h3>{{ sale.productName || i18nService.translate('SALES_HISTORY.NOT_AVAILABLE') }}</h3>
           <span class="sale-number">#{{ sale.saleNumber }}</span>
         </div>
         
         <div class="sale-details">
           <div class="detail-row">
-            <span class="label">Cantidad:</span>
+            <span class="label">{{ i18nService.translate('SALES_HISTORY.QUANTITY') }}:</span>
             <span class="value">{{ sale.quantity }}</span>
           </div>
           
           <div class="detail-row">
-            <span class="label">Precio Original:</span>
+            <span class="label">{{ i18nService.translate('SALES_HISTORY.ORIGINAL_PRICE') }}:</span>
             <span class="value">{{ formatCurrency(sale.originalTotalPrice) }}</span>
           </div>
           
           <div class="detail-row">
-            <span class="label">Precio Final:</span>
+            <span class="label">{{ i18nService.translate('SALES_HISTORY.FINAL_PRICE') }}:</span>
             <span class="value">{{ formatCurrency(sale.totalSalePrice) }}</span>
           </div>
           
           <div class="detail-row profit-row">
-            <span class="label">Ganancia:</span>
+            <span class="label">{{ i18nService.translate('SALES_HISTORY.PROFIT') }}:</span>
             <span class="value" [ngClass]="getProfitColorClass(calculateProfit(sale))">
               {{ formatCurrency(calculateProfit(sale)) }}
             </span>

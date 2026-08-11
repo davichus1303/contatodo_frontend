@@ -23,5 +23,12 @@ export const ACQUISITIONS_CONSTANTS = {
   },
   AUTOCOMPLETE: {
     MAX_RESULTS: 1000
+  },
+  NUMBERS: {
+    ZERO: 0,
+    ONE: 1
+  },
+  STRINGS: {
+    EMPTY: ''
   }
 };

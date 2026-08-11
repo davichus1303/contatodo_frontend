@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -15,6 +15,7 @@ import { Product } from '../../shared/models/product.model';
 import { SaleDialogComponent } from './sale-dialog/sale-dialog.component';
 import { SALES_CONSTANTS } from '../../shared/constants/sales.constants';
 import { GENERAL_CONSTANTS } from '../../shared/constants/general.constants';
+import { I18nService } from '../../shared/utils/i18n.util';
 
 /**
  * Sales page component.
@@ -40,6 +41,7 @@ export class SalesComponent implements OnInit {
   filteredProducts: Product[] = [];
   searchControl: FormGroup;
   isLoading = false;
+  readonly i18nService = inject(I18nService);
 
   constructor(
     private salesService: SalesService,
