@@ -46,4 +46,14 @@ export class RolesService {
   updateRole(id: string, request: UpdateRoleRequest): Observable<ApiResponse<Role>> {
     return this.http.put<ApiResponse<Role>>(`${this.apiUrl}/${id}`, request);
   }
+
+  /**
+   * Deletes an existing role.
+   *
+   * @param id Role identifier.
+   * @returns Observable with API response of the deleted role.
+   */
+  deleteRole(id: string): Observable<ApiResponse<Role>> {
+    return this.http.delete<ApiResponse<Role>>(`${this.apiUrl}/${id}`);
+  }
 }

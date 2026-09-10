@@ -286,8 +286,13 @@
       "CONFIRM_DEACTIVATE_MESSAGE": "El rol {{roleName}} será desactivado y no podrá ser usado en el sistema",
       "CANCEL": "Cancelar",
       "SAVE": "Guardar",
+      "DELETE": "Eliminar",
+      "CONFIRM_DELETE_TITLE": "Eliminar rol",
+      "CONFIRM_DELETE_MESSAGE": "El rol {{roleName}} se eliminará del sistema permanentemente",
       "UPDATE_SUCCESS": "Rol actualizado exitosamente",
-      "UPDATE_ERROR": "Error actualizando el rol"
+      "UPDATE_ERROR": "Error actualizando el rol",
+      "DELETE_SUCCESS": "Rol eliminado exitosamente",
+      "DELETE_ERROR": "Error eliminando el rol"
     }
   }
 }

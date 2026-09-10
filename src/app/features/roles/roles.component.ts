@@ -56,6 +56,7 @@ export class RolesComponent {
   readonly roles = signal<RoleView[]>([]);
   readonly isLoading = signal<boolean>(false);
   readonly updatingIds = signal<Set<string>>(new Set());
+  readonly deletingIds = signal<Set<string>>(new Set());
 
   readonly filteredRoles = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
@@ -147,6 +148,40 @@ export class RolesComponent {
     return this.updatingIds().has(id);
   }
 
+  isDeleting(id: string): boolean {
+    return this.deletingIds().has(id);
+  }
+
+  /**
+   * Opens the confirmation dialog to delete a role.
+   *
+   * If the user cancels, the dialog is closed and no action is applied.
+   * If the user confirms, the DELETE endpoint is called for the role.
+   *
+   * @param role Selected role to delete.
+   */
+  onDelete(role: RoleView): void {
+    const dialogRef = this.dialog.open<ConfirmationDialogComponent, ConfirmationDialogData, boolean>(
+      ConfirmationDialogComponent,
+      {
+        width: '420px',
+        data: {
+          titleKey: 'ROLES.MESSAGES.CONFIRM_DELETE_TITLE',
+          messageKey: 'ROLES.MESSAGES.CONFIRM_DELETE_MESSAGE',
+          cancelKey: 'ROLES.MESSAGES.CANCEL',
+          confirmKey: 'ROLES.MESSAGES.DELETE',
+          messageParams: { roleName: role.name }
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
+      if (confirmed) {
+        this.deleteRole(role);
+      }
+    });
+  }
+
   onToggleChange(role: RoleView, event: MatSlideToggleChange): void {
     const activating = event.checked;
 
@@ -202,6 +237,37 @@ export class RolesComponent {
           extractApiErrorMessage(error, this.i18nService.translate('ROLES.MESSAGES.UPDATE_ERROR'))
         );
         this.updatingIds.update((ids) => {
+          const s = new Set(ids);
+          s.delete(role.id);
+          return s;
+        });
+      }
+    });
+  }
+
+  /**
+   * Calls the DELETE endpoint for the selected role.
+   *
+   * @param role Role to delete.
+   */
+  private deleteRole(role: RoleView): void {
+    this.deletingIds.update((ids) => new Set(ids).add(role.id));
+
+    this.rolesService.deleteRole(role.id).subscribe({
+      next: (response) => {
+        this.notifications.success(response.message ?? this.i18nService.translate('ROLES.MESSAGES.DELETE_SUCCESS'));
+        this.deletingIds.update((ids) => {
+          const s = new Set(ids);
+          s.delete(role.id);
+          return s;
+        });
+        this.loadRoles();
+      },
+      error: (error) => {
+        this.notifications.error(
+          extractApiErrorMessage(error, this.i18nService.translate('ROLES.MESSAGES.DELETE_ERROR'))
+        );
+        this.deletingIds.update((ids) => {
           const s = new Set(ids);
           s.delete(role.id);
           return s;

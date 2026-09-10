@@ -55,8 +55,18 @@
               <button mat-icon-button color="primary" [title]="i18nService.translate('ROLES.ACTIONS.EDIT')">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" [title]="i18nService.translate('ROLES.ACTIONS.DELETE')">
-                <mat-icon>delete</mat-icon>
+              <button
+                mat-icon-button
+                color="warn"
+                [title]="i18nService.translate('ROLES.ACTIONS.DELETE')"
+                [disabled]="isDeleting(role.id)"
+                (click)="onDelete(role)"
+              >
+                @if (isDeleting(role.id)) {
+                  <mat-spinner diameter="18"></mat-spinner>
+                } @else {
+                  <mat-icon>delete</mat-icon>
+                }
               </button>
               <mat-slide-toggle
                 [checked]="role.isActive"
