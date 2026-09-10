@@ -1,14 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { AcquisitionTypeService } from '../../acquisitions/acquisition-type.service';
-import { ApiResponse } from '../../../shared/interfaces/api-response.interface';
-import { AcquisitionType } from '../../../shared/models/acquisition-type.model';
-import { GENERAL_CONSTANTS } from '../../../shared/constants/general.constants';
-import { I18nService } from '../../../shared/utils/i18n.util';
+import { NotificationService } from '@core/application/notifications/notification.service';
+import { extractApiErrorMessage } from '@core/application/ports/api-error';
+import { AcquisitionTypeService } from '@core/application/acquisition-types/acquisition-type.service';
+import { ApiResponse } from '@core/application/ports/api-response.interface';
+import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
+import { I18nService } from '@core/i18n/i18n.service';
 
 export interface AcquisitionTypeDeleteDialogData {
   acquisitionType?: AcquisitionType;
@@ -23,16 +23,17 @@ export interface AcquisitionTypeDeleteDialogData {
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatButtonModule, MatProgressSpinnerModule],
   templateUrl: './acquisition-type-delete-dialog.component.html',
-  styleUrls: ['./acquisition-type-delete-dialog.component.scss']
+  styleUrls: ['./acquisition-type-delete-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AcquisitionTypeDeleteDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AcquisitionTypeDeleteDialogComponent>);
   private readonly data = inject<AcquisitionTypeDeleteDialogData>(MAT_DIALOG_DATA);
   private readonly acquisitionTypeService = inject(AcquisitionTypeService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notifications = inject(NotificationService);
   readonly i18nService = inject(I18nService);
 
-  isDeleting = false;
+  readonly isDeleting = signal<boolean>(false);
 
   get title(): string {
     return this.data.title ?? this.i18nService.translate('ACQUISITION_TYPE_CATALOG.DELETE.TITLE');
@@ -72,28 +73,20 @@ export class AcquisitionTypeDeleteDialogComponent {
       return;
     }
 
-    if (this.isDeleting || !this.data.acquisitionType) {
+    if (this.isDeleting() || !this.data.acquisitionType) {
       return;
     }
 
-    this.isDeleting = true;
+    this.isDeleting.set(true);
     this.acquisitionTypeService.deleteAcquisitionType(this.data.acquisitionType.id).subscribe({
       next: (response: ApiResponse<AcquisitionType>) => {
-        this.isDeleting = false;
-        this.snackBar.open(
-          response.message,
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
+        this.isDeleting.set(false);
+        this.notifications.success(response.message);
         this.dialogRef.close(true);
       },
       error: (error: { error?: { message?: string } }) => {
-        this.isDeleting = false;
-        this.snackBar.open(
-          error.error?.message ?? this.i18nService.translate('ACQUISITION_TYPE_CATALOG.DELETE.ERROR'),
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
+        this.isDeleting.set(false);
+        this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('ACQUISITION_TYPE_CATALOG.DELETE.ERROR')));
       }
     });
   }

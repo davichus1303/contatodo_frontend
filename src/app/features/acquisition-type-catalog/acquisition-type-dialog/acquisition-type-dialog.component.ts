@@ -1,19 +1,21 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { AcquisitionTypeService } from '../../acquisitions/acquisition-type.service';
-import { CreateAcquisitionTypeRequest, UpdateAcquisitionTypeRequest } from '../../../shared/dto/acquisition-type-request.dto';
-import { AcquisitionType } from '../../../shared/models/acquisition-type.model';
-import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
-import { GENERAL_CONSTANTS } from '../../../shared/constants/general.constants';
-import { I18nService } from '../../../shared/utils/i18n.util';
+import { NotificationService } from '@core/application/notifications/notification.service';
+import { extractApiErrorMessage } from '@core/application/ports/api-error';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AcquisitionTypeService } from '@core/application/acquisition-types/acquisition-type.service';
+import { CreateAcquisitionTypeRequest, UpdateAcquisitionTypeRequest } from '@core/application/dto/acquisition-type-request.dto';
+import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
+import { ConfirmationDialogComponent, ConfirmationDialogData } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
+import { I18nService } from '@core/i18n/i18n.service';
+import { nonBlank } from '@shared/validators/domain.validators';
 
 export type AcquisitionTypeDialogMode = 'create' | 'edit';
 
@@ -42,25 +44,28 @@ type AcquisitionTypeFormModel = {
     MatSlideToggleModule
   ],
   templateUrl: './acquisition-type-dialog.component.html',
-  styleUrls: ['./acquisition-type-dialog.component.scss']
+  styleUrls: ['./acquisition-type-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AcquisitionTypeDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<AcquisitionTypeDialogComponent>);
   private readonly data = inject<AcquisitionTypeDialogData>(MAT_DIALOG_DATA);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly acquisitionTypeService = inject(AcquisitionTypeService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notifications = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
   readonly i18nService = inject(I18nService);
   readonly mode: AcquisitionTypeDialogMode = this.data.mode;
 
   readonly form: FormGroup<AcquisitionTypeFormModel>;
-  isSaving = false;
+  readonly isSaving = signal<boolean>(false);
+
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     this.form = this.formBuilder.group({
       name: this.formBuilder.control(this.data.acquisitionType?.name ?? '', {
-        validators: [Validators.required, this.noWhitespaceValidator]
+        validators: [Validators.required, nonBlank()]
       }),
       description: this.formBuilder.control(this.data.acquisitionType?.description ?? ''),
       affectsInventory: this.formBuilder.control(
@@ -85,7 +90,7 @@ export class AcquisitionTypeDialogComponent {
       return;
     }
 
-    if (this.isSaving) {
+    if (this.isSaving()) {
       return;
     }
 
@@ -102,11 +107,13 @@ export class AcquisitionTypeDialogComponent {
         data: dialogData
       });
 
-      confirmation.afterClosed().subscribe((confirmed: boolean | undefined) => {
-        if (confirmed) {
-          this.save();
-        }
-      });
+      confirmation.afterClosed()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((confirmed: boolean | undefined) => {
+          if (confirmed) {
+            this.save();
+          }
+        });
       return;
     }
 
@@ -117,11 +124,11 @@ export class AcquisitionTypeDialogComponent {
    * Executes the create/update request.
    */
   private save(): void {
-    if (this.isSaving) {
+    if (this.isSaving()) {
       return;
     }
 
-    this.isSaving = true;
+    this.isSaving.set(true);
     const name = this.form.controls.name.value.trim();
     const description = this.form.controls.description.value.trim();
     const descriptionValue = description.length > 0 ? description : undefined;
@@ -136,21 +143,13 @@ export class AcquisitionTypeDialogComponent {
 
       this.acquisitionTypeService.createAcquisitionType(payload).subscribe({
         next: () => {
-          this.isSaving = false;
-          this.snackBar.open(
-            this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.CREATED'),
-            GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-            { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-          );
+          this.isSaving.set(false);
+          this.notifications.success(this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.CREATED'));
           this.dialogRef.close(true);
         },
         error: (error: { error?: { message?: string } }) => {
-          this.isSaving = false;
-          this.snackBar.open(
-            error.error?.message ?? this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.ERROR_CREATING'),
-            GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-            { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-          );
+          this.isSaving.set(false);
+          this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.ERROR_CREATING')));
         }
       });
       return;
@@ -165,38 +164,19 @@ export class AcquisitionTypeDialogComponent {
 
     this.acquisitionTypeService.updateAcquisitionType(acquisitionTypeId, payload).subscribe({
       next: () => {
-        this.isSaving = false;
-        this.snackBar.open(
-          this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.UPDATED'),
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
+        this.isSaving.set(false);
+        this.notifications.success(this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.UPDATED'));
         this.dialogRef.close(true);
       },
       error: (error: { error?: { message?: string } }) => {
-        this.isSaving = false;
-        this.snackBar.open(
-          error.error?.message ?? this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.ERROR_UPDATING'),
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
+        this.isSaving.set(false);
+        this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.ERROR_UPDATING')));
       }
     });
   }
 
-  /**
-   * Validator that checks if the input value consists solely of whitespace.
-   * Returns a validation error object if the trimmed value is empty, otherwise null.
-   * @param control - The form control to validate, which contains a string value.
-   * @returns A ValidationErrors object with a 'whitespace' property if invalid, null otherwise.
-   */
-  private noWhitespaceValidator(control: AbstractControl<string>): ValidationErrors | null {
-    const value = control.value ?? '';
-    return value.trim().length === 0 ? { whitespace: true } : null;
-  }
-
   get isSubmitDisabled(): boolean {
-    if (this.isSaving) {
+    if (this.isSaving()) {
       return true;
     }
 

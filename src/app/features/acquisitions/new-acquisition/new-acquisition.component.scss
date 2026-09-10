@@ -1,0 +1,39 @@
+.new-acquisition-page {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .new-acquisition-page {
+    padding: 16px;
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+}

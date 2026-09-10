@@ -21,18 +21,18 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-icon matPrefix>lock</mat-icon>
           <mat-label>{{ i18nService.translate('login.password') }}</mat-label>
-          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" required>
+          <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password" required>
           <button mat-icon-button matSuffix (click)="togglePasswordVisibility()" type="button" aria-label="Toggle password visibility">
-            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
             {{ i18nService.translate('login.passwordRequired') }}
           </mat-error>
         </mat-form-field>
 
-        <button mat-raised-button color="primary" type="submit" class="full-width" [disabled]="isLoading">
-          <mat-spinner *ngIf="isLoading" diameter="20" class="spinner"></mat-spinner>
-          <span *ngIf="!isLoading">{{ i18nService.translate('login.loginButton') }}</span>
+        <button mat-raised-button color="primary" type="submit" class="full-width" [disabled]="isLoading()">
+          <mat-spinner *ngIf="isLoading()" diameter="20" class="spinner"></mat-spinner>
+          <span *ngIf="!isLoading()">{{ i18nService.translate('login.loginButton') }}</span>
         </button>
       </form>
     </mat-card-content>

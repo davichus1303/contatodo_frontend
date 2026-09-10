@@ -5,13 +5,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { AuthService } from '../../core/auth/auth.service';
-import { ModulesService } from '../../features/modules/modules.service';
-import { Module } from '../../shared/models/module.model';
+import { AuthService } from '@core/auth/auth.service';
+import { ModulesService } from '@core/application/modules/modules.service';
+import { Module } from '@core/domain/models/module.model';
 import { Router } from '@angular/router';
-import { ApiResponse } from '../../shared/interfaces/api-response.interface';
-import { I18nService } from '../../shared/utils/i18n.util';
-import { MODULES_NAVIGATION_CONSTANTS } from '../../shared/constants/modules-navigation.constants';
+import { ApiResponse } from '@core/application/ports/api-response.interface';
+import { I18nService } from '@core/i18n/i18n.service';
+import { MODULES_NAVIGATION_CONSTANTS } from '@shared/constants/modules-navigation.constants';
 
 /**
  * Modules navigation component displayed at the top of authenticated pages.

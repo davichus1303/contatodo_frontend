@@ -1,0 +1,21 @@
+<div class="new-acquisition-page">
+  <div class="page-header">
+    <button mat-stroked-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>{{ i18nService.translate('ACQUISITIONS.BACK') }}</span>
+    </button>
+    <h1>{{ i18nService.translate('ACQUISITIONS.NEW_ACQUISITION') }}</h1>
+  </div>
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      <app-acquisition-form
+        [acquisitionTypes]="acquisitionTypes()"
+        [products]="products()"
+        [isSaving]="isSaving()"
+        (save)="onFormSave($event)"
+        (cancel)="goBack()"
+      />
+    </mat-card-content>
+  </mat-card>
+</div>

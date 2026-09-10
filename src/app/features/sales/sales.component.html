@@ -19,17 +19,17 @@
     </form>
   </div>
 
-  <div *ngIf="isLoading" class="loading-container">
+  <div *ngIf="isLoading()" class="loading-container">
     <mat-spinner></mat-spinner>
   </div>
 
-  <div *ngIf="!isLoading && filteredProducts.length === 0" class="empty-state">
+  <div *ngIf="!isLoading() && filteredProducts().length === 0" class="empty-state">
     <mat-icon>inventory_2</mat-icon>
     <p>{{ i18nService.translate('sales.noProducts') }}</p>
   </div>
 
-  <div class="products-grid" *ngIf="!isLoading">
-    <mat-card *ngFor="let product of filteredProducts" class="product-card" (click)="openSaleDialog(product)">
+  <div class="products-grid" *ngIf="!isLoading()">
+    <mat-card *ngFor="let product of filteredProducts()" class="product-card" (click)="openSaleDialog(product)">
       <mat-card-header>
         <mat-card-title>{{ product.name }}</mat-card-title>
         <mat-card-subtitle>{{ i18nService.translate('sales.code') }}: {{ product.code }}</mat-card-subtitle>

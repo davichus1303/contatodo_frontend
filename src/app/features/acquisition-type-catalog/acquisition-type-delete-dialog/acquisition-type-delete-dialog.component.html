@@ -5,12 +5,12 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="cancel()" [disabled]="isDeleting">
+  <button mat-button type="button" (click)="cancel()" [disabled]="isDeleting()">
     {{ cancelText }}
   </button>
 
-  <button mat-raised-button [color]="isDeleteMode ? 'warn' : 'primary'" type="button" (click)="confirmDelete()" [disabled]="isDeleting">
-    @if (isDeleting && isDeleteMode) {
+  <button mat-raised-button [color]="isDeleteMode ? 'warn' : 'primary'" type="button" (click)="confirmDelete()" [disabled]="isDeleting()">
+    @if (isDeleting() && isDeleteMode) {
       <mat-spinner diameter="16"></mat-spinner>
     } @else {
       {{ confirmText }}

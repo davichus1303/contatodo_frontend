@@ -55,20 +55,20 @@
     <div class="calculations">
       <div class="calc-row">
         <span class="label">{{ i18nService.translate('sales.totalCost') }}:</span>
-        <span class="value">{{ formatCurrency(totalCost) }}</span>
+        <span class="value">{{ formatCurrency(totalCost()) }}</span>
       </div>
       <div class="calc-row">
         <span class="label">{{ i18nService.translate('sales.profit') }}:</span>
-        <span class="value" [ngClass]="getProfitColorClass()">{{ formatCurrency(profit) }}</span>
+        <span class="value" [ngClass]="getProfitColorClass()">{{ formatCurrency(profit()) }}</span>
       </div>
     </div>
   </form>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()" [disabled]="isLoading">{{ i18nService.translate('sales.cancel') }}</button>
-  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isLoading">
-    <mat-spinner *ngIf="isLoading" diameter="20" class="spinner"></mat-spinner>
-    <span *ngIf="!isLoading">{{ i18nService.translate('sales.save') }}</span>
+  <button mat-button (click)="onCancel()" [disabled]="isLoading()">{{ i18nService.translate('sales.cancel') }}</button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isLoading()">
+    <mat-spinner *ngIf="isLoading()" diameter="20" class="spinner"></mat-spinner>
+    <span *ngIf="!isLoading()">{{ i18nService.translate('sales.save') }}</span>
   </button>
 </mat-dialog-actions>

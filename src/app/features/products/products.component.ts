@@ -8,16 +8,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '@core/application/notifications/notification.service';
+import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { Router } from '@angular/router';
-import { ProductsService } from './products.service';
-import { Product } from '../../shared/models/product.model';
+import { ProductsService } from '@core/application/products/products.service';
+import { Product } from '@core/domain/models/product.model';
 import { ProductFormComponent } from './product-form/product-form.component';
-import { ProductFormPayload } from '../../shared/dto/product-request.dto';
-import { ApiResponse } from '../../shared/interfaces/api-response.interface';
-import { I18nService } from '../../shared/utils/i18n.util';
-import { GENERAL_CONSTANTS } from '../../shared/constants/general.constants';
-import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ProductFormPayload } from '@core/application/dto/product-request.dto';
+import { ApiResponse } from '@core/application/ports/api-response.interface';
+import { I18nService } from '@core/i18n/i18n.service';
+import { ConfirmationDialogComponent, ConfirmationDialogData } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-products',
@@ -41,7 +41,7 @@ import { ConfirmationDialogComponent, ConfirmationDialogData } from '../../share
 export class ProductsComponent {
   private readonly productsService = inject(ProductsService);
   private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
   readonly i18nService = inject(I18nService);
 
@@ -92,11 +92,7 @@ export class ProductsComponent {
         this.isLoading.set(false);
       },
       error: () => {
-        this.snackBar.open(
-          this.i18nService.translate('PRODUCTS.MESSAGES.ERROR_LOADING_PRODUCTS'),
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
+        this.notifications.error(this.i18nService.translate('PRODUCTS.MESSAGES.ERROR_LOADING_PRODUCTS'));
         this.isLoading.set(false);
       }
     });
@@ -134,12 +130,12 @@ export class ProductsComponent {
       next: () => {
         this.isSaving.set(false);
         this.dialog.closeAll();
-        this.snackBar.open(this.i18nService.translate('PRODUCTS.MESSAGES.CREATED'), GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON, { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION });
+        this.notifications.success(this.i18nService.translate('PRODUCTS.MESSAGES.CREATED'));
         this.loadProducts();
       },
       error: (error: { error?: { message?: string; errors?: Record<string, string[]> } }) => {
         this.isSaving.set(false);
-        this.snackBar.open(error.error?.message ?? this.i18nService.translate('PRODUCTS.MESSAGES.ERROR_CREATING_PRODUCT'), GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON, { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION });
+        this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('PRODUCTS.MESSAGES.ERROR_CREATING_PRODUCT')));
       }
     });
   }
@@ -173,12 +169,12 @@ export class ProductsComponent {
       next: () => {
         this.isSaving.set(false);
         this.dialog.closeAll();
-        this.snackBar.open(this.i18nService.translate('PRODUCTS.MESSAGES.UPDATED'), GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON, { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION });
+        this.notifications.success(this.i18nService.translate('PRODUCTS.MESSAGES.UPDATED'));
         this.loadProducts();
       },
       error: (error: { error?: { message?: string } }) => {
         this.isSaving.set(false);
-        this.snackBar.open(error.error?.message ?? this.i18nService.translate('PRODUCTS.MESSAGES.ERROR_UPDATING_PRODUCT'), GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON, { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION });
+        this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('PRODUCTS.MESSAGES.ERROR_UPDATING_PRODUCT')));
       }
     });
   }

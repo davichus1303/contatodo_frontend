@@ -13,24 +13,31 @@ Frontend para el sistema de registro de compras y ventas. Aplicación Angular 17
 
 ## Estructura del Proyecto
 
+Arquitectura en capas: `core` (domain/application/adapters), `features` y `shared`. El mapa completo está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) y las reglas de trabajo en [`AGENTS.md`](AGENTS.md).
+
 ```
 contatodo_web/
 ├── src/
 │   ├── app/
-│   │   ├── components/
-│   │   ├── services/
-│   │   └── ...
-│   ├── assets/
+│   │   ├── core/
+│   │   │   ├── domain/         # modelos readonly + factories validadas + Result (puro)
+│   │   │   ├── application/    # servicios HTTP, DTOs, mappers, notificaciones
+│   │   │   ├── adapters/       # http/storage detrás de ports
+│   │   │   └── auth|config|guards|i18n|interceptors/
+│   │   ├── features/           # login, sales, products, acquisitions, roles...
+│   │   ├── layout/             # modules-navigation
+│   │   └── shared/             # components, constants, validators
+│   ├── assets/i18n/es.json
 │   └── ...
+├── docs/
+│   └── ARCHITECTURE.md         # mapa de arquitectura
+├── AGENTS.md                   # lineamientos de trabajo
 ├── deploy/
 │   ├── deploy-ec2.sh
 │   └── docker-compose.ec2.yml
 ├── nginx/
 │   └── default.conf
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       └── deploy.yml
+├── .github/workflows/          # ci.yml, deploy.yml
 ├── Dockerfile
 ├── angular.json
 └── package.json
@@ -77,11 +84,12 @@ También puedes usar `ng generate directive|pipe|service|class|guard|interface|e
 ### Tests
 
 ```bash
-# Unit tests
+# Unit tests (watch mode)
 ng test
 
-# End-to-end tests
-ng e2e
+# Unit tests CI (Chrome headless-shell)
+CHROME="$HOME/.cache/puppeteer-browsers/chrome-headless-shell/linux-152.0.7977.54/chrome-headless-shell-linux64/chrome-headless-shell" \
+CHROME_BIN="$CHROME" npm test -- --watch=false
 ```
 
 ## Docker
