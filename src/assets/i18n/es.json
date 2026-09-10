@@ -256,5 +256,38 @@
       "UPDATE_SUCCESS": "Tipo de adquisición actualizado exitosamente",
       "UPDATE_ERROR": "Error actualizando tipo de adquisición"
     }
+  },
+  "ROLES": {
+    "TITLE": "Roles",
+    "SUBTITLE": "Gestiona los roles del sistema",
+    "NEW_ROLE": "Nuevo Rol",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por nombre"
+    },
+    "EMPTY_STATE": "No se encontraron roles",
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "MODULES": {
+      "LABEL": "Módulos"
+    },
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Activar/Desactivar"
+    },
+    "MESSAGES": {
+      "ERROR_LOADING": "Error cargando roles",
+      "CONFIRM_ACTIVATE_TITLE": "Activar rol",
+      "CONFIRM_DEACTIVATE_TITLE": "Desactivar rol",
+      "CONFIRM_ACTIVATE_MESSAGE": "El rol {{roleName}} será activado y podrá usarse en el sistema",
+      "CONFIRM_DEACTIVATE_MESSAGE": "El rol {{roleName}} será desactivado y no podrá ser usado en el sistema",
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar",
+      "UPDATE_SUCCESS": "Rol actualizado exitosamente",
+      "UPDATE_ERROR": "Error actualizando el rol"
+    }
   }
 }
