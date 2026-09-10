@@ -1,43 +1,46 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { BASE_URL } from '../../shared/constants/api-routes.constants';
-import { ApiResponse } from '../../shared/interfaces/api-response.interface';
-import { LoginResponse } from '../../shared/dto/login-response.dto';
+import { HTTP_PORT } from '../application/ports/http.port';
+import { STORAGE_PORT } from '../application/ports/storage.port';
+import { ApiResponse } from '../application/ports/api-response.interface';
+import { LoginResponse } from '../application/dto/login-response.dto';
+import { BASE_URL } from '../config/api-routes.constants';
+
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'user_info';
 
 /**
- * Service responsible for authentication operations.
+ * Application service managing the user session: login, logout and
+ * authentication state.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly TOKEN_KEY = 'auth_token';
-  private readonly USER_KEY = 'user_info';
-  private readonly API_URL = BASE_URL;
+  private readonly http = inject(HTTP_PORT);
+  private readonly storage = inject(STORAGE_PORT);
+  private readonly router = inject(Router);
 
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private router: Router
-  ) {
-    if (typeof window !== 'undefined') {
-      this.checkAuthStatus();
-    }
+  constructor() {
+    this.checkAuthStatus();
   }
 
   /**
    * Logs in a user with email and password.
+   *
+   * On success the token and user information are persisted and the
+   * authentication state becomes true.
    *
    * @param email User email.
    * @param password User password.
    * @returns Observable with login response.
    */
   login(email: string, password: string): Observable<ApiResponse<LoginResponse>> {
-    return this.http.post<ApiResponse<LoginResponse>>(`${this.API_URL}/login`, { email, password }).pipe(
+    return this.http.post<ApiResponse<LoginResponse>>(`${BASE_URL}/login`, { email, password }).pipe(
       tap((response: ApiResponse<LoginResponse>) => {
         if (response.status === 200 && response.data?.token) {
           this.setToken(response.data.token);
@@ -49,7 +52,8 @@ export class AuthService {
   }
 
   /**
-   * Logs out the current user.
+   * Logs out the current user, clears stored session data and redirects to
+   * the login page.
    */
   logout(): void {
     this.removeToken();
@@ -64,10 +68,7 @@ export class AuthService {
    * @returns JWT token or null.
    */
   getToken(): string | null {
-    if (typeof window === 'undefined') {
-      return null;
-    }
-    return localStorage.getItem(this.TOKEN_KEY);
+    return this.storage.getItem(TOKEN_KEY);
   }
 
   /**
@@ -76,11 +77,15 @@ export class AuthService {
    * @returns User information or null.
    */
   getUserInfo(): LoginResponse['user'] | null {
-    if (typeof window === 'undefined') {
+    const userInfo = this.storage.getItem(USER_KEY);
+    if (!userInfo) {
       return null;
     }
-    const userInfo = localStorage.getItem(this.USER_KEY);
-    return userInfo ? JSON.parse(userInfo) as LoginResponse['user'] : null;
+    try {
+      return JSON.parse(userInfo) as LoginResponse['user'];
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -93,47 +98,39 @@ export class AuthService {
   }
 
   /**
-   * Stores the JWT token in localStorage.
+   * Stores the JWT token.
    *
    * @param token JWT token.
    */
   private setToken(token: string): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(this.TOKEN_KEY, token);
-    }
+    this.storage.setItem(TOKEN_KEY, token);
   }
 
   /**
-   * Removes the JWT token from localStorage.
+   * Removes the stored JWT token.
    */
   private removeToken(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(this.TOKEN_KEY);
-    }
+    this.storage.removeItem(TOKEN_KEY);
   }
 
   /**
-   * Stores user information in localStorage.
+   * Stores user information as JSON.
    *
    * @param user User information.
    */
   private setUserInfo(user: LoginResponse['user']): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-    }
+    this.storage.setItem(USER_KEY, JSON.stringify(user));
   }
 
   /**
-   * Removes user information from localStorage.
+   * Removes stored user information.
    */
   private removeUserInfo(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(this.USER_KEY);
-    }
+    this.storage.removeItem(USER_KEY);
   }
 
   /**
-   * Checks the current authentication status.
+   * Restores the authentication state from the persisted token.
    */
   private checkAuthStatus(): void {
     const token = this.getToken();

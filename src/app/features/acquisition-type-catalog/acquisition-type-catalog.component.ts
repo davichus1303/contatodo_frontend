@@ -7,19 +7,19 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '@core/application/notifications/notification.service';
+import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSlideToggleModule, MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { AcquisitionTypeService } from '../acquisitions/acquisition-type.service';
-import { AcquisitionType } from '../../shared/models/acquisition-type.model';
-import { ApiResponse } from '../../shared/interfaces/api-response.interface';
-import { GENERAL_CONSTANTS } from '../../shared/constants/general.constants';
-import { I18nService } from '../../shared/utils/i18n.util';
+import { AcquisitionTypeService } from '@core/application/acquisition-types/acquisition-type.service';
+import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
+import { ApiResponse } from '@core/application/ports/api-response.interface';
+import { I18nService } from '@core/i18n/i18n.service';
 import { AcquisitionTypeDialogComponent } from './acquisition-type-dialog/acquisition-type-dialog.component';
 import { AcquisitionTypeDeleteDialogComponent } from './acquisition-type-delete-dialog/acquisition-type-delete-dialog.component';
-import { UpdateAcquisitionTypeRequest } from '../../shared/dto/acquisition-type-request.dto';
+import { UpdateAcquisitionTypeRequest } from '@core/application/dto/acquisition-type-request.dto';
 
 export type SortOption = 'nameAsc' | 'nameDesc' | 'activeFirst' | 'inactiveFirst';
 
@@ -44,7 +44,7 @@ export type SortOption = 'nameAsc' | 'nameDesc' | 'activeFirst' | 'inactiveFirst
 })
 export class AcquisitionTypeCatalogComponent implements OnDestroy {
   private readonly acquisitionTypeService = inject(AcquisitionTypeService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notifications = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
   readonly i18nService = inject(I18nService);
   private readonly destroy$ = new Subject<void>();
@@ -129,11 +129,7 @@ export class AcquisitionTypeCatalogComponent implements OnDestroy {
         this.isLoading.set(false);
       },
       error: () => {
-        this.snackBar.open(
-          this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.ERROR_LOADING'),
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
+        this.notifications.error(this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.ERROR_LOADING'));
         this.isLoading.set(false);
       }
     });
@@ -267,11 +263,7 @@ export class AcquisitionTypeCatalogComponent implements OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response: ApiResponse<AcquisitionType>) => {
-        this.snackBar.open(
-          response.message || this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.UPDATE_SUCCESS'),
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
+        this.notifications.success(response.message || this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.UPDATE_SUCCESS'));
         
         this.updatingIds.update(ids => {
           const newSet = new Set(ids);
@@ -282,11 +274,7 @@ export class AcquisitionTypeCatalogComponent implements OnDestroy {
         this.loadAcquisitionTypes();
       },
       error: (error) => {
-        this.snackBar.open(
-          error.error?.message || this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.UPDATE_ERROR'),
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
+        this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.UPDATE_ERROR')));
         
         this.updatingIds.update(ids => {
           const newSet = new Set(ids);

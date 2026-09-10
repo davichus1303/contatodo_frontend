@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,9 +6,10 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { Product } from '../../../shared/models/product.model';
-import { ProductFormPayload } from '../../../shared/dto/product-request.dto';
-import { I18nService } from '../../../shared/utils/i18n.util';
+import { Product } from '@core/domain/models/product.model';
+import { PRODUCT_DESCRIPTION_MAX_LENGTH, PRODUCT_NAME_MAX_LENGTH } from '@core/domain/models/product.model';
+import { ProductFormPayload } from '@core/application/dto/product-request.dto';
+import { I18nService } from '@core/i18n/i18n.service';
 
 @Component({
   selector: 'app-product-form',
@@ -23,7 +24,8 @@ import { I18nService } from '../../../shared/utils/i18n.util';
     MatIconModule
   ],
   templateUrl: './product-form.component.html',
-  styleUrls: ['./product-form.component.scss']
+  styleUrls: ['./product-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductFormComponent implements OnInit, OnChanges {
   @Input() product: Product | null = null;
@@ -64,8 +66,8 @@ export class ProductFormComponent implements OnInit, OnChanges {
   private buildForm(): void {
     this.isEditMode.set(this.isEdit);
     this.form.set(this.formBuilder.group({
-      name: [this.product?.name ?? '', [Validators.required, Validators.maxLength(100)]],
-      description: [this.product?.description ?? '', [Validators.required, Validators.maxLength(500)]],
+      name: [this.product?.name ?? '', [Validators.required, Validators.maxLength(PRODUCT_NAME_MAX_LENGTH)]],
+      description: [this.product?.description ?? '', [Validators.required, Validators.maxLength(PRODUCT_DESCRIPTION_MAX_LENGTH)]],
       stock: [this.product?.stock ?? 0, [Validators.required, Validators.min(0)]],
       realCost: [this.product?.realCost ?? 0, [Validators.required, Validators.min(0)]],
       unitRealCost: [this.product?.unitRealCost ?? 0, [Validators.required, Validators.min(0)]],

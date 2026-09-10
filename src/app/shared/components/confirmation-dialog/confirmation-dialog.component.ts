@@ -1,8 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { I18nService } from '../../utils/i18n.util';
+import { I18nService } from '@core/i18n/i18n.service';
 
 export interface ConfirmationDialogData {
   titleKey: string;
@@ -15,6 +15,7 @@ export interface ConfirmationDialogData {
   selector: 'app-confirmation-dialog',
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatDialogModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h2 mat-dialog-title>{{ i18nService.translate(data.titleKey) }}</h2>
     <mat-dialog-content>

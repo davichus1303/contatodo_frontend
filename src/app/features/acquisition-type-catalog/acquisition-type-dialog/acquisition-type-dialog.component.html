@@ -34,7 +34,7 @@
     </button>
 
     <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitDisabled">
-      @if (isSaving) {
+      @if (isSaving()) {
         <mat-spinner diameter="16"></mat-spinner>
       } @else {
         {{ i18nService.translate('ACQUISITION_TYPE_CATALOG.MODAL.SAVE') }}
