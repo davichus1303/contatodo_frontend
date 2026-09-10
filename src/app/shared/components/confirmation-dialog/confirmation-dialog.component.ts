@@ -9,6 +9,7 @@ export interface ConfirmationDialogData {
   messageKey: string;
   cancelKey: string;
   confirmKey: string;
+  messageParams?: Record<string, string>;
 }
 
 @Component({
@@ -19,7 +20,7 @@ export interface ConfirmationDialogData {
   template: `
     <h2 mat-dialog-title>{{ i18nService.translate(data.titleKey) }}</h2>
     <mat-dialog-content>
-      <p>{{ i18nService.translate(data.messageKey) }}</p>
+      <p>{{ resolvedMessage }}</p>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>{{ i18nService.translate(data.cancelKey) }}</button>
@@ -30,4 +31,20 @@ export interface ConfirmationDialogData {
 export class ConfirmationDialogComponent {
   readonly i18nService = inject(I18nService);
   readonly data = inject<ConfirmationDialogData>(MAT_DIALOG_DATA);
+
+  readonly resolvedMessage = this.resolveMessage();
+
+  private resolveMessage(): string {
+    const base = this.i18nService.translate(this.data.messageKey);
+    const params = this.data.messageParams;
+
+    if (!params) {
+      return base;
+    }
+
+    return Object.entries(params).reduce(
+      (acc, [key, value]) => acc.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), value),
+      base
+    );
+  }
 }
