@@ -13,10 +13,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AcquisitionTypeService } from '@core/application/acquisition-types/acquisition-type.service';
 import { CreateAcquisitionTypeRequest, UpdateAcquisitionTypeRequest } from '@core/application/dto/acquisition-type-request.dto';
 import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
-import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
-import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
 import { I18nService } from '@core/i18n/i18n.service';
 import { nonBlank } from '@shared/validators/domain.validators';
+import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 
 export type AcquisitionTypeDialogMode = 'create' | 'edit';
 
@@ -96,17 +95,16 @@ export class AcquisitionTypeDialogComponent {
     }
 
     if (this.mode === 'edit') {
-      const dialogData: ConfirmationDialogData = {
-        titleKey: 'ACQUISITION_TYPE_CATALOG.CONFIRMATION.TITLE',
-        messageKey: 'ACQUISITION_TYPE_CATALOG.CONFIRMATION.MESSAGE',
-        cancelKey: 'ACQUISITION_TYPE_CATALOG.CONFIRMATION.CANCEL',
-        confirmKey: 'ACQUISITION_TYPE_CATALOG.CONFIRMATION.CONFIRM'
-      };
-
-      const confirmation = this.dialog.open(ConfirmationDialogComponent, {
-        width: '320px',
-        data: dialogData
-      });
+      const confirmation = openConfirmationDialog(
+        this.dialog,
+        {
+          titleKey: 'ACQUISITION_TYPE_CATALOG.CONFIRMATION.TITLE',
+          messageKey: 'ACQUISITION_TYPE_CATALOG.CONFIRMATION.MESSAGE',
+          cancelKey: 'ACQUISITION_TYPE_CATALOG.CONFIRMATION.CANCEL',
+          confirmKey: 'ACQUISITION_TYPE_CATALOG.CONFIRMATION.CONFIRM'
+        },
+        '320px'
+      );
 
       confirmation.afterClosed()
         .pipe(takeUntilDestroyed(this.destroyRef))

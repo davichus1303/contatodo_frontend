@@ -14,7 +14,8 @@ import { SalesService } from '@core/application/sales/sales.service';
 import { Product } from '@core/domain/models/product.model';
 import { CreateSaleRequest } from '@core/application/dto/create-sale-request.dto';
 import { SALES_CONSTANTS } from '@shared/constants/sales.constants';
-import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
+import { formatCurrency as formatCurrencyUtil } from '@shared/utils/format.utils';
+import { calculateProfit as calculateProfitUtil } from '../sales.utils';
 import { I18nService } from '@core/i18n/i18n.service';
 
 /**
@@ -73,7 +74,7 @@ export class SaleDialogComponent {
     const totalSalePrice = this.saleForm.get('totalSalePrice')?.value || 0;
 
     this.totalCost.set(this.data.product.unitRealCost * quantity);
-    this.profit.set(totalSalePrice - this.totalCost());
+    this.profit.set(calculateProfitUtil(totalSalePrice, this.totalCost()));
   }
 
   /**
@@ -121,13 +122,7 @@ export class SaleDialogComponent {
    * @returns Formatted currency string.
    */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat(
-      GENERAL_CONSTANTS.CURRENCY.LOCALE,
-      {
-        style: 'currency',
-        currency: GENERAL_CONSTANTS.CURRENCY.CURRENCY_CODE
-      }
-    ).format(value);
+    return formatCurrencyUtil(value);
   }
 
   /**

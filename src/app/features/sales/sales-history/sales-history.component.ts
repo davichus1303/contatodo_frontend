@@ -15,7 +15,8 @@ import { SalesService } from '@core/application/sales/sales.service';
 import { ExpensesService } from '@core/application/expenses/expenses.service';
 import { Sale } from '@core/domain/models/sale.model';
 import { I18nService } from '@core/i18n/i18n.service';
-import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
+import { formatCurrency as formatCurrencyUtil, formatDateISO } from '@shared/utils/format.utils';
+import { calculateProfit as calculateProfitUtil, getProfitColorClass as getProfitColorClassUtil } from '../sales.utils';
 import { SALES_HISTORY_CONSTANTS } from './sales-history.constants';
 
 /** Aggregated metrics shown in the summary panel. */
@@ -148,10 +149,7 @@ export class SalesHistoryComponent implements OnInit {
    * @returns The formatted date.
    */
   private getFormatedDate(date: Date, defaultTime: string = SALES_HISTORY_CONSTANTS.DATE.DEFAULT_START_TIME): Date {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(SALES_HISTORY_CONSTANTS.DATE.MONTH_PADDING, SALES_HISTORY_CONSTANTS.STRING_ZERO);
-    const day = String(date.getDate()).padStart(SALES_HISTORY_CONSTANTS.DATE.DAY_PADDING, SALES_HISTORY_CONSTANTS.STRING_ZERO);
-    const datePart = `${year}${SALES_HISTORY_CONSTANTS.DATE.DATE_SEPARATOR}${month}${SALES_HISTORY_CONSTANTS.DATE.DATE_SEPARATOR}${day}`;
+    const datePart = formatDateISO(date);
     const timePart = defaultTime;
     return new Date(`${datePart}${SALES_HISTORY_CONSTANTS.DATE.DATE_TIME_SEPARATOR}${timePart}`);
   }
@@ -162,10 +160,7 @@ export class SalesHistoryComponent implements OnInit {
    * @returns Formatted date string.
    */
   private formatDateForApi(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return formatDateISO(date);
   }
 
   /**
@@ -203,7 +198,7 @@ export class SalesHistoryComponent implements OnInit {
     const sales = this.sales();
 
     const totalProfit = sales.reduce((sum, sale) => {
-      const profit = (sale.totalSalePrice || 0) - (sale.totalCost || 0);
+      const profit = calculateProfitUtil(sale.totalSalePrice, sale.totalCost);
       return sum + profit;
     }, 0);
 
@@ -249,7 +244,7 @@ export class SalesHistoryComponent implements OnInit {
    * @returns Profit value.
    */
   calculateProfit(sale: Sale): number {
-    return (sale.totalSalePrice || 0) - (sale.totalCost || 0);
+    return calculateProfitUtil(sale.totalSalePrice, sale.totalCost);
   }
 
   /**
@@ -259,9 +254,7 @@ export class SalesHistoryComponent implements OnInit {
    * @returns CSS class.
    */
   getProfitColorClass(profit: number): string {
-    if (profit > 0) return 'profit-positive';
-    if (profit < 0) return 'profit-negative';
-    return 'profit-neutral';
+    return getProfitColorClassUtil(profit);
   }
 
   /**
@@ -271,13 +264,7 @@ export class SalesHistoryComponent implements OnInit {
    * @returns Formatted currency string.
    */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat(
-      GENERAL_CONSTANTS.CURRENCY.LOCALE,
-      {
-        style: 'currency',
-        currency: GENERAL_CONSTANTS.CURRENCY.CURRENCY_CODE
-      }
-    ).format(value);
+    return formatCurrencyUtil(value);
   }
 
   /**

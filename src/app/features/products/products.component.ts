@@ -17,8 +17,7 @@ import { ProductFormComponent } from './product-form/product-form.component';
 import { ProductFormPayload } from '@core/application/dto/product-request.dto';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { I18nService } from '@core/i18n/i18n.service';
-import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
-import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
+import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 
 @Component({
   selector: 'app-products',
@@ -142,16 +141,16 @@ export class ProductsComponent {
   }
 
   private confirmUpdate(product: Product, payload: ProductFormPayload): void {
-    const dialogData: ConfirmationDialogData = {
-      titleKey: 'PRODUCTS.CONFIRMATION.TITLE',
-      messageKey: 'PRODUCTS.CONFIRMATION.MESSAGE',
-      cancelKey: 'PRODUCTS.CONFIRMATION.CANCEL',
-      confirmKey: 'PRODUCTS.CONFIRMATION.CONFIRM'
-    };
-    const confirmation = this.dialog.open(ConfirmationDialogComponent, {
-      width: '320px',
-      data: dialogData
-    });
+    const confirmation = openConfirmationDialog(
+      this.dialog,
+      {
+        titleKey: 'PRODUCTS.CONFIRMATION.TITLE',
+        messageKey: 'PRODUCTS.CONFIRMATION.MESSAGE',
+        cancelKey: 'PRODUCTS.CONFIRMATION.CANCEL',
+        confirmKey: 'PRODUCTS.CONFIRMATION.CONFIRM'
+      },
+      '320px'
+    );
 
     confirmation.afterClosed().subscribe((confirmed: boolean | undefined) => {
       if (confirmed) {

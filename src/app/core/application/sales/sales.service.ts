@@ -5,6 +5,7 @@ import { ApiResponse } from '../ports/api-response.interface';
 import { Sale } from '../../domain/models/sale.model';
 import { CreateSaleRequest } from '../dto/create-sale-request.dto';
 import { SALES_URL } from '../../config/api-routes.constants';
+import { formatDateISO } from '@shared/utils/format.utils';
 
 /**
  * Use cases for sales (create, list today's sales, query by date/range).
@@ -53,21 +54,8 @@ export class SalesService {
    * @returns Observable with API response containing sales for the date range.
    */
   getSalesByDateRange(startDate: Date, endDate: Date): Observable<ApiResponse<Sale[]>> {
-    const startStr = formatDate(startDate);
-    const endStr = formatDate(endDate);
+    const startStr = formatDateISO(startDate);
+    const endStr = formatDateISO(endDate);
     return this.http.get<ApiResponse<Sale[]>>(`${this.apiUrl}/date-range?startDate=${startStr}&endDate=${endStr}`);
   }
-}
-
-/**
- * Formats a date as YYYY-MM-DD string.
- *
- * @param date Date to format.
- * @returns Formatted date string.
- */
-function formatDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }

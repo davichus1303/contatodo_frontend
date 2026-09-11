@@ -16,10 +16,10 @@ import { RolesService } from '@core/application/roles/roles.service';
 import { Role } from '@core/domain/models/role.model';
 import { Module } from '@core/domain/models/module.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
-import { I18nService } from '@core/i18n/i18n.service';
-import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
-import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
 import { UpdateRoleRequest } from '@core/application/dto/role-request.dto';
+import { I18nService } from '@core/i18n/i18n.service';
+import { openConfirmationDialog } from '@shared/utils/dialog.utils';
+import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
 import { RoleDialogComponent } from './role-dialog/role-dialog.component';
 import { RoleDialogData, RoleDialogLabels } from '@shared/interfaces/role-dialog.interfaces';
 import { ModulesNavigationComponent } from '../../layout/modules-navigation/modules-navigation.component';
@@ -243,18 +243,16 @@ export class RolesComponent {
    * @param role Selected role to delete.
    */
   onDelete(role: RoleView): void {
-    const dialogRef = this.dialog.open<ConfirmationDialogComponent, ConfirmationDialogData, boolean>(
-      ConfirmationDialogComponent,
+    const dialogRef = openConfirmationDialog(
+      this.dialog,
       {
-        width: '420px',
-        data: {
-          titleKey: 'ROLES.MESSAGES.CONFIRM_DELETE_TITLE',
-          messageKey: 'ROLES.MESSAGES.CONFIRM_DELETE_MESSAGE',
-          cancelKey: 'ROLES.MESSAGES.CANCEL',
-          confirmKey: 'ROLES.MESSAGES.DELETE',
-          messageParams: { roleName: role.name }
-        }
-      }
+        titleKey: 'ROLES.MESSAGES.CONFIRM_DELETE_TITLE',
+        messageKey: 'ROLES.MESSAGES.CONFIRM_DELETE_MESSAGE',
+        cancelKey: 'ROLES.MESSAGES.CANCEL',
+        confirmKey: 'ROLES.MESSAGES.DELETE',
+        messageParams: { roleName: role.name }
+      },
+      '420px'
     );
 
     dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
@@ -275,18 +273,16 @@ export class RolesComponent {
       ? 'ROLES.MESSAGES.CONFIRM_ACTIVATE_MESSAGE'
       : 'ROLES.MESSAGES.CONFIRM_DEACTIVATE_MESSAGE';
 
-    const dialogRef = this.dialog.open<ConfirmationDialogComponent, ConfirmationDialogData, boolean>(
-      ConfirmationDialogComponent,
+    const dialogRef = openConfirmationDialog(
+      this.dialog,
       {
-        width: '420px',
-        data: {
-          titleKey,
-          messageKey,
-          cancelKey: 'ROLES.MESSAGES.CANCEL',
-          confirmKey: 'ROLES.MESSAGES.SAVE',
-          messageParams: { roleName: role.name }
-        }
-      }
+        titleKey,
+        messageKey,
+        cancelKey: 'ROLES.MESSAGES.CANCEL',
+        confirmKey: 'ROLES.MESSAGES.SAVE',
+        messageParams: { roleName: role.name }
+      },
+      '420px'
     );
 
     dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
@@ -300,29 +296,21 @@ export class RolesComponent {
 
   private updateRoleStatus(role: RoleView): void {
     const newStatus = !role.isActive;
-    this.updatingIds.update((ids) => new Set(ids).add(role.id));
+    this.updatingIds.update((ids) => addPendingId(ids, role.id));
 
     const request: UpdateRoleRequest = { isActive: newStatus };
 
     this.rolesService.updateRole(role.id, request).subscribe({
       next: (response) => {
         this.notifications.success(response.message ?? this.i18nService.translate('ROLES.MESSAGES.UPDATE_SUCCESS'));
-        this.updatingIds.update((ids) => {
-          const s = new Set(ids);
-          s.delete(role.id);
-          return s;
-        });
+        this.updatingIds.update((ids) => removePendingId(ids, role.id));
         this.loadRoles();
       },
       error: (error) => {
         this.notifications.error(
           extractApiErrorMessage(error, this.i18nService.translate('ROLES.MESSAGES.UPDATE_ERROR'))
         );
-        this.updatingIds.update((ids) => {
-          const s = new Set(ids);
-          s.delete(role.id);
-          return s;
-        });
+        this.updatingIds.update((ids) => removePendingId(ids, role.id));
       }
     });
   }
@@ -333,27 +321,19 @@ export class RolesComponent {
    * @param role Role to delete.
    */
   private deleteRole(role: RoleView): void {
-    this.deletingIds.update((ids) => new Set(ids).add(role.id));
+    this.deletingIds.update((ids) => addPendingId(ids, role.id));
 
     this.rolesService.deleteRole(role.id).subscribe({
       next: (response) => {
         this.notifications.success(response.message ?? this.i18nService.translate('ROLES.MESSAGES.DELETE_SUCCESS'));
-        this.deletingIds.update((ids) => {
-          const s = new Set(ids);
-          s.delete(role.id);
-          return s;
-        });
+        this.deletingIds.update((ids) => removePendingId(ids, role.id));
         this.loadRoles();
       },
       error: (error) => {
         this.notifications.error(
           extractApiErrorMessage(error, this.i18nService.translate('ROLES.MESSAGES.DELETE_ERROR'))
         );
-        this.deletingIds.update((ids) => {
-          const s = new Set(ids);
-          s.delete(role.id);
-          return s;
-        });
+        this.deletingIds.update((ids) => removePendingId(ids, role.id));
       }
     });
   }

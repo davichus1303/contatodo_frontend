@@ -17,6 +17,7 @@ import { Acquisition } from '@core/domain/models/acquisition.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 import { ACQUISITIONS_CONSTANTS } from '@shared/constants/acquisitions.constants';
+import { formatCurrency as formatCurrencyUtil } from '@shared/utils/format.utils';
 import { I18nService } from '@core/i18n/i18n.service';
 
 @Component({
@@ -143,13 +144,7 @@ export class AcquisitionsComponent implements OnDestroy {
    * @returns Formatted currency string.
    */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat(
-      GENERAL_CONSTANTS.CURRENCY.LOCALE,
-      {
-        style: 'currency',
-        currency: GENERAL_CONSTANTS.CURRENCY.CURRENCY_CODE
-      }
-    ).format(value);
+    return formatCurrencyUtil(value);
   }
 
   /**
