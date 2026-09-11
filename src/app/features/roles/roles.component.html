@@ -52,7 +52,7 @@
               </div>
             }
             <div class="card-actions">
-              <button mat-icon-button color="primary" [title]="i18nService.translate('ROLES.ACTIONS.EDIT')">
+              <button mat-icon-button color="primary" [title]="i18nService.translate('ROLES.ACTIONS.EDIT')" (click)="openEditDialog(role)">
                 <mat-icon>edit</mat-icon>
               </button>
               <button
