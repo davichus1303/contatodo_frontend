@@ -6,7 +6,7 @@
       <p>{{ i18nService.translate('ROLES.SUBTITLE') }}</p>
     </div>
     <div class="actions">
-      <button mat-raised-button color="primary" disabled>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
         <mat-icon>add</mat-icon>
         <span>{{ i18nService.translate('ROLES.NEW_ROLE') }}</span>
       </button>

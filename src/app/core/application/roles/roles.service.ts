@@ -4,7 +4,7 @@ import { HTTP_PORT } from '../ports/http.port';
 import { ApiResponse } from '../ports/api-response.interface';
 import { Role } from '../../domain/models/role.model';
 import { Module } from '../../domain/models/module.model';
-import { UpdateRoleRequest } from '../dto/role-request.dto';
+import { UpdateRoleRequest, CreateRoleRequest } from '../dto/role-request.dto';
 import { ROLES_URL, MODULES_URL } from '../../config/api-routes.constants';
 
 /**
@@ -34,6 +34,16 @@ export class RolesService {
    */
   getModules(): Observable<ApiResponse<Module[]>> {
     return this.http.get<ApiResponse<Module[]>>(this.modulesApiUrl);
+  }
+
+  /**
+   * Creates a new role.
+   *
+   * @param request Create role request.
+   * @returns Observable with API response containing the created role.
+   */
+  createRole(request: CreateRoleRequest): Observable<ApiResponse<Role>> {
+    return this.http.post<ApiResponse<Role>>(this.apiUrl, request);
   }
 
   /**

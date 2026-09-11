@@ -19,6 +19,8 @@ import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { I18nService } from '@core/i18n/i18n.service';
 import { ConfirmationDialogComponent, ConfirmationDialogData } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
 import { UpdateRoleRequest } from '@core/application/dto/role-request.dto';
+import { RoleDialogComponent } from './role-dialog/role-dialog.component';
+import { RoleDialogData, RoleDialogLabels } from '@shared/interfaces/role-dialog.interfaces';
 import { ModulesNavigationComponent } from '../../layout/modules-navigation/modules-navigation.component';
 
 interface RoleView extends Role {
@@ -150,6 +152,56 @@ export class RolesComponent {
 
   isDeleting(id: string): boolean {
     return this.deletingIds().has(id);
+  }
+
+  /**
+   * Opens the role dialog in create mode.
+   *
+   * Dictionary labels are resolved here and passed to the dialog so it can be
+   * reused later for editing. If the dialog confirms, the catalog is reloaded.
+   */
+  openCreateDialog(): void {
+    const dialogRef = this.dialog.open<RoleDialogComponent, RoleDialogData, boolean>(
+      RoleDialogComponent,
+      {
+        width: '560px',
+        data: {
+          mode: 'create',
+          labels: this.buildRoleDialogLabels()
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((created?: boolean) => {
+      if (created) {
+        this.loadRoles();
+      }
+    });
+  }
+
+  private buildRoleDialogLabels(): RoleDialogLabels {
+    return {
+      title: this.i18nService.translate('ROLES.MODAL.CREATE_TITLE'),
+      nameLabel: this.i18nService.translate('ROLES.MODAL.NAME'),
+      namePlaceholder: this.i18nService.translate('ROLES.MODAL.NAME_PLACEHOLDER'),
+      permissionsSectionLabel: this.i18nService.translate('ROLES.MODAL.PERMISSIONS_SECTION'),
+      allPermissionsLabel: this.i18nService.translate('ROLES.MODAL.ALL_PERMISSIONS'),
+      permissionLabels: {
+        create: this.i18nService.translate('ROLES.MODAL.PERMISSIONS.CREATE'),
+        update: this.i18nService.translate('ROLES.MODAL.PERMISSIONS.UPDATE'),
+        delete: this.i18nService.translate('ROLES.MODAL.PERMISSIONS.DELETE'),
+        view: this.i18nService.translate('ROLES.MODAL.PERMISSIONS.VIEW')
+      },
+      cancel: this.i18nService.translate('ROLES.MODAL.CANCEL'),
+      save: this.i18nService.translate('ROLES.MODAL.SAVE'),
+      nameRequired: this.i18nService.translate('ROLES.VALIDATION.NAME_REQUIRED'),
+      permissionsRequired: this.i18nService.translate('ROLES.VALIDATION.PERMISSIONS_REQUIRED'),
+      modulesError: this.i18nService.translate('ROLES.MESSAGES.ERROR_LOADING_MODULES'),
+      createdMessage: this.i18nService.translate('ROLES.MESSAGES.CREATED'),
+      createError: this.i18nService.translate('ROLES.MESSAGES.ERROR_CREATING'),
+      updatedMessage: this.i18nService.translate('ROLES.MESSAGES.UPDATE_SUCCESS'),
+      updateError: this.i18nService.translate('ROLES.MESSAGES.UPDATE_ERROR')
+    };
   }
 
   /**

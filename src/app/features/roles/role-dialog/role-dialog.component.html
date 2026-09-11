@@ -1,0 +1,76 @@
+<h2 mat-dialog-title>{{ labels.title }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ labels.nameLabel }}</mat-label>
+      <input
+        matInput
+        formControlName="name"
+        [placeholder]="labels.namePlaceholder"
+        [attr.aria-label]="labels.nameLabel"
+      />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <mat-error>{{ labels.nameRequired }}</mat-error>
+      }
+    </mat-form-field>
+
+    <section class="modules-section">
+      <h3>{{ labels.permissionsSectionLabel }}</h3>
+
+      @if (isLoadingModules()) {
+        <div class="loading-modules">
+          <mat-spinner diameter="24"></mat-spinner>
+        </div>
+      } @else {
+        <mat-accordion displayMode="flat" class="modules-accordion">
+          @for (module of modules(); track module.id; let i = $index) {
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>{{ module.name }}</mat-panel-title>
+              </mat-expansion-panel-header>
+
+              <div class="permissions-list">
+                <mat-checkbox
+                  [checked]="isAllPermissionsSelected(i)"
+                  (change)="onAllPermissionsChange(i, $event.checked)"
+                >
+                  {{ labels.allPermissionsLabel }}
+                </mat-checkbox>
+                <mat-checkbox [formControl]="permissionGroupAt(i).controls.update">
+                  {{ labels.permissionLabels.update }}
+                </mat-checkbox>
+                <mat-checkbox [formControl]="permissionGroupAt(i).controls.create">
+                  {{ labels.permissionLabels.create }}
+                </mat-checkbox>
+                <mat-checkbox [formControl]="permissionGroupAt(i).controls.delete">
+                  {{ labels.permissionLabels.delete }}
+                </mat-checkbox>
+                <mat-checkbox [formControl]="permissionGroupAt(i).controls.view">
+                  {{ labels.permissionLabels.view }}
+                </mat-checkbox>
+              </div>
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+      }
+    </section>
+
+    @if (selectedModuleCount() === 0 && !isLoadingModules()) {
+      <p class="permissions-hint">{{ labels.permissionsRequired }}</p>
+    }
+
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" [disabled]="isSaving()" (click)="cancel()">
+        {{ labels.cancel }}
+      </button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitDisabled">
+        @if (isSaving()) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          {{ labels.save }}
+        }
+      </button>
+    </mat-dialog-actions>
+  </form>
+</mat-dialog-content>
