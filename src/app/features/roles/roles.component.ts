@@ -19,7 +19,8 @@ import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { I18nService } from '@core/i18n/i18n.service';
 import { ConfirmationDialogComponent, ConfirmationDialogData } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
 import { UpdateRoleRequest } from '@core/application/dto/role-request.dto';
-import { RoleDialogComponent, RoleDialogData, RoleDialogLabels } from './role-dialog/role-dialog.component';
+import { RoleDialogComponent } from './role-dialog/role-dialog.component';
+import { RoleDialogData, RoleDialogLabels } from '@shared/interfaces/role-dialog.interfaces';
 import { ModulesNavigationComponent } from '../../layout/modules-navigation/modules-navigation.component';
 
 interface RoleView extends Role {

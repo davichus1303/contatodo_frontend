@@ -10,60 +10,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Module } from '@core/domain/models/module.model';
-import { Role, RolePermission } from '@core/domain/models/role.model';
+import { RolePermission } from '@core/domain/models/role.model';
 import { RolesService } from '@core/application/roles/roles.service';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { CreateRoleRequest, RolePermissionPayload, UpdateRoleRequest } from '@core/application/dto/role-request.dto';
+import { RoleDialogData, RoleDialogLabels, RoleDialogMode } from '@shared/interfaces/role-dialog.interfaces';
 import { nonBlank } from '@shared/validators/domain.validators';
-
-/**
- * Creation or edition mode of the role dialog.
- */
-export type RoleDialogMode = 'create' | 'edit';
-
-/**
- * Resolved dictionary labels for each role permission checkbox.
- */
-export interface RoleDialogPermissionLabels {
-  readonly create: string;
-  readonly update: string;
-  readonly delete: string;
-  readonly view: string;
-}
-
-/**
- * Resolved dictionary labels used to render the role dialog.
- *
- * All texts are resolved by the caller from the default dictionary so the
- * dialog can be reused for every entity without knowing i18n keys.
- */
-export interface RoleDialogLabels {
-  readonly title: string;
-  readonly nameLabel: string;
-  readonly namePlaceholder: string;
-  readonly permissionsSectionLabel: string;
-  readonly allPermissionsLabel: string;
-  readonly permissionLabels: RoleDialogPermissionLabels;
-  readonly cancel: string;
-  readonly save: string;
-  readonly nameRequired: string;
-  readonly permissionsRequired: string;
-  readonly modulesError: string;
-  readonly createdMessage: string;
-  readonly createError: string;
-  readonly updatedMessage: string;
-  readonly updateError: string;
-}
-
-/**
- * Input payload for the role dialog.
- */
-export interface RoleDialogData {
-  readonly mode: RoleDialogMode;
-  readonly role?: Role;
-  readonly labels: RoleDialogLabels;
-}
 
 /**
  * Reactive form controls for the permission block of a single module.
