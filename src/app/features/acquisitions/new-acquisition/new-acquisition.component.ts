@@ -17,8 +17,7 @@ import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { ACQUISITIONS_CONSTANTS } from '@shared/constants/acquisitions.constants';
 import { I18nService } from '@core/i18n/i18n.service';
-import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
-import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
+import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 import { AcquisitionFormComponent } from './acquisition-form.component';
 import { AcquisitionFormModel } from './acquisition-form.model';
 
@@ -104,20 +103,20 @@ export class NewAcquisitionComponent {
    * @param model Raw form state emitted by the acquisition form.
    */
   onFormSave(model: AcquisitionFormModel): void {
-    const dialogData: ConfirmationDialogData = {
-      titleKey: 'ACQUISITIONS.CONFIRMATION.TITLE',
-      messageKey: 'ACQUISITIONS.CONFIRMATION.MESSAGE',
-      cancelKey: 'ACQUISITIONS.FORM.CANCEL',
-      confirmKey: 'ACQUISITIONS.FORM.SAVE'
-    };
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-      width: ACQUISITIONS_CONSTANTS.DIALOG.WIDTH,
-      data: dialogData
-    });
+    const dialogRef = openConfirmationDialog(
+      this.dialog,
+      {
+        titleKey: 'ACQUISITIONS.CONFIRMATION.TITLE',
+        messageKey: 'ACQUISITIONS.CONFIRMATION.MESSAGE',
+        cancelKey: 'ACQUISITIONS.FORM.CANCEL',
+        confirmKey: 'ACQUISITIONS.FORM.SAVE'
+      },
+      ACQUISITIONS_CONSTANTS.DIALOG.WIDTH
+    );
 
     dialogRef.afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((confirmed: boolean) => {
+      .subscribe((confirmed: boolean | undefined) => {
         if (confirmed) {
           this.submitAcquisition(model);
         }

@@ -15,7 +15,7 @@ import { ProductsService } from '@core/application/products/products.service';
 import { Product } from '@core/domain/models/product.model';
 import { SaleDialogComponent } from './sale-dialog/sale-dialog.component';
 import { SALES_CONSTANTS } from '@shared/constants/sales.constants';
-import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
+import { formatCurrency as formatCurrencyUtil } from '@shared/utils/format.utils';
 import { I18nService } from '@core/i18n/i18n.service';
 
 /**
@@ -134,13 +134,7 @@ export class SalesComponent implements OnInit {
    * @returns Formatted currency string.
    */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat(
-      GENERAL_CONSTANTS.CURRENCY.LOCALE,
-      {
-        style: 'currency',
-        currency: GENERAL_CONSTANTS.CURRENCY.CURRENCY_CODE
-      }
-    ).format(value);
+    return formatCurrencyUtil(value);
   }
 
   /**

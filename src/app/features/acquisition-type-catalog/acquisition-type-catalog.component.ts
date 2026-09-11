@@ -20,6 +20,7 @@ import { I18nService } from '@core/i18n/i18n.service';
 import { AcquisitionTypeDialogComponent } from './acquisition-type-dialog/acquisition-type-dialog.component';
 import { AcquisitionTypeDeleteDialogComponent } from './acquisition-type-delete-dialog/acquisition-type-delete-dialog.component';
 import { UpdateAcquisitionTypeRequest } from '@core/application/dto/acquisition-type-request.dto';
+import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
 
 export type SortOption = 'nameAsc' | 'nameDesc' | 'activeFirst' | 'inactiveFirst';
 
@@ -251,7 +252,7 @@ export class AcquisitionTypeCatalogComponent implements OnDestroy {
   private updateAcquisitionTypeStatus(acquisitionType: AcquisitionType): void {
     const newStatus = !acquisitionType.isActive;
     
-    this.updatingIds.update(ids => new Set(ids).add(acquisitionType.id));
+    this.updatingIds.update(ids => addPendingId(ids, acquisitionType.id));
 
     const updateRequest: UpdateAcquisitionTypeRequest = {
       name: acquisitionType.name,
@@ -264,23 +265,15 @@ export class AcquisitionTypeCatalogComponent implements OnDestroy {
     ).subscribe({
       next: (response: ApiResponse<AcquisitionType>) => {
         this.notifications.success(response.message || this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.UPDATE_SUCCESS'));
-        
-        this.updatingIds.update(ids => {
-          const newSet = new Set(ids);
-          newSet.delete(acquisitionType.id);
-          return newSet;
-        });
-        
+
+        this.updatingIds.update(ids => removePendingId(ids, acquisitionType.id));
+
         this.loadAcquisitionTypes();
       },
       error: (error) => {
         this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('ACQUISITION_TYPE_CATALOG.MESSAGES.UPDATE_ERROR')));
-        
-        this.updatingIds.update(ids => {
-          const newSet = new Set(ids);
-          newSet.delete(acquisitionType.id);
-          return newSet;
-        });
+
+        this.updatingIds.update(ids => removePendingId(ids, acquisitionType.id));
       }
     });
   }
