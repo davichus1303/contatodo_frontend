@@ -168,7 +168,7 @@ export class RolesComponent {
         width: '560px',
         data: {
           mode: 'create',
-          labels: this.buildRoleDialogLabels()
+          labels: this.buildRoleDialogLabels(this.i18nService.translate('ROLES.MODAL.CREATE_TITLE'))
         }
       }
     );
@@ -180,9 +180,38 @@ export class RolesComponent {
     });
   }
 
-  private buildRoleDialogLabels(): RoleDialogLabels {
+  /**
+   * Opens the role dialog in edit mode pre-loaded with the selected role.
+   *
+   * The dialog receives the current view object, shows its name and modules
+   * with their permissions, and sends the updated data to the update endpoint
+   * when confirmed. Cancelling closes the dialog without altering the role.
+   *
+   * @param role Selected role to edit.
+   */
+  openEditDialog(role: RoleView): void {
+    const dialogRef = this.dialog.open<RoleDialogComponent, RoleDialogData, boolean>(
+      RoleDialogComponent,
+      {
+        width: '560px',
+        data: {
+          mode: 'edit',
+          role,
+          labels: this.buildRoleDialogLabels(this.i18nService.translate('ROLES.MODAL.EDIT_TITLE'))
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((saved?: boolean) => {
+      if (saved) {
+        this.loadRoles();
+      }
+    });
+  }
+
+  private buildRoleDialogLabels(title: string): RoleDialogLabels {
     return {
-      title: this.i18nService.translate('ROLES.MODAL.CREATE_TITLE'),
+      title,
       nameLabel: this.i18nService.translate('ROLES.MODAL.NAME'),
       namePlaceholder: this.i18nService.translate('ROLES.MODAL.NAME_PLACEHOLDER'),
       permissionsSectionLabel: this.i18nService.translate('ROLES.MODAL.PERMISSIONS_SECTION'),
