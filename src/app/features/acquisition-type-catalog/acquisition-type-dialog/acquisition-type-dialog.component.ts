@@ -13,7 +13,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AcquisitionTypeService } from '@core/application/acquisition-types/acquisition-type.service';
 import { CreateAcquisitionTypeRequest, UpdateAcquisitionTypeRequest } from '@core/application/dto/acquisition-type-request.dto';
 import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
-import { ConfirmationDialogComponent, ConfirmationDialogData } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
 import { I18nService } from '@core/i18n/i18n.service';
 import { nonBlank } from '@shared/validators/domain.validators';
 

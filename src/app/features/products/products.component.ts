@@ -17,7 +17,8 @@ import { ProductFormComponent } from './product-form/product-form.component';
 import { ProductFormPayload } from '@core/application/dto/product-request.dto';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { I18nService } from '@core/i18n/i18n.service';
-import { ConfirmationDialogComponent, ConfirmationDialogData } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
 
 @Component({
   selector: 'app-products',

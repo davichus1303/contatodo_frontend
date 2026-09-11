@@ -17,7 +17,8 @@ import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { ACQUISITIONS_CONSTANTS } from '@shared/constants/acquisitions.constants';
 import { I18nService } from '@core/i18n/i18n.service';
-import { ConfirmationDialogComponent, ConfirmationDialogData } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogComponent } from '@shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
 import { AcquisitionFormComponent } from './acquisition-form.component';
 import { AcquisitionFormModel } from './acquisition-form.model';
 
