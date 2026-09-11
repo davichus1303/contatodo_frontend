@@ -1,21 +1,22 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '@core/application/notifications/notification.service';
 import { Router } from '@angular/router';
-import { SalesService } from './sales.service';
-import { ProductsService } from '../products/products.service';
-import { Product } from '../../shared/models/product.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SalesService } from '@core/application/sales/sales.service';
+import { ProductsService } from '@core/application/products/products.service';
+import { Product } from '@core/domain/models/product.model';
 import { SaleDialogComponent } from './sale-dialog/sale-dialog.component';
-import { SALES_CONSTANTS } from '../../shared/constants/sales.constants';
-import { GENERAL_CONSTANTS } from '../../shared/constants/general.constants';
-import { I18nService } from '../../shared/utils/i18n.util';
+import { SALES_CONSTANTS } from '@shared/constants/sales.constants';
+import { formatCurrency as formatCurrencyUtil } from '@shared/utils/format.utils';
+import { I18nService } from '@core/i18n/i18n.service';
 
 /**
  * Sales page component.
@@ -25,7 +26,6 @@ import { I18nService } from '../../shared/utils/i18n.util';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     ReactiveFormsModule,
     MatCardModule,
     MatButtonModule,
@@ -34,13 +34,14 @@ import { I18nService } from '../../shared/utils/i18n.util';
     MatProgressSpinnerModule
   ],
   templateUrl: './sales.component.html',
-  styleUrls: ['./sales.component.scss']
+  styleUrls: ['./sales.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SalesComponent implements OnInit {
-  products: Product[] = [];
-  filteredProducts: Product[] = [];
+  readonly products = signal<Product[]>([]);
+  readonly filteredProducts = signal<Product[]>([]);
+  readonly isLoading = signal<boolean>(false);
   searchControl: FormGroup;
-  isLoading = false;
   readonly i18nService = inject(I18nService);
 
   constructor(
@@ -48,8 +49,9 @@ export class SalesComponent implements OnInit {
     private productsService: ProductsService,
     private fb: FormBuilder,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private router: Router
+    private notifications: NotificationService,
+    private router: Router,
+    private destroyRef: DestroyRef
   ) {
     this.searchControl = this.fb.group({
       search: ['']
@@ -61,29 +63,27 @@ export class SalesComponent implements OnInit {
    */
   ngOnInit(): void {
     this.loadProducts();
-    this.searchControl.get('search')?.valueChanges.subscribe(value => {
-      this.filterProducts(value);
-    });
+    this.searchControl.get('search')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(value => {
+        this.filterProducts(value);
+      });
   }
 
   /**
    * Loads available products from the backend.
    */
   public loadProducts(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.productsService.getAvailableProducts().subscribe({
       next: (response: any) => {
-        this.products = response.data;
-        this.filteredProducts = [...this.products];
-        this.isLoading = false;
+        this.products.set(response.data);
+        this.filteredProducts.set([...this.products()]);
+        this.isLoading.set(false);
       },
       error: (error: any) => {
-        this.snackBar.open(
-          SALES_CONSTANTS.MESSAGES.ERROR_LOADING_PRODUCTS,
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
-        this.isLoading = false;
+        this.notifications.error(SALES_CONSTANTS.MESSAGES.ERROR_LOADING_PRODUCTS);
+        this.isLoading.set(false);
       }
     });
   }
@@ -95,15 +95,15 @@ export class SalesComponent implements OnInit {
    */
   filterProducts(searchTerm: string): void {
     if (!searchTerm) {
-      this.filteredProducts = [...this.products];
+      this.filteredProducts.set([...this.products()]);
       return;
     }
 
     const term = searchTerm.toLowerCase();
-    this.filteredProducts = this.products.filter(product =>
+    this.filteredProducts.set(this.products().filter(product =>
       product.name.toLowerCase().includes(term) ||
       product.code.toLowerCase().includes(term)
-    );
+    ));
   }
 
   /**
@@ -117,16 +117,14 @@ export class SalesComponent implements OnInit {
       data: { product }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadProducts();
-        this.snackBar.open(
-          SALES_CONSTANTS.MESSAGES.SALE_CREATED_SUCCESSFULLY,
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(result => {
+        if (result) {
+          this.loadProducts();
+          this.notifications.success(SALES_CONSTANTS.MESSAGES.SALE_CREATED_SUCCESSFULLY);
+        }
+      });
   }
 
   /**
@@ -136,13 +134,7 @@ export class SalesComponent implements OnInit {
    * @returns Formatted currency string.
    */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat(
-      GENERAL_CONSTANTS.CURRENCY.LOCALE,
-      {
-        style: 'currency',
-        currency: GENERAL_CONSTANTS.CURRENCY.CURRENCY_CODE
-      }
-    ).format(value);
+    return formatCurrencyUtil(value);
   }
 
   /**

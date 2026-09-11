@@ -1,0 +1,83 @@
+
+<div class="roles-page">
+  <div class="page-header">
+    <div>
+      <h1>{{ i18nService.translate('ROLES.TITLE') }}</h1>
+      <p>{{ i18nService.translate('ROLES.SUBTITLE') }}</p>
+    </div>
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        <span>{{ i18nService.translate('ROLES.NEW_ROLE') }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>{{ i18nService.translate('ROLES.SEARCH.LABEL') }}</mat-label>
+      <input matInput [formControl]="searchControl" [placeholder]="i18nService.translate('ROLES.SEARCH.PLACEHOLDER')" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (filteredRoles().length === 0) {
+    <div class="empty-state">
+      <mat-icon>admin_panel_settings</mat-icon>
+      <p>{{ i18nService.translate('ROLES.EMPTY_STATE') }}</p>
+    </div>
+  } @else {
+    <div class="roles-grid">
+      @for (role of filteredRoles(); track role.id) {
+        <mat-card class="role-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3>{{ role.name }}</h3>
+              <span [class]="role.isActive ? 'status-badge active' : 'status-badge inactive'">
+                {{
+                  role.isActive
+                    ? i18nService.translate('ROLES.STATUS.ACTIVE')
+                    : i18nService.translate('ROLES.STATUS.INACTIVE')
+                }}
+              </span>
+            </div>
+            @if (role.displayModules.length > 0) {
+              <div class="modules-section">
+                <span class="modules-label">{{ i18nService.translate('ROLES.MODULES.LABEL') }}:</span>
+                <span class="modules-list">{{ getModuleNames(role) }}</span>
+              </div>
+            }
+            <div class="card-actions">
+              <button mat-icon-button color="primary" [title]="i18nService.translate('ROLES.ACTIONS.EDIT')" (click)="openEditDialog(role)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                color="warn"
+                [title]="i18nService.translate('ROLES.ACTIONS.DELETE')"
+                [disabled]="isDeleting(role.id)"
+                (click)="onDelete(role)"
+              >
+                @if (isDeleting(role.id)) {
+                  <mat-spinner diameter="18"></mat-spinner>
+                } @else {
+                  <mat-icon>delete</mat-icon>
+                }
+              </button>
+              <mat-slide-toggle
+                [checked]="role.isActive"
+                [disabled]="isUpdating(role.id)"
+                (change)="onToggleChange(role, $event)"
+                [title]="i18nService.translate('ROLES.ACTIONS.TOGGLE_STATUS')"
+              ></mat-slide-toggle>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

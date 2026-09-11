@@ -8,16 +8,17 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '@core/application/notifications/notification.service';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { AcquisitionsService } from './acquisitions.service';
-import { Acquisition } from '../../shared/models/acquisition.model';
-import { ApiResponse } from '../../shared/interfaces/api-response.interface';
-import { GENERAL_CONSTANTS } from '../../shared/constants/general.constants';
-import { ACQUISITIONS_CONSTANTS } from '../../shared/constants/acquisitions.constants';
-import { I18nService } from '../../shared/utils/i18n.util';
+import { AcquisitionsService } from '@core/application/acquisitions/acquisitions.service';
+import { Acquisition } from '@core/domain/models/acquisition.model';
+import { ApiResponse } from '@core/application/ports/api-response.interface';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
+import { ACQUISITIONS_CONSTANTS } from '@shared/constants/acquisitions.constants';
+import { formatCurrency as formatCurrencyUtil } from '@shared/utils/format.utils';
+import { I18nService } from '@core/i18n/i18n.service';
 
 @Component({
   selector: 'app-acquisitions',
@@ -39,7 +40,7 @@ import { I18nService } from '../../shared/utils/i18n.util';
 })
 export class AcquisitionsComponent implements OnDestroy {
   private readonly acquisitionsService = inject(AcquisitionsService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
   readonly i18nService = inject(I18nService);
   private readonly destroy$ = new Subject<void>();
@@ -123,11 +124,7 @@ export class AcquisitionsComponent implements OnDestroy {
         this.isLoading.set(false);
       },
       error: () => {
-        this.snackBar.open(
-          ACQUISITIONS_CONSTANTS.MESSAGES.ERROR_LOADING_ACQUISITIONS,
-          GENERAL_CONSTANTS.SNACKBAR.CLOSE_BUTTON,
-          { duration: GENERAL_CONSTANTS.SNACKBAR.DURATION }
-        );
+        this.notifications.error(ACQUISITIONS_CONSTANTS.MESSAGES.ERROR_LOADING_ACQUISITIONS);
         this.isLoading.set(false);
       }
     });
@@ -147,13 +144,7 @@ export class AcquisitionsComponent implements OnDestroy {
    * @returns Formatted currency string.
    */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat(
-      GENERAL_CONSTANTS.CURRENCY.LOCALE,
-      {
-        style: 'currency',
-        currency: GENERAL_CONSTANTS.CURRENCY.CURRENCY_CODE
-      }
-    ).format(value);
+    return formatCurrencyUtil(value);
   }
 
   /**

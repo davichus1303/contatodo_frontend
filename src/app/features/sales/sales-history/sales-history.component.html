@@ -57,46 +57,46 @@
         mat-raised-button 
         color="primary" 
         (click)="onSearch()"
-        [disabled]="isLoading"
+        [disabled]="isLoading()"
         class="search-btn">
-        <mat-icon *ngIf="!isLoading">search</mat-icon>
-        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-        <span *ngIf="!isLoading">{{ i18nService.translate('SALES_HISTORY.SEARCH') }}</span>
+        <mat-icon *ngIf="!isLoading()">search</mat-icon>
+        <mat-spinner *ngIf="isLoading()" diameter="20"></mat-spinner>
+        <span *ngIf="!isLoading()">{{ i18nService.translate('SALES_HISTORY.SEARCH') }}</span>
       </button>
     </div>
 
     <!-- Summary Panel -->
-    <div class="summary-panel" *ngIf="sales.length > 0">
+    <div class="summary-panel" *ngIf="sales().length > 0">
       <mat-card>
         <mat-card-content>
           <div class="summary-item">
             <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.TOTAL_SALES') }}:</span>
-            <span class="summary-value">{{ summary.totalSales }}</span>
+            <span class="summary-value">{{ summary().totalSales }}</span>
           </div>
           <div class="summary-item">
             <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.TOTAL_REVENUE') }}:</span>
-            <span class="summary-value">{{ formatCurrency(summary.totalRevenue) }}</span>
+            <span class="summary-value">{{ formatCurrency(summary().totalRevenue) }}</span>
           </div>
           <div class="summary-item">
             <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.TOTAL_EXPENSES') }}:</span>
-            <span class="summary-value">{{ formatCurrency(summary.totalExpenses) }}</span>
+            <span class="summary-value">{{ formatCurrency(summary().totalExpenses) }}</span>
           </div>
           <div class="summary-item">
             <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.TOTAL_PROFIT') }}:</span>
-            <span class="summary-value" [ngClass]="getProfitColorClass(summary.totalProfit)">
-              {{ formatCurrency(summary.totalProfit) }}
+            <span class="summary-value" [ngClass]="getProfitColorClass(summary().totalProfit)">
+              {{ formatCurrency(summary().totalProfit) }}
             </span>
           </div>
           <div class="summary-item">
             <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.GROSS_PROFIT') }}:</span>
-            <span class="summary-value" [ngClass]="getProfitColorClass(summary.grossProfit)">
-              {{ formatCurrency(summary.grossProfit) }}
+            <span class="summary-value" [ngClass]="getProfitColorClass(summary().grossProfit)">
+              {{ formatCurrency(summary().grossProfit) }}
             </span>
           </div>
           <div class="summary-item">
             <span class="summary-label">{{ i18nService.translate('SALES_HISTORY.PROFIT_BEFORE_TAXES') }}:</span>
-            <span class="summary-value" [ngClass]="getProfitColorClass(summary.profitBeforeTaxes)">
-              {{ formatCurrency(summary.profitBeforeTaxes) }}
+            <span class="summary-value" [ngClass]="getProfitColorClass(summary().profitBeforeTaxes)">
+              {{ formatCurrency(summary().profitBeforeTaxes) }}
             </span>
           </div>
         </mat-card-content>
@@ -105,19 +105,19 @@
   </div>
 
   <!-- Loading State -->
-  <div class="loading-container" *ngIf="isLoading">
+  <div class="loading-container" *ngIf="isLoading()">
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="!isLoading && filteredSales.length === 0">
+  <div class="empty-state" *ngIf="!isLoading && filteredSales().length === 0">
     <mat-icon>receipt_long</mat-icon>
     <p>{{ i18nService.translate('SALES_HISTORY.NO_SALES_FOUND') }}</p>
   </div>
 
   <!-- Sales Cards -->
-  <div class="sales-grid" *ngIf="!isLoading && filteredSales.length > 0">
-    <mat-card class="sale-card" *ngFor="let sale of filteredSales">
+  <div class="sales-grid" *ngIf="!isLoading && filteredSales().length > 0">
+    <mat-card class="sale-card" *ngFor="let sale of filteredSales()">
       <mat-card-content>
         <div class="sale-header">
           <h3>{{ sale.productName || i18nService.translate('SALES_HISTORY.NOT_AVAILABLE') }}</h3>

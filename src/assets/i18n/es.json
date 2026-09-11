@@ -256,5 +256,66 @@
       "UPDATE_SUCCESS": "Tipo de adquisición actualizado exitosamente",
       "UPDATE_ERROR": "Error actualizando tipo de adquisición"
     }
+  },
+  "ROLES": {
+    "TITLE": "Roles",
+    "SUBTITLE": "Gestiona los roles del sistema",
+    "NEW_ROLE": "Nuevo Rol",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por nombre"
+    },
+    "EMPTY_STATE": "No se encontraron roles",
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "MODULES": {
+      "LABEL": "Módulos"
+    },
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Activar/Desactivar"
+    },
+    "MODAL": {
+      "CREATE_TITLE": "Nuevo Rol",
+      "EDIT_TITLE": "Editar Rol",
+      "NAME": "Nombre",
+      "NAME_PLACEHOLDER": "Nombre del rol",
+      "PERMISSIONS_SECTION": "Permisos por módulo",
+      "ALL_PERMISSIONS": "Todos los permisos",
+      "PERMISSIONS": {
+        "CREATE": "Crear",
+        "UPDATE": "Editar",
+        "DELETE": "Eliminar",
+        "VIEW": "Ver"
+      },
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar"
+    },
+    "VALIDATION": {
+      "NAME_REQUIRED": "El nombre es requerido",
+      "PERMISSIONS_REQUIRED": "Selecciona al menos un permiso"
+    },
+    "MESSAGES": {
+      "ERROR_LOADING": "Error cargando roles",
+      "ERROR_LOADING_MODULES": "Error cargando módulos",
+      "CONFIRM_ACTIVATE_TITLE": "Activar rol",
+      "CONFIRM_DEACTIVATE_TITLE": "Desactivar rol",
+      "CONFIRM_ACTIVATE_MESSAGE": "El rol {{roleName}} será activado y podrá usarse en el sistema",
+      "CONFIRM_DEACTIVATE_MESSAGE": "El rol {{roleName}} será desactivado y no podrá ser usado en el sistema",
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar",
+      "DELETE": "Eliminar",
+      "CONFIRM_DELETE_TITLE": "Eliminar rol",
+      "CONFIRM_DELETE_MESSAGE": "El rol {{roleName}} se eliminará del sistema permanentemente",
+      "CREATED": "Rol creado exitosamente",
+      "ERROR_CREATING": "Error creando el rol",
+      "UPDATE_SUCCESS": "Rol actualizado exitosamente",
+      "UPDATE_ERROR": "Error actualizando el rol",
+      "DELETE_SUCCESS": "Rol eliminado exitosamente",
+      "DELETE_ERROR": "Error eliminando el rol"
+    }
   }
 }

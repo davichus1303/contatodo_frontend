@@ -1,0 +1,340 @@
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule, MatSlideToggleChange } from '@angular/material/slide-toggle';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { forkJoin } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NotificationService } from '@core/application/notifications/notification.service';
+import { extractApiErrorMessage } from '@core/application/ports/api-error';
+import { RolesService } from '@core/application/roles/roles.service';
+import { Role } from '@core/domain/models/role.model';
+import { Module } from '@core/domain/models/module.model';
+import { ApiResponse } from '@core/application/ports/api-response.interface';
+import { UpdateRoleRequest } from '@core/application/dto/role-request.dto';
+import { I18nService } from '@core/i18n/i18n.service';
+import { openConfirmationDialog } from '@shared/utils/dialog.utils';
+import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
+import { RoleDialogComponent } from './role-dialog/role-dialog.component';
+import { RoleDialogData, RoleDialogLabels } from '@shared/interfaces/role-dialog.interfaces';
+import { ModulesNavigationComponent } from '../../layout/modules-navigation/modules-navigation.component';
+
+interface RoleView extends Role {
+  displayModules: string[];
+}
+
+@Component({
+  selector: 'app-roles',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDialogModule,
+    MatIconModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatSlideToggleModule,
+    ModulesNavigationComponent
+  ],
+  templateUrl: './roles.component.html',
+  styleUrls: ['./roles.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class RolesComponent {
+  private readonly rolesService = inject(RolesService);
+  private readonly notifications = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly dialog = inject(MatDialog);
+  readonly i18nService = inject(I18nService);
+
+  readonly searchControl = new FormControl<string>('');
+  readonly searchTerm = signal<string>('');
+  readonly roles = signal<RoleView[]>([]);
+  readonly isLoading = signal<boolean>(false);
+  readonly updatingIds = signal<Set<string>>(new Set());
+  readonly deletingIds = signal<Set<string>>(new Set());
+
+  readonly filteredRoles = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const source = this.roles();
+
+    if (!term) {
+      return source;
+    }
+
+    return source.filter((role: RoleView) =>
+      role.name.toLowerCase().includes(term)
+    );
+  });
+
+  constructor() {
+    this.searchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value: string | null) => {
+        this.searchTerm.set(value?.trim().toLowerCase() ?? '');
+      });
+    this.loadRoles();
+  }
+
+  loadRoles(): void {
+    if (this.isLoading()) {
+      return;
+    }
+
+    this.isLoading.set(true);
+
+    forkJoin({
+      roles: this.rolesService.getRoles(),
+      modules: this.rolesService.getModules()
+    }).subscribe({
+      next: (responses: {
+        roles: ApiResponse<Role[]>;
+        modules: ApiResponse<Module[]>;
+      }) => {
+        const rolesData = responses.roles.data ?? [];
+        const modulesData = responses.modules.data ?? [];
+        const moduleMap = new Map<string, string>();
+
+        modulesData.forEach((module: Module) => {
+          moduleMap.set(module.id, module.name);
+        });
+
+        const roleViews: RoleView[] = rolesData.map((role: Role) => ({
+          ...role,
+          displayModules: this.resolveModuleNames(role, moduleMap)
+        }));
+
+        this.roles.set(roleViews);
+        this.isLoading.set(false);
+      },
+      error: (error: { error?: unknown }) => {
+        this.notifications.error(
+          extractApiErrorMessage(error, this.i18nService.translate('ROLES.MESSAGES.ERROR_LOADING'))
+        );
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  getModuleNames(role: RoleView): string {
+    return role.displayModules.join(', ');
+  }
+
+  private resolveModuleNames(role: Role, moduleMap: Map<string, string>): string[] {
+    const names: string[] = [];
+
+    role.permissions.forEach((permission) => {
+      const hasRelevantPermission =
+        permission.permissions.create ||
+        permission.permissions.update ||
+        permission.permissions.view;
+
+      if (hasRelevantPermission) {
+        const moduleName = moduleMap.get(permission.moduleOid);
+        if (moduleName) {
+          names.push(moduleName);
+        }
+      }
+    });
+
+    return names;
+  }
+
+  isUpdating(id: string): boolean {
+    return this.updatingIds().has(id);
+  }
+
+  isDeleting(id: string): boolean {
+    return this.deletingIds().has(id);
+  }
+
+  /**
+   * Opens the role dialog in create mode.
+   *
+   * Dictionary labels are resolved here and passed to the dialog so it can be
+   * reused later for editing. If the dialog confirms, the catalog is reloaded.
+   */
+  openCreateDialog(): void {
+    const dialogRef = this.dialog.open<RoleDialogComponent, RoleDialogData, boolean>(
+      RoleDialogComponent,
+      {
+        width: '560px',
+        data: {
+          mode: 'create',
+          labels: this.buildRoleDialogLabels(this.i18nService.translate('ROLES.MODAL.CREATE_TITLE'))
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((created?: boolean) => {
+      if (created) {
+        this.loadRoles();
+      }
+    });
+  }
+
+  /**
+   * Opens the role dialog in edit mode pre-loaded with the selected role.
+   *
+   * The dialog receives the current view object, shows its name and modules
+   * with their permissions, and sends the updated data to the update endpoint
+   * when confirmed. Cancelling closes the dialog without altering the role.
+   *
+   * @param role Selected role to edit.
+   */
+  openEditDialog(role: RoleView): void {
+    const dialogRef = this.dialog.open<RoleDialogComponent, RoleDialogData, boolean>(
+      RoleDialogComponent,
+      {
+        width: '560px',
+        data: {
+          mode: 'edit',
+          role,
+          labels: this.buildRoleDialogLabels(this.i18nService.translate('ROLES.MODAL.EDIT_TITLE'))
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((saved?: boolean) => {
+      if (saved) {
+        this.loadRoles();
+      }
+    });
+  }
+
+  private buildRoleDialogLabels(title: string): RoleDialogLabels {
+    return {
+      title,
+      nameLabel: this.i18nService.translate('ROLES.MODAL.NAME'),
+      namePlaceholder: this.i18nService.translate('ROLES.MODAL.NAME_PLACEHOLDER'),
+      permissionsSectionLabel: this.i18nService.translate('ROLES.MODAL.PERMISSIONS_SECTION'),
+      allPermissionsLabel: this.i18nService.translate('ROLES.MODAL.ALL_PERMISSIONS'),
+      permissionLabels: {
+        create: this.i18nService.translate('ROLES.MODAL.PERMISSIONS.CREATE'),
+        update: this.i18nService.translate('ROLES.MODAL.PERMISSIONS.UPDATE'),
+        delete: this.i18nService.translate('ROLES.MODAL.PERMISSIONS.DELETE'),
+        view: this.i18nService.translate('ROLES.MODAL.PERMISSIONS.VIEW')
+      },
+      cancel: this.i18nService.translate('ROLES.MODAL.CANCEL'),
+      save: this.i18nService.translate('ROLES.MODAL.SAVE'),
+      nameRequired: this.i18nService.translate('ROLES.VALIDATION.NAME_REQUIRED'),
+      permissionsRequired: this.i18nService.translate('ROLES.VALIDATION.PERMISSIONS_REQUIRED'),
+      modulesError: this.i18nService.translate('ROLES.MESSAGES.ERROR_LOADING_MODULES'),
+      createdMessage: this.i18nService.translate('ROLES.MESSAGES.CREATED'),
+      createError: this.i18nService.translate('ROLES.MESSAGES.ERROR_CREATING'),
+      updatedMessage: this.i18nService.translate('ROLES.MESSAGES.UPDATE_SUCCESS'),
+      updateError: this.i18nService.translate('ROLES.MESSAGES.UPDATE_ERROR')
+    };
+  }
+
+  /**
+   * Opens the confirmation dialog to delete a role.
+   *
+   * If the user cancels, the dialog is closed and no action is applied.
+   * If the user confirms, the DELETE endpoint is called for the role.
+   *
+   * @param role Selected role to delete.
+   */
+  onDelete(role: RoleView): void {
+    const dialogRef = openConfirmationDialog(
+      this.dialog,
+      {
+        titleKey: 'ROLES.MESSAGES.CONFIRM_DELETE_TITLE',
+        messageKey: 'ROLES.MESSAGES.CONFIRM_DELETE_MESSAGE',
+        cancelKey: 'ROLES.MESSAGES.CANCEL',
+        confirmKey: 'ROLES.MESSAGES.DELETE',
+        messageParams: { roleName: role.name }
+      },
+      '420px'
+    );
+
+    dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
+      if (confirmed) {
+        this.deleteRole(role);
+      }
+    });
+  }
+
+  onToggleChange(role: RoleView, event: MatSlideToggleChange): void {
+    const activating = event.checked;
+
+    const titleKey = activating
+      ? 'ROLES.MESSAGES.CONFIRM_ACTIVATE_TITLE'
+      : 'ROLES.MESSAGES.CONFIRM_DEACTIVATE_TITLE';
+
+    const messageKey = activating
+      ? 'ROLES.MESSAGES.CONFIRM_ACTIVATE_MESSAGE'
+      : 'ROLES.MESSAGES.CONFIRM_DEACTIVATE_MESSAGE';
+
+    const dialogRef = openConfirmationDialog(
+      this.dialog,
+      {
+        titleKey,
+        messageKey,
+        cancelKey: 'ROLES.MESSAGES.CANCEL',
+        confirmKey: 'ROLES.MESSAGES.SAVE',
+        messageParams: { roleName: role.name }
+      },
+      '420px'
+    );
+
+    dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
+      if (confirmed) {
+        this.updateRoleStatus(role);
+      } else {
+        this.loadRoles();
+      }
+    });
+  }
+
+  private updateRoleStatus(role: RoleView): void {
+    const newStatus = !role.isActive;
+    this.updatingIds.update((ids) => addPendingId(ids, role.id));
+
+    const request: UpdateRoleRequest = { isActive: newStatus };
+
+    this.rolesService.updateRole(role.id, request).subscribe({
+      next: (response) => {
+        this.notifications.success(response.message ?? this.i18nService.translate('ROLES.MESSAGES.UPDATE_SUCCESS'));
+        this.updatingIds.update((ids) => removePendingId(ids, role.id));
+        this.loadRoles();
+      },
+      error: (error) => {
+        this.notifications.error(
+          extractApiErrorMessage(error, this.i18nService.translate('ROLES.MESSAGES.UPDATE_ERROR'))
+        );
+        this.updatingIds.update((ids) => removePendingId(ids, role.id));
+      }
+    });
+  }
+
+  /**
+   * Calls the DELETE endpoint for the selected role.
+   *
+   * @param role Role to delete.
+   */
+  private deleteRole(role: RoleView): void {
+    this.deletingIds.update((ids) => addPendingId(ids, role.id));
+
+    this.rolesService.deleteRole(role.id).subscribe({
+      next: (response) => {
+        this.notifications.success(response.message ?? this.i18nService.translate('ROLES.MESSAGES.DELETE_SUCCESS'));
+        this.deletingIds.update((ids) => removePendingId(ids, role.id));
+        this.loadRoles();
+      },
+      error: (error) => {
+        this.notifications.error(
+          extractApiErrorMessage(error, this.i18nService.translate('ROLES.MESSAGES.DELETE_ERROR'))
+        );
+        this.deletingIds.update((ids) => removePendingId(ids, role.id));
+      }
+    });
+  }
+}

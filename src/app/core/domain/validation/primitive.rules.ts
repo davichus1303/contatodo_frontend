@@ -1,0 +1,45 @@
+/**
+ * Primitive, framework-free validation predicates shared by every entity
+ * factory. Each predicate narrows the `unknown` input so factories can
+ * safely build typed models afterwards.
+ */
+
+/**
+ * Checks whether a value is a string with non-blank content.
+ *
+ * @param value Value under test.
+ * @returns True when the value is a string containing non-whitespace characters.
+ */
+export function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+/**
+ * Checks whether a value is a finite number (rejects NaN and Infinity).
+ *
+ * @param value Value under test.
+ * @returns True when the value is a finite number.
+ */
+export function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+/**
+ * Checks whether a value is strictly boolean.
+ *
+ * @param value Value under test.
+ * @returns True when the value is a boolean.
+ */
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
+}
+
+/**
+ * Checks whether a value is a plain object (not null, not an array).
+ *
+ * @param value Value under test.
+ * @returns True when the value is a record-like object.
+ */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
