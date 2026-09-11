@@ -3,14 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { I18nService } from '@core/i18n/i18n.service';
-
-export interface ConfirmationDialogData {
-  titleKey: string;
-  messageKey: string;
-  cancelKey: string;
-  confirmKey: string;
-  messageParams?: Record<string, string>;
-}
+import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
 
 @Component({
   selector: 'app-confirmation-dialog',
