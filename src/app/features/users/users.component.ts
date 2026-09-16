@@ -14,7 +14,7 @@ import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { UsersService } from '@core/application/users/users.service';
 import { User } from '@core/domain/models/user.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
-import { UpdateUserRequest } from '@core/application/dto/user-update.dto';
+import { UserRequest } from '@core/application/dto/user-request.dto';
 import { I18nService } from '@core/i18n/i18n.service';
 import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
@@ -283,7 +283,7 @@ export class UsersComponent {
     this.updatingIds = addPendingId(this.updatingIds, user.id);
     this.changeDetectorRef.markForCheck();
 
-    const request: UpdateUserRequest = { isActive: newStatus };
+    const request: Partial<UserRequest> = { isActive: newStatus };
 
     this.usersService.updateUser(user.id, request).subscribe({
       next: () => {

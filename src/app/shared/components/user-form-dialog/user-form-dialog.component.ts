@@ -21,7 +21,6 @@ import { UsersService } from '@core/application/users/users.service';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { UserRequest } from '@core/application/dto/user-request.dto';
-import { UpdateUserRequest } from '@core/application/dto/user-update.dto';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
 import { generateRandomPassword } from '@shared/utils/password.utils';
 import { domainEmail, nonBlank } from '@shared/validators/domain.validators';
@@ -245,7 +244,7 @@ export class UserFormDialogComponent {
 
     this.isSaving = true;
 
-    const payload: UpdateUserRequest = {
+    const payload: Partial<UserRequest> = {
       userName: this.form.controls.userName.value.trim(),
       name: this.form.controls.name.value.trim(),
       email: this.form.controls.email.value.trim(),

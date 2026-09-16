@@ -3,7 +3,6 @@ import { Observable } from 'rxjs';
 import { HTTP_PORT } from '../ports/http.port';
 import { ApiResponse } from '../ports/api-response.interface';
 import { User } from '../../domain/models/user.model';
-import { UpdateUserRequest } from '../dto/user-update.dto';
 import { UserRequest } from '../dto/user-request.dto';
 import { USERS_URL } from '../../config/api-routes.constants';
 
@@ -46,7 +45,7 @@ export class UsersService {
    * @param request Update user request.
    * @returns Observable with API response containing the updated user.
    */
-  updateUser(id: string, request: UpdateUserRequest): Observable<ApiResponse<User>> {
+  updateUser(id: string, request: Partial<UserRequest>): Observable<ApiResponse<User>> {
     return this.http.put<ApiResponse<User>>(`${this.apiUrl}/${id}`, request);
   }
 }

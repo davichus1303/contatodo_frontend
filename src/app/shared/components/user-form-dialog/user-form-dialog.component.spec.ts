@@ -10,7 +10,6 @@ import { NotificationService } from '@core/application/notifications/notificatio
 import { Role } from '@core/domain/models/role.model';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
 import { UserRequest } from '@core/application/dto/user-request.dto';
-import { UpdateUserRequest } from '@core/application/dto/user-update.dto';
 import { User } from '@core/domain/models/user.model';
 
 describe('UserFormDialogComponent', () => {
@@ -261,7 +260,7 @@ describe('UserFormDialogComponent', () => {
 
     component.submit();
 
-    const expected: UpdateUserRequest = {
+    const expected: Partial<UserRequest> = {
       userName: 'david',
       name: 'David Actualizado',
       email: 'david@example.com',
@@ -283,7 +282,7 @@ describe('UserFormDialogComponent', () => {
 
     component.submit();
 
-    const expected: UpdateUserRequest = {
+    const expected: Partial<UserRequest> = {
       userName: 'david',
       name: 'David Contado',
       email: 'david@example.com',
