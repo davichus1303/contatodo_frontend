@@ -10,11 +10,13 @@ import { NotificationService } from '@core/application/notifications/notificatio
 import { Role } from '@core/domain/models/role.model';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
 import { UserRequest } from '@core/application/dto/user-request.dto';
+import { User } from '@core/domain/models/user.model';
 
 describe('UserFormDialogComponent', () => {
   let component: UserFormDialogComponent;
   let fixture: ComponentFixture<UserFormDialogComponent>;
   let createUserSpy: jasmine.Spy;
+  let updateUserSpy: jasmine.Spy;
   let getRolesSpy: jasmine.Spy;
   let successSpy: jasmine.Spy;
   let errorSpy: jasmine.Spy;
@@ -32,6 +34,7 @@ describe('UserFormDialogComponent', () => {
     rolePlaceholder: 'Selecciona un rol',
     passwordLabel: 'Contraseña',
     passwordPlaceholder: 'Contraseña generada',
+    passwordEditPlaceholder: 'Nueva contraseña (opcional)',
     passwordGeneratedHint: 'Contraseña generada automáticamente',
     temporaryPasswordNote: 'La contraseña es temporal',
     cancel: 'Cancelar',
@@ -44,7 +47,29 @@ describe('UserFormDialogComponent', () => {
     passwordRequired: 'requerido',
     rolesError: 'error roles',
     createdMessage: 'Usuario creado',
-    createError: 'error creación'
+    createError: 'error creación',
+    updatedMessage: 'Usuario actualizado',
+    updateError: 'error actualización'
+  };
+
+  const userToEdit: User = {
+    id: 'u1',
+    userName: 'david',
+    email: 'david@example.com',
+    name: 'David Contado',
+    createdDate: '2026-01-01',
+    updatedDate: '2026-01-01',
+    active: true,
+    role: {
+      id: 'r1',
+      name: 'Admin',
+      permissions: [],
+      isDeleted: false,
+      isActive: true,
+      createdDate: '2026-01-01',
+      updatedDate: '2026-01-01',
+      createdBy: 'seed'
+    }
   };
 
   const rolesData: Role[] = [
@@ -76,7 +101,7 @@ describe('UserFormDialogComponent', () => {
       providers: [
         { provide: MatDialogRef, useValue: { close: closeSpy } },
         { provide: MAT_DIALOG_DATA, useValue: data },
-        { provide: UsersService, useValue: { createUser: createUserSpy } },
+        { provide: UsersService, useValue: { createUser: createUserSpy, updateUser: updateUserSpy } },
         { provide: RolesService, useValue: { getRoles: getRolesSpy } },
         { provide: NotificationService, useValue: { success: successSpy, error: errorSpy } },
         provideAnimationsAsync()
@@ -90,6 +115,7 @@ describe('UserFormDialogComponent', () => {
 
   beforeEach(() => {
     createUserSpy = jasmine.createSpy('createUser').and.returnValue(of({ status: 200, message: 'OK', data: null }));
+    updateUserSpy = jasmine.createSpy('updateUser').and.returnValue(of({ status: 200, message: 'OK', data: null }));
     getRolesSpy = jasmine.createSpy('getRoles').and.returnValue(of({ status: 200, message: 'OK', data: rolesData }));
     successSpy = jasmine.createSpy('success');
     errorSpy = jasmine.createSpy('error');
@@ -169,6 +195,112 @@ describe('UserFormDialogComponent', () => {
     component.form.controls.email.setValue('juan@empresa.com');
     component.form.controls.roleId.setValue('r1');
     component.form.controls.password.setValue('Clave123!');
+
+    component.submit();
+
+    expect(errorSpy).toHaveBeenCalled();
+    expect(closeSpy).not.toHaveBeenCalled();
+    expect(component.isSaving).toBeFalse();
+  });
+
+  it('should prefill the form from the user when opened in edit mode', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: userToEdit,
+      labels
+    });
+
+    expect(component.isEditMode).toBeTrue();
+    expect(component.form.controls.userName.value).toBe('david');
+    expect(component.form.controls.name.value).toBe('David Contado');
+    expect(component.form.controls.email.value).toBe('david@example.com');
+    expect(component.form.controls.roleId.value).toBe('r1');
+    expect(component.form.controls.password.value).toBe('');
+  });
+
+  it('should keep the submit disabled until a field changes in edit mode', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: userToEdit,
+      labels
+    });
+
+    expect(component.hasChanges).toBeFalse();
+    expect(component.isSubmitDisabled).toBeTrue();
+
+    component.form.controls.name.setValue('David Actualizado');
+
+    expect(component.hasChanges).toBeTrue();
+    expect(component.isSubmitDisabled).toBeFalse();
+  });
+
+  it('should not update the user when nothing changed in edit mode', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: userToEdit,
+      labels
+    });
+
+    component.submit();
+
+    expect(updateUserSpy).not.toHaveBeenCalled();
+  });
+
+  it('should update the user without a password when it is left empty', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: userToEdit,
+      labels
+    });
+    component.form.controls.name.setValue('  David Actualizado  ');
+
+    component.submit();
+
+    const expected: Partial<UserRequest> = {
+      userName: 'david',
+      name: 'David Actualizado',
+      email: 'david@example.com',
+      roleId: 'r1'
+    };
+    expect(updateUserSpy).toHaveBeenCalledWith('u1', expected);
+    expect(successSpy).toHaveBeenCalledWith('Usuario actualizado');
+    expect(closeSpy).toHaveBeenCalledWith(true);
+  });
+
+  it('should include the password in the update payload when the user types one', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: userToEdit,
+      labels
+    });
+    component.form.controls.password.setValue('Clave123!');
+
+    component.submit();
+
+    const expected: Partial<UserRequest> = {
+      userName: 'david',
+      name: 'David Contado',
+      email: 'david@example.com',
+      roleId: 'r1',
+      password: 'Clave123!'
+    };
+    expect(updateUserSpy).toHaveBeenCalledWith('u1', expected);
+  });
+
+  it('should notify the error and stay open when the update fails', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: userToEdit,
+      labels
+    });
+    updateUserSpy.and.returnValue(throwError(() => ({ status: 500 })));
+    component.form.controls.email.setValue('nuevo@example.com');
 
     component.submit();
 

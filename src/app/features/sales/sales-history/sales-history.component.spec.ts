@@ -77,6 +77,7 @@ describe('SalesHistoryComponent', () => {
     httpTesting.verify();
   });
 
+  
   function flushSales(data: Sale[]): void {
     const request = httpTesting.expectOne((req) => req.url.includes('/date-range'));
     expect(request.request.method).toEqual('GET');

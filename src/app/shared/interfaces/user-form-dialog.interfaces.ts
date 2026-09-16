@@ -1,3 +1,5 @@
+import { User } from '@core/domain/models/user.model';
+
 /**
  * Resolved dictionary labels used to render the user form dialog.
  *
@@ -16,6 +18,7 @@ export interface UserFormDialogLabels {
   rolePlaceholder: string;
   passwordLabel: string;
   passwordPlaceholder: string;
+  passwordEditPlaceholder: string;
   passwordGeneratedHint: string;
   temporaryPasswordNote: string;
   cancel: string;
@@ -29,6 +32,8 @@ export interface UserFormDialogLabels {
   rolesError: string;
   createdMessage: string;
   createError: string;
+  updatedMessage: string;
+  updateError: string;
 }
 
 /**
@@ -48,5 +53,10 @@ export interface UserFormDialogData {
    * When true the note "the password is temporary" is displayed.
    */
   showTemporaryPasswordNote: boolean;
+  /**
+   * User to edit. When present the dialog opens in edit mode: the form is
+   * pre-filled with the given user and the password becomes optional.
+   */
+  user?: User | null;
   labels: UserFormDialogLabels;
 }
