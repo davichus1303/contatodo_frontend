@@ -9,7 +9,7 @@ import { RolesService } from '@core/application/roles/roles.service';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { Role } from '@core/domain/models/role.model';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
-import { CreateUserRequest } from '@core/application/dto/user-create.dto';
+import { UserRequest } from '@core/application/dto/user-request.dto';
 
 describe('UserFormDialogComponent', () => {
   let component: UserFormDialogComponent;
@@ -148,7 +148,7 @@ describe('UserFormDialogComponent', () => {
 
     component.submit();
 
-    const expected: CreateUserRequest = {
+    const expected: UserRequest = {
       userName: 'jperez',
       name: 'Juan Pérez',
       email: 'juan@empresa.com',

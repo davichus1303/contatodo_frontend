@@ -19,7 +19,7 @@ import { RolesService } from '@core/application/roles/roles.service';
 import { UsersService } from '@core/application/users/users.service';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
-import { CreateUserRequest } from '@core/application/dto/user-create.dto';
+import { UserRequest } from '@core/application/dto/user-request.dto';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
 import { generateRandomPassword } from '@shared/utils/password.utils';
 import { domainEmail, nonBlank } from '@shared/validators/domain.validators';
@@ -158,7 +158,7 @@ export class UserFormDialogComponent {
   private createUser(): void {
     this.isSaving = true;
 
-    const payload: CreateUserRequest = {
+    const payload: UserRequest = {
       userName: this.form.controls.userName.value.trim(),
       name: this.form.controls.name.value.trim(),
       email: this.form.controls.email.value.trim(),

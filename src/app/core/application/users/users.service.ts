@@ -4,7 +4,7 @@ import { HTTP_PORT } from '../ports/http.port';
 import { ApiResponse } from '../ports/api-response.interface';
 import { User } from '../../domain/models/user.model';
 import { UpdateUserRequest } from '../dto/user-update.dto';
-import { CreateUserRequest } from '../dto/user-create.dto';
+import { UserRequest } from '../dto/user-request.dto';
 import { USERS_URL } from '../../config/api-routes.constants';
 
 /**
@@ -35,7 +35,7 @@ export class UsersService {
    * @param request Create user request.
    * @returns Observable with API response containing the created user.
    */
-  createUser(request: CreateUserRequest): Observable<ApiResponse<User>> {
+  createUser(request: UserRequest): Observable<ApiResponse<User>> {
     return this.http.post<ApiResponse<User>>(this.apiUrl, request);
   }
 
