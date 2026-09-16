@@ -317,5 +317,41 @@
       "DELETE_SUCCESS": "Rol eliminado exitosamente",
       "DELETE_ERROR": "Error eliminando el rol"
     }
+  },
+  "USERS": {
+    "TITLE": "Usuarios",
+    "SUBTITLE": "Gestiona los usuarios del sistema",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por nombre, correo o usuario"
+    },
+    "EMPTY_STATE": "No se encontraron usuarios",
+    "NO_ROLE": "Sin rol",
+    "FIELDS": {
+      "EMAIL": "Correo",
+      "USERNAME": "Usuario",
+      "ROLE": "Rol"
+    },
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Activar/Desactivar"
+    },
+    "CONFIRM_ACTIVATE_TITLE": "Activar usuario",
+    "CONFIRM_DEACTIVATE_TITLE": "Desactivar usuario",
+    "CONFIRM_ACTIVATE_MESSAGE": "El usuario será activado y podrá usar el sistema",
+    "CONFIRM_DEACTIVATE_MESSAGE": "El usuario será desactivado y no podrá usar el sistema",
+    "CANCEL": "Cancelar",
+    "ACTIVATE": "Activar",
+    "DEACTIVATE": "Desactivar",
+    "MESSAGES": {
+      "ERROR_LOADING": "Error cargando usuarios",
+      "UPDATE_SUCCESS": "Usuario actualizado exitosamente",
+      "UPDATE_ERROR": "Error actualizando el usuario"
+    }
   }
 }

@@ -2,9 +2,13 @@ import { DomainError, domainError } from '../errors/domain-error';
 import { isValidEmail } from '../validation/email.rule';
 import { err, ok, Result } from '../result';
 import { isNonEmptyString, isRecord } from '../validation/primitive.rules';
+import { Role } from './role.model';
 
 /**
  * Authenticated user information stored with the session.
+ *
+ * When a user is listed in the users catalog the backend also resolves its
+ * related {@link Role}; the login response leaves it undefined.
  */
 export interface User {
   readonly id: string;
@@ -14,6 +18,7 @@ export interface User {
   readonly createdDate: string;
   readonly updatedDate: string;
   readonly active: boolean;
+  readonly role?: Role | null;
 }
 
 /**

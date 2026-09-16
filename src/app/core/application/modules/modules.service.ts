@@ -44,7 +44,7 @@ export class ModulesService {
    * @returns Module category.
    */
   private getModuleCategory(link: string): string | undefined {
-    if (link === '/acquisition-type-catalog' || link === '/roles') {
+    if (link === '/acquisition-type-catalog' || link === '/roles' || link === '/users') {
       return MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG;
     }
     return undefined;

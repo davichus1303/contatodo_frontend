@@ -1,0 +1,86 @@
+<div class="users-page">
+  <div class="page-header">
+    <div>
+      <h1>{{ i18nService.translate('USERS.TITLE') }}</h1>
+      <p>{{ i18nService.translate('USERS.SUBTITLE') }}</p>
+    </div>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>{{ i18nService.translate('USERS.SEARCH.LABEL') }}</mat-label>
+      <input matInput [formControl]="searchControl" [placeholder]="i18nService.translate('USERS.SEARCH.PLACEHOLDER')" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (filteredUsers.length === 0) {
+    <div class="empty-state">
+      <mat-icon>person_off</mat-icon>
+      <p>{{ i18nService.translate('USERS.EMPTY_STATE') }}</p>
+    </div>
+  } @else {
+    <div class="users-grid">
+      @for (user of filteredUsers; track user.id) {
+        <mat-card class="user-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3>{{ user.name }}</h3>
+              <span [class]="user.active ? 'status-badge active' : 'status-badge inactive'">
+                {{
+                  user.active
+                    ? i18nService.translate('USERS.STATUS.ACTIVE')
+                    : i18nService.translate('USERS.STATUS.INACTIVE')
+                }}
+              </span>
+            </div>
+            <div class="user-details">
+              <div class="detail-row">
+                <span class="detail-label">{{ i18nService.translate('USERS.FIELDS.EMAIL') }}:</span>
+                <span class="detail-value">{{ user.email }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">{{ i18nService.translate('USERS.FIELDS.USERNAME') }}:</span>
+                <span class="detail-value">{{ user.userName }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">{{ i18nService.translate('USERS.FIELDS.ROLE') }}:</span>
+                <span class="detail-value">{{ getRoleName(user) }}</span>
+              </div>
+            </div>
+            <div class="card-actions">
+              <button
+                mat-icon-button
+                color="primary"
+                [title]="i18nService.translate('USERS.ACTIONS.EDIT')"
+                [disabled]="true"
+                (click)="openEditDialog(user)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                color="warn"
+                [title]="i18nService.translate('USERS.ACTIONS.DELETE')"
+                [disabled]="true"
+                (click)="onDelete(user)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+              <mat-slide-toggle
+                [checked]="user.active"
+                [disabled]="isUpdating(user.id)"
+                (change)="onToggleChange(user, $event)"
+                [title]="i18nService.translate('USERS.ACTIONS.TOGGLE_STATUS')"
+              ></mat-slide-toggle>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>
