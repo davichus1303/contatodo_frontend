@@ -1,8 +1,8 @@
 # Contatodo Web
 
-Frontend para el sistema de registro de compras y ventas. Aplicación Angular 17 con Material UI, servida a través de Nginx en Docker.
+Frontend for the purchases and sales registration system. Angular 17 application with Material UI, served through Nginx in Docker.
 
-## Tecnologías
+## Technologies
 
 - **Angular 17.3.0**
 - **Angular Material 17.3.10**
@@ -11,18 +11,18 @@ Frontend para el sistema de registro de compras y ventas. Aplicación Angular 17
 - **Nginx 1.28**
 - **TypeScript 5.4.2**
 
-## Estructura del Proyecto
+## Project Structure
 
-Arquitectura en capas: `core` (domain/application/adapters), `features` y `shared`. El mapa completo está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) y las reglas de trabajo en [`AGENTS.md`](AGENTS.md).
+Layered architecture: `core` (domain/application/adapters), `features` and `shared`. The full map is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and the working rules in [`AGENTS.md`](AGENTS.md).
 
 ```
 contatodo_web/
 ├── src/
 │   ├── app/
 │   │   ├── core/
-│   │   │   ├── domain/         # modelos readonly + factories validadas + Result (puro)
-│   │   │   ├── application/    # servicios HTTP, DTOs, mappers, notificaciones
-│   │   │   ├── adapters/       # http/storage detrás de ports
+│   │   │   ├── domain/         # readonly models + validated factories + Result (pure)
+│   │   │   ├── application/    # HTTP services, DTOs, mappers, notifications
+│   │   │   ├── adapters/       # http/storage behind ports
 │   │   │   └── auth|config|guards|i18n|interceptors/
 │   │   ├── features/           # login, sales, products, acquisitions, roles...
 │   │   ├── layout/             # modules-navigation
@@ -30,8 +30,8 @@ contatodo_web/
 │   ├── assets/i18n/es.json
 │   └── ...
 ├── docs/
-│   └── ARCHITECTURE.md         # mapa de arquitectura
-├── AGENTS.md                   # lineamientos de trabajo
+│   └── ARCHITECTURE.md         # architecture map
+├── AGENTS.md                   # working guidelines
 ├── deploy/
 │   ├── deploy-ec2.sh
 │   └── docker-compose.ec2.yml
@@ -43,27 +43,27 @@ contatodo_web/
 └── package.json
 ```
 
-## Desarrollo
+## Development
 
-### Prerrequisitos
+### Prerequisites
 
 - Node.js 22
-- npm o yarn
+- npm or yarn
 
-### Instalación
+### Installation
 
 ```bash
 cd contatodo_web
 npm install
 ```
 
-### Servidor de Desarrollo
+### Development Server
 
 ```bash
 ng serve
 ```
 
-Navega a `http://localhost:4200/`. La aplicación se recargará automáticamente si cambias cualquier archivo fuente.
+Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
 
 ### Build
 
@@ -71,7 +71,7 @@ Navega a `http://localhost:4200/`. La aplicación se recargará automáticamente
 ng build
 ```
 
-Los artefactos de build se almacenarán en el directorio `dist/`.
+The build artifacts will be stored in the `dist/` directory.
 
 ### Code Scaffolding
 
@@ -79,7 +79,7 @@ Los artefactos de build se almacenarán en el directorio `dist/`.
 ng generate component component-name
 ```
 
-También puedes usar `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
 ### Tests
 
@@ -94,120 +94,120 @@ CHROME_BIN="$CHROME" npm test -- --watch=false
 
 ## Docker
 
-### Construir Imagen
+### Build Image
 
 ```bash
 docker build -t contatodo-web .
 ```
 
-### Ejecutar Localmente
+### Run Locally
 
 ```bash
 docker run -d -p 80:80 contatodo-web
 ```
 
-La aplicación estará disponible en `http://localhost:80`
+The application will be available at `http://localhost:80`
 
-## Configuración de Nginx
+## Nginx Configuration
 
-El archivo `nginx/default.conf` configura:
+The `nginx/default.conf` file configures:
 
-- Servidor en puerto 80
-- Angular SPA con fallback a index.html
-- Proxy de `/api/` hacia el backend en `http://backend:8080/`
-- Cache de archivos estáticos (1 año)
-- Compresión gzip habilitada
+- Server on port 80
+- Angular SPA with fallback to index.html
+- Proxy of `/api/` to the backend at `http://backend:8080/`
+- Static file caching (1 year)
+- gzip compression enabled
 
-## Variables de Entorno
+## Environment Variables
 
-El frontend usa las siguientes variables de entorno:
+The frontend uses the following environment variables:
 
-| Variable | Descripción |
+| Variable | Description |
 |----------|-------------|
-| `CONTATODO_WEB_IMAGE` | Imagen Docker usada por el compose de EC2 |
+| `CONTATODO_WEB_IMAGE` | Docker image used by the EC2 compose |
 
 ## CI/CD
 
-### Pipeline de Frontend
+### Frontend Pipeline
 
-El workflow `.github/workflows/ci.yml` ejecuta:
+The `.github/workflows/ci.yml` workflow runs:
 
-1. **CI** (todas las ramas):
-   - Setup de Node.js 22
-   - Instalación de dependencias con `npm ci`
-   - Build de Angular con `npm run build`
-   - Build de imagen Docker (sin publicar)
+1. **CI** (all branches):
+   - Node.js 22 setup
+   - Dependency install with `npm ci`
+   - Angular build with `npm run build`
+   - Docker image build (without publishing)
 
-2. **CD** (solo master):
-   - Login a GitHub Container Registry
-   - Build y push de imagen Docker
-   - Tagging: `{branch}-{sha}` y `latest` para master
-   - Publicación de imagen como pública
+2. **CD** (master only):
+   - GitHub Container Registry login
+   - Docker image build and push
+   - Tagging: `{branch}-{sha}` and `latest` for master
+   - Image published as public
 
-### Despliegue Automático
+### Automatic Deployment
 
-El workflow `.github/workflows/deploy.yml` se ejecuta después del CI exitoso en master:
+The `.github/workflows/deploy.yml` workflow runs after a successful CI on master:
 
-- Resuelve la referencia de la imagen Docker
-- Genera archivo de configuración para docker-compose
-- Valida configuración SSH
-- Sube archivos a EC2 via SSH
-- Ejecuta script de despliegue remoto
-- Reinicia contenedores con la nueva imagen
+- Resolves the Docker image reference
+- Generates the docker-compose configuration file
+- Validates SSH configuration
+- Uploads files to EC2 via SSH
+- Runs the remote deployment script
+- Restarts containers with the new image
 
-## Despliegue a Producción
+## Production Deployment
 
-### GitHub Secrets Requeridos
+### Required GitHub Secrets
 
-Configura estos en el entorno `master` de GitHub:
+Configure these in the `master` GitHub environment:
 
 **Secrets:**
-- `SSH_PRIVATE_KEY` - Clave privada SSH para EC2
+- `SSH_PRIVATE_KEY` - SSH private key for EC2
 
-**Variables de entorno (opcionales):**
-- `SSH_HOST` - Host/IP de EC2
-- `SSH_USER` - Usuario SSH
-- `SSH_PORT` - Puerto SSH (default: 22)
-- `EC2_APP_DIR` - Directorio en EC2 (default: `/opt/contatodo-web`)
+**Optional environment variables:**
+- `SSH_HOST` - EC2 host/IP
+- `SSH_USER` - SSH user
+- `SSH_PORT` - SSH port (default: 22)
+- `EC2_APP_DIR` - EC2 directory (default: `/opt/contatodo-web`)
 
-### Imagen Docker en Producción
+### Production Docker Image
 
-La imagen se publica en GitHub Container Registry:
+The image is published to GitHub Container Registry:
 
 ```text
 ghcr.io/davichus1303/contatodo_frontend/contatodo-web:master-<short-sha>
 ghcr.io/davichus1303/contatodo_frontend/contatodo-web:latest
 ```
 
-### Red Docker
+### Docker Network
 
-El frontend se conecta a la red Docker `contatodo-network` para comunicación con el backend. El proxy de Nginx redirige las peticiones `/api/` al servicio `backend:8080`.
+The frontend connects to the `contatodo-network` Docker network to talk to the backend. The Nginx proxy routes `/api/` requests to the `backend:8080` service.
 
-## Comunicación con Backend
+## Backend Communication
 
-El frontend se comunica con el backend API a través del proxy de Nginx:
+The frontend talks to the backend API through the Nginx proxy:
 
 - Frontend: `http://localhost/`
 - Backend API: `http://localhost/api/` → `http://backend:8080/`
 
-## Ayuda Adicional
+## Additional Help
 
-Para obtener más ayuda sobre Angular CLI:
+For more help on the Angular CLI:
 
 ```bash
 ng help
 ```
 
-O visita la [Angular CLI Overview and Command Reference](https://angular.io/cli).
+Or visit the [Angular CLI Overview and Command Reference](https://angular.io/cli).
 
-## Contribución
+## Contribution
 
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+1. Fork the repository
+2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Licencia
+## License
 
-Este proyecto está bajo la Licencia MIT.
+This project is licensed under the MIT License.

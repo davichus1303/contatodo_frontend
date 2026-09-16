@@ -1,68 +1,73 @@
-# AGENTS.md — Lineamientos de trabajo
+# AGENTS.md — Working guidelines
 
-Este documento define **cómo se debe trabajar en este proyecto**. Toda modificación de código debe respetar la arquitectura descrita aquí. El mapa completo de carpetas está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+This document defines **how to work in this project**. Any code change must respect the architecture described here. The full folder map lives in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-## Comandos de verificación (obligatorios antes de terminar cualquier tarea)
+## Language rule
+
+English is the only language for code identifiers, comments, documentation, and pull requests. User-facing text is a translation concern: keys live in `assets/i18n/es.json` and are read via `I18nService.translate('KEY')`.
+
+## Verification commands (required before finishing any task)
 
 ```bash
-npm run build   # build de producción — debe compilar sin errores
-npm test        # requiere Chrome headless; ver nota abajo
+npm run build   # production build — must compile with no errors
+npm test        # requires headless Chrome; see note below
 ```
 
-Tests con Chrome headless-shell (no hay Chrome instalado en el sistema):
+Tests with headless-shell Chrome (no system Chrome installed):
 
 ```bash
 CHROME="$HOME/.cache/puppeteer-browsers/chrome-headless-shell/linux-152.0.7977.54/chrome-headless-shell-linux64/chrome-headless-shell" \
 CHROME_BIN="$CHROME" npm test -- --watch=false
 ```
 
-Estado actual: **64/64 tests**. Si agregas lógica de dominio o mapeo, agrega tests.
+Current state: **103/103 tests**. If you add domain logic or mapping logic, add tests.
 
-## Reglas por capa
+## Rules per layer
 
-### `core/domain/` — Modelos y reglas de negocio (puro, sin Angular)
+### `core/domain/` — Models and business rules (pure, no Angular)
 
-- Interfaces con campos **`readonly`**.
-- Toda entidad se construye con una **factory validada**: `createX(raw: unknown): Result<X, readonly DomainError[]>`.
-- Las factories acumulan **todos** los errores encontrados antes de fallar (no fail-fast).
-- Validaciones con las reglas primitivas de `core/domain/validation/primitive.rules.ts`; nada de lógica inline ad-hoc.
-- Prohibido importar Angular, RxJS o HttpClient aquí.
-- Toda factory nueva lleva su `.spec.ts` hermano.
+- Interface fields are **`readonly`**.
+- Every entity is built by a **validated factory**: `createX(raw: unknown): Result<X, readonly DomainError[]>`.
+- Factories accumulate **all** found violations before failing (no fail-fast).
+- Use the primitive rules in `core/domain/validation/primitive.rules.ts`; no ad-hoc inline logic.
+- Forbidden to import Angular, RxJS, or HttpClient here.
+- Every new factory ships with its sibling `.spec.ts`.
 
-### `core/application/` — Casos de uso y servicios HTTP
+### `core/application/` — Use cases and HTTP services
 
-- Servicios delgados: solo traducen llamadas HTTP vía el puerto `HTTP_PORT` (`inject(HTTP_PORT)`), devuelven `Observable<ApiResponse<T>>`. Sin lógica de negocio (eso vive en domain).
-- DTOs de transporte en `application/dto/`; los componentes nunca arman payloads crudos: usan **mappers puros** (`toCreateAcquisitionRequest`, etc.) con spec propio.
-- Errores HTTP siempre se procesan con `extractApiErrorMessage(error, fallback)` (`application/ports/api-error.ts`).
-- Notificaciones de usuario SIEMPRE vía `NotificationService` (`notifications.success/error`) — prohibido inyectar `MatSnackBar` directamente.
+- Thin services: they only translate HTTP calls through the `HTTP_PORT` (via `inject(HTTP_PORT)`) and return `Observable<ApiResponse<T>>`. No business logic (that lives in domain).
+- Transport DTOs live in `application/dto/`; components never build raw payloads: they use **pure mappers** (`toCreateAcquisitionRequest`, etc.) with their own spec.
+- HTTP errors are always processed with `extractApiErrorMessage(error, fallback)` (`application/ports/api-error.ts`).
+- User notifications ALWAYS go through `NotificationService` (`notifications.success/error`) — injecting `MatSnackBar` directly is forbidden.
 
-### `features/` — Componentes
+### `features/` — Components
 
-- **`ChangeDetectionStrategy.OnPush` obligatorio** en todos los componentes.
-- Estado asíncrono/mutable para templates **siempre en signals** (nunca propiedades planas mutadas desde callbacks).
-- Suscripciones RxJS con teardown: `takeUntilDestroyed(destroyRef)`. Prohibido dejar `valueChanges`/`afterClosed()` sin teardown o con `Subject` manual (`destroy$`).
-- Separación smart/presentational: contenedores cargan datos y orquestan; los formularios complejos viven en componentes hijos que reciben `[inputs]` y emiten `(outputs)`. Los hijos de formulario no inyectan servicios de datos.
-- El armado de DTOs no va en componentes: emitir el estado crudo del form (view model) y mapear en la capa application.
-- Un método = una acción; handlers nombrados por intención (`onFormSave`, `goBack`, `confirmDelete`). Elimina código muerto en el mismo cambio, no después.
-- Fidelidad primero: al refactorizar comportamiento legado, replica exactamente sus efectos observables (incluidos quirks documentados en TSDoc) y avisa cuando detectes bugs preexistentes.
+- **`ChangeDetectionStrategy.OnPush` is mandatory** in every component.
+- Async/mutable state read by templates is **always in signals** (never plain properties mutated from callbacks).
+- RxJS subscriptions use teardown: `takeUntilDestroyed(destroyRef)`. Leaving `valueChanges`/`afterClosed()` without teardown or with a manual `destroy$` Subject is forbidden.
+- Smart/presentational separation: containers load data and orchestrate; complex forms live in child components receiving `[inputs]` and emitting `(outputs)`. Form children do not inject data services.
+- DTO assembly does not live in components: emit the raw form state (view model) and map it in the application layer.
+- One method = one action; handlers are named by intent (`onFormSave`, `goBack`, `confirmDelete`). Remove dead code in the same change, not later.
+- Fidelity first: when refactoring legacy behavior, replicate its observable effects exactly (including quirks documented in TSDoc) and flag preexisting bugs you notice.
 
 ### `shared/`
 
-- Constantes agrupadas por dominio (`general.constants.ts`, `sales.constants.ts`…). Nada de strings/números mágicos en código.
-- Validators de formulario que envuelven reglas de dominio (`domain.validators.ts`) para mantener paridad component↔dominio.
+- Constants grouped by domain (`general.constants.ts`, `sales.constants.ts`…). No magic strings/numbers in code.
+- Form validators wrap domain rules (`domain.validators.ts`) so component↔domain parity is kept.
 
-## Convenciones generales
+## General conventions
 
-- Paths alias: `@core/**` y `@shared/**` (configurados en `tsconfig.json`).
-- Standalone components; imports de Material módulo a módulo, solo los usados.
-- Sin `console.*` ni TODOs en el código entregado.
-- Comentarios: solo TSDoc público y notas de fidelidad legacy; cero comentarios narrativos.
-- i18n: textos desde `assets/i18n/es.json` vía `I18nService.translate('CLAVE')` — nunca strings hardcodeadas en templates.
-- Rutas nuevas: registrarlas en `app.routes.ts` con `canActivate: [AuthGuard]` salvo login.
+- Path aliases: `@core/**` and `@shared/**` (configured in `tsconfig.json`).
+- Standalone components; Material imports module by module, only what is used.
+- No `console.*` or TODOs in shipped code.
+- Comments: public TSDoc and legacy-fidelity notes only; zero narrative comments.
+- i18n: texts come from `assets/i18n/es.json` via `I18nService.translate('KEY')` — never hardcode strings in templates.
+- New routes: register them in `app.routes.ts` with `canActivate: [AuthGuard]` except login.
 
-## Checklist antes de cerrar una tarea
+## Checklist before closing a task
 
-1. `npm run build` verde
-2. Suite de tests verde (con Chrome headless)
-3. Sin imports muertos ni `console.*`
-4. Código nuevo sigue las reglas por capa de arriba
+1. `npm run build` green
+2. Test suite green (with headless Chrome)
+3. No dead imports or `console.*`
+4. New code follows the per-layer rules above
+5. Everything (code, comments, PR) in English
