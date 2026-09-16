@@ -58,8 +58,6 @@ export class AcquisitionFormComponent {
   readonly cancel = output<void>();
 
   readonly acquisitionForm: FormGroup;
-  readonly filteredProducts = signal<Product[]>([]);
-  readonly filteredOptions = signal<Product[]>([]);
   readonly selectedProduct = signal<Product | null>(null);
   readonly productSearchValue = signal<string | Product | null>(null);
 
@@ -78,6 +76,29 @@ export class AcquisitionFormComponent {
   readonly affectsInventory = computed(() => {
     const type = this.selectedAcquisitionType();
     return type?.affectsInventory ?? false;
+  });
+
+  /**
+   * Existing products available for the autocomplete, flowed from the loaded
+   * reference data. Previously the local list was populated imperatively by
+   * the container; it now derives straight from the {@link products} input.
+   */
+  readonly filteredProducts = computed(() => this.products());
+
+  /**
+   * Autocomplete options for the product field: the full existing list when
+   * nothing is being typed, otherwise the products matching the search term.
+   */
+  readonly filteredOptions = computed(() => {
+    const source = this.filteredProducts();
+    const value = this.productSearchValue();
+
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      return source.slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS);
+    }
+
+    const term = value.trim().toLowerCase();
+    return source.filter(p => p.name.toLowerCase().includes(term));
   });
 
   constructor() {
@@ -240,25 +261,6 @@ export class AcquisitionFormComponent {
     unitPublicCostControl?.updateValueAndValidity();
     quantityControl?.updateValueAndValidity();
     newProductDescriptionControl?.updateValueAndValidity();
-  }
-
-  /**
-   * Filters products by name based on search term.
-   *
-   * @param event Input event containing the search term.
-   */
-  filterByProductName(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    const searchTerm = inputElement.value;
-    const term = searchTerm.toLowerCase();
-    const allProducts = this.filteredProducts();
-
-    if (!term) {
-      this.filteredOptions.set(allProducts.slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS));
-    } else {
-      const filtered = allProducts.filter(p => p.name.toLowerCase().includes(term));
-      this.filteredOptions.set(filtered);
-    }
   }
 
   /**
