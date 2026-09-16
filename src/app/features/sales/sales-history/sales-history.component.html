@@ -110,13 +110,13 @@
   </div>
 
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="!isLoading && filteredSales().length === 0">
+  <div class="empty-state" *ngIf="!isLoading() && filteredSales().length === 0">
     <mat-icon>receipt_long</mat-icon>
     <p>{{ i18nService.translate('SALES_HISTORY.NO_SALES_FOUND') }}</p>
   </div>
 
   <!-- Sales Cards -->
-  <div class="sales-grid" *ngIf="!isLoading && filteredSales().length > 0">
+  <div class="sales-grid" *ngIf="!isLoading() && filteredSales().length > 0">
     <mat-card class="sale-card" *ngFor="let sale of filteredSales()">
       <mat-card-content>
         <div class="sale-header">

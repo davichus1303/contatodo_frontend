@@ -46,3 +46,4 @@ Thumbs.db
 # Environment
 .env
 .env.*
+env.js
