@@ -24,6 +24,7 @@ import { UserRequest } from '@core/application/dto/user-request.dto';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
 import { generateRandomPassword } from '@shared/utils/password.utils';
 import { domainEmail, nonBlank } from '@shared/validators/domain.validators';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 
 /**
  * Reactive form model of the user form dialog.
@@ -85,26 +86,26 @@ export class UserFormDialogComponent {
 
   readonly form: FormGroup<UserFormModel>;
 
-  private initialUserName = '';
-  private initialName = '';
-  private initialEmail = '';
-  private initialRoleId = '';
+  private initialUserName = GENERAL_CONSTANTS.EMPTY;
+  private initialName = GENERAL_CONSTANTS.EMPTY;
+  private initialEmail = GENERAL_CONSTANTS.EMPTY;
+  private initialRoleId = GENERAL_CONSTANTS.EMPTY;
 
   constructor() {
     this.form = this.formBuilder.group({
-      userName: this.formBuilder.control('', {
+      userName: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: [Validators.required, nonBlank()]
       }),
-      name: this.formBuilder.control('', {
+      name: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: [Validators.required, nonBlank()]
       }),
-      email: this.formBuilder.control('', {
+      email: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: [Validators.required, domainEmail()]
       }),
-      roleId: this.formBuilder.control('', {
+      roleId: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: [Validators.required]
       }),
-      password: this.formBuilder.control('', {
+      password: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: this.isEditMode ? [] : [Validators.required]
       })
     });
@@ -114,7 +115,7 @@ export class UserFormDialogComponent {
         userName: this.user.userName,
         name: this.user.name,
         email: this.user.email,
-        roleId: this.user.role?.id ?? ''
+        roleId: this.user.role?.id ?? GENERAL_CONSTANTS.EMPTY
       });
     } else if (this.generatePassword) {
       this.form.controls.password.setValue(generateRandomPassword());
