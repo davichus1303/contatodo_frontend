@@ -10,6 +10,7 @@ import { I18nService } from '@core/i18n/i18n.service';
 import { User } from '@core/domain/models/user.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { UpdateUserRequest } from '@core/application/dto/user-update.dto';
+import { UserFormDialogData } from '@shared/interfaces/user-form-dialog.interfaces';
 
 describe('UsersComponent', () => {
   let component: UsersComponent;
@@ -162,5 +163,27 @@ describe('UsersComponent', () => {
 
     expect(dialogOpenSpy).toHaveBeenCalled();
     expect(getUsersSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should open the edit dialog for the selected user and reload on confirmation', () => {
+    dialogOpenSpy.and.returnValue({ afterClosed: () => of(true) });
+    const user = component.users[0];
+
+    component.openEditDialog(user);
+
+    const dialogData = dialogOpenSpy.calls.mostRecent().args[1].data as UserFormDialogData;
+    expect(dialogData.user).toBe(user);
+    expect(dialogData.generatePassword).toBeFalse();
+    expect(dialogData.showTemporaryPasswordNote).toBeFalse();
+    expect(getUsersSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not reload the catalog when the edit dialog is dismissed', () => {
+    dialogOpenSpy.and.returnValue({ afterClosed: () => of(false) });
+    const user = component.users[0];
+
+    component.openEditDialog(user);
+
+    expect(getUsersSpy).not.toHaveBeenCalled();
   });
 });

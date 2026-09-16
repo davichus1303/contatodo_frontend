@@ -26,9 +26,10 @@ import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/use
  *
  * Lists active users with their related role and offers create, edit, delete
  * and status actions. Create opens a reusable user form dialog and reloads the
- * catalog when a user is created. Edit and delete are rendered but disabled:
- * this view only prepares them for a later implementation. The status toggle
- * is functional and updates the user through the update endpoint.
+ * catalog when a user is created. Edit opens the same dialog pre-filled and
+ * reloads the catalog when a user is updated. Delete is rendered but disabled:
+ * this view only prepares it for a later implementation. The status toggle is
+ * functional and updates the user through the update endpoint.
  */
 @Component({
   selector: 'app-users',
@@ -172,6 +173,7 @@ export class UsersComponent {
       rolePlaceholder: this.i18nService.translate('USERS.MODAL.ROLE_PLACEHOLDER'),
       passwordLabel: this.i18nService.translate('USERS.MODAL.PASSWORD_LABEL'),
       passwordPlaceholder: this.i18nService.translate('USERS.MODAL.PASSWORD_PLACEHOLDER'),
+      passwordEditPlaceholder: this.i18nService.translate('USERS.MODAL.PASSWORD_EDIT_PLACEHOLDER'),
       passwordGeneratedHint: this.i18nService.translate('USERS.MODAL.PASSWORD_GENERATED_HINT'),
       temporaryPasswordNote: this.i18nService.translate('USERS.MODAL.TEMPORARY_PASSWORD_NOTE'),
       cancel: this.i18nService.translate('USERS.MODAL.CANCEL'),
@@ -184,16 +186,39 @@ export class UsersComponent {
       passwordRequired: this.i18nService.translate('USERS.MODAL.PASSWORD_REQUIRED'),
       rolesError: this.i18nService.translate('USERS.MESSAGES.ERROR_LOADING_ROLES'),
       createdMessage: this.i18nService.translate('USERS.MESSAGES.CREATED'),
-      createError: this.i18nService.translate('USERS.MESSAGES.ERROR_CREATING')
+      createError: this.i18nService.translate('USERS.MESSAGES.ERROR_CREATING'),
+      updatedMessage: this.i18nService.translate('USERS.MESSAGES.UPDATE_SUCCESS'),
+      updateError: this.i18nService.translate('USERS.MESSAGES.UPDATE_ERROR')
     };
   }
 
   /**
-   * Placeholder for the edit-user dialog, prepared for a later implementation.
+   * Opens the reusable user form dialog in edit mode for the given user.
+   *
+   * The form is pre-filled and the dialog only confirms once at least one
+   * field changes. If the dialog confirms, the catalog is reloaded.
    *
    * @param user User selected for edition.
    */
   openEditDialog(user: User): void {
+    const dialogRef = this.dialog.open<UserFormDialogComponent, UserFormDialogData, boolean>(
+      UserFormDialogComponent,
+      {
+        width: '560px',
+        data: {
+          generatePassword: false,
+          showTemporaryPasswordNote: false,
+          user,
+          labels: this.buildUserFormDialogLabels(this.i18nService.translate('USERS.MODAL.EDIT_TITLE'))
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((updated?: boolean) => {
+      if (updated) {
+        this.loadUsers();
+      }
+    });
   }
 
   /**

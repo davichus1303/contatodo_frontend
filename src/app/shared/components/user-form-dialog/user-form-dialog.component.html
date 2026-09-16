@@ -64,7 +64,7 @@
         <input
           matInput
           formControlName="password"
-          [placeholder]="labels.passwordPlaceholder"
+          [placeholder]="isEditMode ? labels.passwordEditPlaceholder : labels.passwordPlaceholder"
           [attr.aria-label]="labels.passwordLabel"
         />
         @if (form.controls.password.invalid && form.controls.password.touched) {

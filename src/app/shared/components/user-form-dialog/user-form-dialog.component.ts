@@ -15,11 +15,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { Role } from '@core/domain/models/role.model';
+import { User } from '@core/domain/models/user.model';
 import { RolesService } from '@core/application/roles/roles.service';
 import { UsersService } from '@core/application/users/users.service';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { UserRequest } from '@core/application/dto/user-request.dto';
+import { UpdateUserRequest } from '@core/application/dto/user-update.dto';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
 import { generateRandomPassword } from '@shared/utils/password.utils';
 import { domainEmail, nonBlank } from '@shared/validators/domain.validators';
@@ -36,12 +38,14 @@ type UserFormModel = {
 };
 
 /**
- * Reusable dialog that collects the data of a new user.
+ * Reusable dialog that collects the data of a user.
  *
  * <p>Behavior is driven by its input payload so the same component can be
- * opened from any module: it loads the available roles, builds the request
- * object and creates the user through the create endpoint. The session token
- * is attached to the request by the authentication interceptor.</p>
+ * opened from any module. In create mode it loads the available roles and
+ * creates the user through the create endpoint; in edit mode (when a user is
+ * provided) it pre-fills the form and updates the user through the update
+ * endpoint. The session token is attached to the request by the
+ * authentication interceptor.</p>
  */
 @Component({
   selector: 'app-user-form-dialog',
@@ -73,12 +77,19 @@ export class UserFormDialogComponent {
   readonly labels: UserFormDialogLabels = this.data.labels;
   readonly generatePassword = this.data.generatePassword;
   readonly showTemporaryPasswordNote = this.data.showTemporaryPasswordNote;
+  readonly user: User | null = this.data.user ?? null;
+  readonly isEditMode = this.user !== null;
 
   roles: Role[] = [];
   isLoadingRoles = false;
   isSaving = false;
 
   readonly form: FormGroup<UserFormModel>;
+
+  private initialUserName = '';
+  private initialName = '';
+  private initialEmail = '';
+  private initialRoleId = '';
 
   constructor() {
     this.form = this.formBuilder.group({
@@ -95,22 +106,55 @@ export class UserFormDialogComponent {
         validators: [Validators.required]
       }),
       password: this.formBuilder.control('', {
-        validators: [Validators.required]
+        validators: this.isEditMode ? [] : [Validators.required]
       })
     });
 
-    if (this.generatePassword) {
+    if (this.user) {
+      this.form.patchValue({
+        userName: this.user.userName,
+        name: this.user.name,
+        email: this.user.email,
+        roleId: this.user.role?.id ?? ''
+      });
+    } else if (this.generatePassword) {
       this.form.controls.password.setValue(generateRandomPassword());
     }
+
+    const initialValue = this.form.getRawValue();
+    this.initialUserName = initialValue.userName;
+    this.initialName = initialValue.name;
+    this.initialEmail = initialValue.email;
+    this.initialRoleId = initialValue.roleId;
+
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.changeDetectorRef.markForCheck());
 
     this.loadRoles();
   }
 
   /**
    * Whether the submit button is disabled.
+   *
+   * In edit mode the button stays disabled until at least one field changes,
+   * so an update is never sent with the original values.
    */
   get isSubmitDisabled(): boolean {
-    return this.isSaving || this.isLoadingRoles || this.form.invalid;
+    return this.isSaving || this.isLoadingRoles || this.form.invalid || (this.isEditMode && !this.hasChanges);
+  }
+
+  /**
+   * Whether the user changed at least one field with respect to the values the
+   * dialog was opened with. Only meaningful in edit mode.
+   */
+  get hasChanges(): boolean {
+    const current = this.form.getRawValue();
+    return current.userName !== this.initialUserName ||
+      current.name !== this.initialName ||
+      current.email !== this.initialEmail ||
+      current.roleId !== this.initialRoleId ||
+      current.password.length > 0;
   }
 
   /**
@@ -121,11 +165,18 @@ export class UserFormDialogComponent {
   }
 
   /**
-   * Validates the form and triggers the user creation flow.
+   * Validates the form and triggers the matching save flow.
    */
   submit(): void {
     if (this.form.invalid || this.isSaving) {
       this.form.markAllAsTouched();
+      return;
+    }
+
+    if (this.isEditMode) {
+      if (this.hasChanges) {
+        this.updateUser();
+      }
       return;
     }
 
@@ -175,6 +226,46 @@ export class UserFormDialogComponent {
       error: (error: unknown) => {
         this.isSaving = false;
         this.notifications.error(extractApiErrorMessage(error, this.labels.createError));
+        this.changeDetectorRef.markForCheck();
+      }
+    });
+  }
+
+  /**
+   * Builds the update payload from the form data and updates the user.
+   *
+   * The password is only included when the user typed a new one; leaving it
+   * empty keeps the current password.
+   */
+  private updateUser(): void {
+    const userId = this.user?.id;
+    if (!userId) {
+      return;
+    }
+
+    this.isSaving = true;
+
+    const payload: UpdateUserRequest = {
+      userName: this.form.controls.userName.value.trim(),
+      name: this.form.controls.name.value.trim(),
+      email: this.form.controls.email.value.trim(),
+      roleId: this.form.controls.roleId.value
+    };
+
+    const password = this.form.controls.password.value;
+    if (password) {
+      payload.password = password;
+    }
+
+    this.usersService.updateUser(userId, payload).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.notifications.success(this.labels.updatedMessage);
+        this.dialogRef.close(true);
+      },
+      error: (error: unknown) => {
+        this.isSaving = false;
+        this.notifications.error(extractApiErrorMessage(error, this.labels.updateError));
         this.changeDetectorRef.markForCheck();
       }
     });

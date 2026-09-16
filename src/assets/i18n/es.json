@@ -351,6 +351,7 @@
     "DEACTIVATE": "Desactivar",
     "MODAL": {
       "CREATE_TITLE": "Nuevo usuario",
+      "EDIT_TITLE": "Editar usuario",
       "USERNAME_LABEL": "Nombre de usuario",
       "USERNAME_PLACEHOLDER": "Ej. jperez",
       "FULL_NAME_LABEL": "Nombre completo",
@@ -361,6 +362,7 @@
       "ROLE_PLACEHOLDER": "Selecciona un rol",
       "PASSWORD_LABEL": "Contraseña",
       "PASSWORD_PLACEHOLDER": "Contraseña generada",
+      "PASSWORD_EDIT_PLACEHOLDER": "Nueva contraseña (opcional)",
       "PASSWORD_GENERATED_HINT": "Contraseña generada automáticamente",
       "TEMPORARY_PASSWORD_NOTE": "La contraseña es temporal, el usuario debe cambiarla de inmediato para que sea válido",
       "USERNAME_REQUIRED": "El nombre de usuario es obligatorio",
