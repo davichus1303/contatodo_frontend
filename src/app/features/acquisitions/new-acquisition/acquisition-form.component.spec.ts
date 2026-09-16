@@ -57,6 +57,13 @@ describe('AcquisitionFormComponent', () => {
       isActive: true,
       isDeleted: false,
       affectsInventory: true
+    },
+    {
+      id: 'gasto',
+      name: 'Gasto',
+      isActive: true,
+      isDeleted: false,
+      affectsInventory: false
     }
   ];
 
@@ -126,5 +133,49 @@ describe('AcquisitionFormComponent', () => {
     fixture.detectChanges();
 
     expect(component.isNewProduct()).toBeTrue();
+  });
+
+  it('should clear a selected product when switching to a non-inventory type', () => {
+    component.acquisitionForm.get('acquisitionTypeOid')?.setValue('mercancia');
+    component.onAcquisitionTypeChange();
+    component.selectProduct(sampleProducts[0]);
+    fixture.detectChanges();
+
+    expect(component.acquisitionForm.get('productSearch')?.value).toEqual(sampleProducts[0]);
+
+    component.acquisitionForm.get('acquisitionTypeOid')?.setValue('gasto');
+    component.onAcquisitionTypeChange();
+    fixture.detectChanges();
+
+    expect(component.acquisitionForm.get('productSearch')?.value).toBe('');
+    expect(component.selectedProduct()).toBeNull();
+  });
+
+  it('should reset the real cost and product when switching between inventory types', () => {
+    const anotherInventoryType: AcquisitionType = {
+      id: 'stock',
+      name: 'Stock',
+      isActive: true,
+      isDeleted: false,
+      affectsInventory: true
+    };
+    fixture.componentRef.setInput('acquisitionTypes', [...sampleAcquisitionTypes, anotherInventoryType]);
+    fixture.detectChanges();
+
+    component.acquisitionForm.get('acquisitionTypeOid')?.setValue('mercancia');
+    component.onAcquisitionTypeChange();
+    component.selectProduct(sampleProducts[0]);
+    component.acquisitionForm.get('realCost')?.setValue(120);
+    fixture.detectChanges();
+
+    component.acquisitionForm.get('acquisitionTypeOid')?.setValue('stock');
+    component.onAcquisitionTypeChange();
+    fixture.detectChanges();
+
+    expect(component.acquisitionForm.get('productSearch')?.value).toBe('');
+    expect(component.selectedProduct()).toBeNull();
+    expect(component.acquisitionForm.get('realCost')?.value).toBe(0);
+    expect(component.acquisitionForm.get('unitPublicCost')?.value).toBe(0);
+    expect(component.acquisitionForm.get('quantity')?.value).toBe(1);
   });
 });
