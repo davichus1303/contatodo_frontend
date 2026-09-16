@@ -48,4 +48,17 @@ export class UsersService {
   updateUser(id: string, request: Partial<UserRequest>): Observable<ApiResponse<User>> {
     return this.http.put<ApiResponse<User>>(`${this.apiUrl}/${id}`, request);
   }
+
+  /**
+   * Deletes an existing user.
+   *
+   * The endpoint only needs the user identifier, which travels in the URL, so
+   * no request body is sent.
+   *
+   * @param id User identifier.
+   * @returns Observable with API response of the deleted user.
+   */
+  deleteUser(id: string): Observable<ApiResponse<User>> {
+    return this.http.delete<ApiResponse<User>>(`${this.apiUrl}/${id}`);
+  }
 }
