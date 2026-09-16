@@ -1,0 +1,175 @@
+.users-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+    }
+
+    p {
+      margin: 0;
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+  }
+
+  .filters {
+    display: flex;
+    margin-bottom: 24px;
+
+    .search-field {
+      width: 100%;
+    }
+  }
+
+  .loading-state,
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: rgba(0, 0, 0, 0.6);
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      font-size: 16px;
+    }
+  }
+
+  .users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+
+    .user-card {
+      mat-card-content {
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+          gap: 12px;
+
+          h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+            flex: 1;
+          }
+
+          .status-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+
+            &.active {
+              background-color: #e8f5e9;
+              color: #2e7d32;
+            }
+
+            &.inactive {
+              background-color: #fff3e0;
+              color: #ef6c00;
+            }
+          }
+        }
+
+        .user-details {
+          margin-bottom: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          font-size: 14px;
+          line-height: 1.5;
+
+          .detail-row {
+            display: flex;
+            gap: 6px;
+
+            .detail-label {
+              font-weight: 500;
+              color: rgba(0, 0, 0, 0.7);
+              white-space: nowrap;
+            }
+
+            .detail-value {
+              color: rgba(0, 0, 0, 0.6);
+              overflow-wrap: anywhere;
+            }
+          }
+        }
+
+        .card-actions {
+          display: flex;
+          gap: 8px;
+          justify-content: flex-end;
+          align-items: center;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .users-page {
+    padding: 16px;
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .actions {
+        width: 100%;
+
+        button {
+          flex: 1;
+          justify-content: center;
+        }
+      }
+    }
+
+    .filters {
+      justify-content: stretch;
+
+      .search-field {
+        width: 100%;
+        max-width: none;
+      }
+    }
+
+    .users-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

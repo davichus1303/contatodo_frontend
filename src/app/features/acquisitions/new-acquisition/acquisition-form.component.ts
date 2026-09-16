@@ -58,8 +58,6 @@ export class AcquisitionFormComponent {
   readonly cancel = output<void>();
 
   readonly acquisitionForm: FormGroup;
-  readonly filteredProducts = signal<Product[]>([]);
-  readonly filteredOptions = signal<Product[]>([]);
   readonly selectedProduct = signal<Product | null>(null);
   readonly productSearchValue = signal<string | Product | null>(null);
 
@@ -78,6 +76,29 @@ export class AcquisitionFormComponent {
   readonly affectsInventory = computed(() => {
     const type = this.selectedAcquisitionType();
     return type?.affectsInventory ?? false;
+  });
+
+  /**
+   * Existing products available for the autocomplete, flowed from the loaded
+   * reference data. Previously the local list was populated imperatively by
+   * the container; it now derives straight from the {@link products} input.
+   */
+  readonly filteredProducts = computed(() => this.products());
+
+  /**
+   * Autocomplete options for the product field: the full existing list when
+   * nothing is being typed, otherwise the products matching the search term.
+   */
+  readonly filteredOptions = computed(() => {
+    const source = this.filteredProducts();
+    const value = this.productSearchValue();
+
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      return source.slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS);
+    }
+
+    const term = value.trim().toLowerCase();
+    return source.filter(p => p.name.toLowerCase().includes(term));
   });
 
   constructor() {
@@ -202,13 +223,27 @@ export class AcquisitionFormComponent {
   private updateValidationBasedOnAcquisitionType(): void {
     const unitPublicCostControl = this.acquisitionForm.get('unitPublicCost');
     const quantityControl = this.acquisitionForm.get('quantity');
+    const realCostControl = this.acquisitionForm.get('realCost');
     const newProductDescriptionControl = this.acquisitionForm.get('newProductDescription');
     const newProductStockControl = this.acquisitionForm.get('newProductStock');
     const newProductUrlPhotoControl = this.acquisitionForm.get('newProductUrlPhoto');
+    const productSearchControl = this.acquisitionForm.get('productSearch');
 
     const selectedId = this.acquisitionForm.get('acquisitionTypeOid')?.value;
     const selectedType = this.acquisitionTypes().find(type => type.id === selectedId);
     const affectsInv = selectedType?.affectsInventory ?? false;
+
+    // Any acquisition type change resets the type-specific values so no cost
+    // or product state from the previous type leaks into the new one
+    // (legacy only cleared them when leaving inventory types).
+    realCostControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
+    unitPublicCostControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
+    quantityControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ONE);
+    productSearchControl?.setValue(ACQUISITIONS_CONSTANTS.STRINGS.EMPTY);
+    newProductDescriptionControl?.setValue(ACQUISITIONS_CONSTANTS.STRINGS.EMPTY);
+    newProductStockControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
+    newProductUrlPhotoControl?.setValue(ACQUISITIONS_CONSTANTS.STRINGS.EMPTY);
+    this.selectedProduct.set(null);
 
     if (affectsInv) {
       // Add required validators back
@@ -216,49 +251,20 @@ export class AcquisitionFormComponent {
       quantityControl?.setValidators([Validators.required, Validators.min(1)]);
       newProductDescriptionControl?.setValidators([Validators.required]);
     } else {
-      // Remove required validators and clear values
+      // Remove required validators
       unitPublicCostControl?.clearValidators();
-      unitPublicCostControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
-      unitPublicCostControl?.updateValueAndValidity();
-
       quantityControl?.clearValidators();
-      quantityControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ONE);
-      quantityControl?.updateValueAndValidity();
-
       newProductDescriptionControl?.clearValidators();
-      newProductDescriptionControl?.setValue(ACQUISITIONS_CONSTANTS.STRINGS.EMPTY);
-      newProductDescriptionControl?.updateValueAndValidity();
-
-      newProductStockControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
-      newProductStockControl?.updateValueAndValidity();
-
-      newProductUrlPhotoControl?.setValue(ACQUISITIONS_CONSTANTS.STRINGS.EMPTY);
-      newProductUrlPhotoControl?.updateValueAndValidity();
     }
 
     // Always update validity
+    realCostControl?.updateValueAndValidity();
     unitPublicCostControl?.updateValueAndValidity();
     quantityControl?.updateValueAndValidity();
+    productSearchControl?.updateValueAndValidity();
     newProductDescriptionControl?.updateValueAndValidity();
-  }
-
-  /**
-   * Filters products by name based on search term.
-   *
-   * @param event Input event containing the search term.
-   */
-  filterByProductName(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    const searchTerm = inputElement.value;
-    const term = searchTerm.toLowerCase();
-    const allProducts = this.filteredProducts();
-
-    if (!term) {
-      this.filteredOptions.set(allProducts.slice(0, ACQUISITIONS_CONSTANTS.AUTOCOMPLETE.MAX_RESULTS));
-    } else {
-      const filtered = allProducts.filter(p => p.name.toLowerCase().includes(term));
-      this.filteredOptions.set(filtered);
-    }
+    newProductStockControl?.updateValueAndValidity();
+    newProductUrlPhotoControl?.updateValueAndValidity();
   }
 
   /**

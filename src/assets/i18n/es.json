@@ -317,5 +317,75 @@
       "DELETE_SUCCESS": "Rol eliminado exitosamente",
       "DELETE_ERROR": "Error eliminando el rol"
     }
+  },
+  "USERS": {
+    "TITLE": "Usuarios",
+    "SUBTITLE": "Gestiona los usuarios del sistema",
+    "NEW_USER": "Nuevo usuario",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por nombre, correo o usuario"
+    },
+    "EMPTY_STATE": "No se encontraron usuarios",
+    "NO_ROLE": "Sin rol",
+    "FIELDS": {
+      "EMAIL": "Correo",
+      "USERNAME": "Usuario",
+      "ROLE": "Rol"
+    },
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Activar/Desactivar"
+    },
+    "CONFIRM_ACTIVATE_TITLE": "Activar usuario",
+    "CONFIRM_DEACTIVATE_TITLE": "Desactivar usuario",
+    "CONFIRM_ACTIVATE_MESSAGE": "El usuario será activado y podrá usar el sistema",
+    "CONFIRM_DEACTIVATE_MESSAGE": "El usuario será desactivado y no podrá usar el sistema",
+    "CANCEL": "Cancelar",
+    "ACTIVATE": "Activar",
+    "DEACTIVATE": "Desactivar",
+    "CONFIRM_DELETE_TITLE": "Eliminar usuario",
+    "CONFIRM_DELETE_MESSAGE": "¿De verdad quiere eliminar {{email}}? Se eliminará permanentemente del sistema y no podrá recuperarse.",
+    "DELETE": "Eliminar",
+    "MODAL": {
+      "CREATE_TITLE": "Nuevo usuario",
+      "EDIT_TITLE": "Editar usuario",
+      "USERNAME_LABEL": "Nombre de usuario",
+      "USERNAME_PLACEHOLDER": "Ej. jperez",
+      "FULL_NAME_LABEL": "Nombre completo",
+      "FULL_NAME_PLACEHOLDER": "Ej. Juan Pérez",
+      "EMAIL_LABEL": "Correo electrónico",
+      "EMAIL_PLACEHOLDER": "Ej. juan@empresa.com",
+      "ROLE_LABEL": "Rol",
+      "ROLE_PLACEHOLDER": "Selecciona un rol",
+      "PASSWORD_LABEL": "Contraseña",
+      "PASSWORD_PLACEHOLDER": "Contraseña generada",
+      "PASSWORD_EDIT_PLACEHOLDER": "Nueva contraseña (opcional)",
+      "PASSWORD_GENERATED_HINT": "Contraseña generada automáticamente",
+      "TEMPORARY_PASSWORD_NOTE": "La contraseña es temporal, el usuario debe cambiarla de inmediato para que sea válido",
+      "USERNAME_REQUIRED": "El nombre de usuario es obligatorio",
+      "FULL_NAME_REQUIRED": "El nombre completo es obligatorio",
+      "EMAIL_REQUIRED": "El correo electrónico es obligatorio",
+      "EMAIL_INVALID": "Correo electrónico inválido",
+      "ROLE_REQUIRED": "Selecciona un rol",
+      "PASSWORD_REQUIRED": "La contraseña es obligatoria",
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar"
+    },
+    "MESSAGES": {
+      "ERROR_LOADING": "Error cargando usuarios",
+      "UPDATE_SUCCESS": "Usuario actualizado exitosamente",
+      "UPDATE_ERROR": "Error actualizando el usuario",
+      "CREATED": "Usuario creado exitosamente",
+      "ERROR_CREATING": "Error creando el usuario",
+      "DELETE_SUCCESS": "Usuario eliminado exitosamente",
+      "DELETE_ERROR": "Error eliminando el usuario",
+      "ERROR_LOADING_ROLES": "Error cargando los roles"
+    }
   }
 }
