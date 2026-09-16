@@ -4,6 +4,12 @@
       <h1>{{ i18nService.translate('USERS.TITLE') }}</h1>
       <p>{{ i18nService.translate('USERS.SUBTITLE') }}</p>
     </div>
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        <span>{{ i18nService.translate('USERS.NEW_USER') }}</span>
+      </button>
+    </div>
   </div>
 
   <div class="filters">

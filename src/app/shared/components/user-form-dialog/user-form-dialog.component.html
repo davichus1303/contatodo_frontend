@@ -1,0 +1,97 @@
+<h2 mat-dialog-title>{{ labels.title }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-fields">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ labels.userNameLabel }}</mat-label>
+        <input
+          matInput
+          formControlName="userName"
+          [placeholder]="labels.userNamePlaceholder"
+          [attr.aria-label]="labels.userNameLabel"
+        />
+        @if (form.controls.userName.invalid && form.controls.userName.touched) {
+          <mat-error>{{ labels.userNameRequired }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ labels.fullNameLabel }}</mat-label>
+        <input
+          matInput
+          formControlName="name"
+          [placeholder]="labels.fullNamePlaceholder"
+          [attr.aria-label]="labels.fullNameLabel"
+        />
+        @if (form.controls.name.invalid && form.controls.name.touched) {
+          <mat-error>{{ labels.fullNameRequired }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ labels.emailLabel }}</mat-label>
+        <input
+          matInput
+          formControlName="email"
+          type="email"
+          [placeholder]="labels.emailPlaceholder"
+          [attr.aria-label]="labels.emailLabel"
+        />
+        @if (form.controls.email.invalid && form.controls.email.touched) {
+          @if (form.controls.email.hasError('email')) {
+            <mat-error>{{ labels.emailInvalid }}</mat-error>
+          } @else {
+            <mat-error>{{ labels.emailRequired }}</mat-error>
+          }
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ labels.roleLabel }}</mat-label>
+        <mat-select formControlName="roleId" [placeholder]="labels.rolePlaceholder">
+          @for (role of roles; track role.id) {
+            <mat-option [value]="role.id">{{ role.name }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.roleId.invalid && form.controls.roleId.touched) {
+          <mat-error>{{ labels.roleRequired }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ labels.passwordLabel }}</mat-label>
+        <input
+          matInput
+          formControlName="password"
+          [placeholder]="labels.passwordPlaceholder"
+          [attr.aria-label]="labels.passwordLabel"
+        />
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <mat-error>{{ labels.passwordRequired }}</mat-error>
+        }
+      </mat-form-field>
+
+      @if (generatePassword) {
+        <p class="password-hint">{{ labels.passwordGeneratedHint }}</p>
+      }
+
+      @if (showTemporaryPasswordNote) {
+        <p class="temporary-note">{{ labels.temporaryPasswordNote }}</p>
+      }
+    </div>
+
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" [disabled]="isSaving" (click)="cancel()">
+        {{ labels.cancel }}
+      </button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitDisabled">
+        @if (isSaving) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          {{ labels.save }}
+        }
+      </button>
+    </mat-dialog-actions>
+  </form>
+</mat-dialog-content>

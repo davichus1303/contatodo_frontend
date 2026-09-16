@@ -18,14 +18,17 @@ import { UpdateUserRequest } from '@core/application/dto/user-update.dto';
 import { I18nService } from '@core/i18n/i18n.service';
 import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
+import { UserFormDialogComponent } from '@shared/components/user-form-dialog/user-form-dialog.component';
+import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
 
 /**
  * Users catalog page.
  *
- * Lists active users with their related role and offers edit, delete and
- * status actions. Edit and delete are rendered but disabled: this view only
- * prepares them for a later implementation. The status toggle is functional
- * and updates the user through the update endpoint.
+ * Lists active users with their related role and offers create, edit, delete
+ * and status actions. Create opens a reusable user form dialog and reloads the
+ * catalog when a user is created. Edit and delete are rendered but disabled:
+ * this view only prepares them for a later implementation. The status toggle
+ * is functional and updates the user through the update endpoint.
  */
 @Component({
   selector: 'app-users',
@@ -122,6 +125,67 @@ export class UsersComponent {
         this.changeDetectorRef.markForCheck();
       }
     });
+  }
+
+  /**
+   * Opens the reusable user form dialog in create mode.
+   *
+   * Opened from the users module it suggests a random password and shows the
+   * temporary password note. If the dialog confirms, the catalog is reloaded.
+   */
+  openCreateDialog(): void {
+    const dialogRef = this.dialog.open<UserFormDialogComponent, UserFormDialogData, boolean>(
+      UserFormDialogComponent,
+      {
+        width: '560px',
+        data: {
+          generatePassword: true,
+          showTemporaryPasswordNote: true,
+          labels: this.buildUserFormDialogLabels(this.i18nService.translate('USERS.MODAL.CREATE_TITLE'))
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe((created?: boolean) => {
+      if (created) {
+        this.loadUsers();
+      }
+    });
+  }
+
+  /**
+   * Resolves the dialog labels from the dictionary.
+   *
+   * @param title Dialog title.
+   * @returns Resolved labels for the user form dialog.
+   */
+  private buildUserFormDialogLabels(title: string): UserFormDialogLabels {
+    return {
+      title,
+      userNameLabel: this.i18nService.translate('USERS.MODAL.USERNAME_LABEL'),
+      userNamePlaceholder: this.i18nService.translate('USERS.MODAL.USERNAME_PLACEHOLDER'),
+      fullNameLabel: this.i18nService.translate('USERS.MODAL.FULL_NAME_LABEL'),
+      fullNamePlaceholder: this.i18nService.translate('USERS.MODAL.FULL_NAME_PLACEHOLDER'),
+      emailLabel: this.i18nService.translate('USERS.MODAL.EMAIL_LABEL'),
+      emailPlaceholder: this.i18nService.translate('USERS.MODAL.EMAIL_PLACEHOLDER'),
+      roleLabel: this.i18nService.translate('USERS.MODAL.ROLE_LABEL'),
+      rolePlaceholder: this.i18nService.translate('USERS.MODAL.ROLE_PLACEHOLDER'),
+      passwordLabel: this.i18nService.translate('USERS.MODAL.PASSWORD_LABEL'),
+      passwordPlaceholder: this.i18nService.translate('USERS.MODAL.PASSWORD_PLACEHOLDER'),
+      passwordGeneratedHint: this.i18nService.translate('USERS.MODAL.PASSWORD_GENERATED_HINT'),
+      temporaryPasswordNote: this.i18nService.translate('USERS.MODAL.TEMPORARY_PASSWORD_NOTE'),
+      cancel: this.i18nService.translate('USERS.MODAL.CANCEL'),
+      save: this.i18nService.translate('USERS.MODAL.SAVE'),
+      userNameRequired: this.i18nService.translate('USERS.MODAL.USERNAME_REQUIRED'),
+      fullNameRequired: this.i18nService.translate('USERS.MODAL.FULL_NAME_REQUIRED'),
+      emailRequired: this.i18nService.translate('USERS.MODAL.EMAIL_REQUIRED'),
+      emailInvalid: this.i18nService.translate('USERS.MODAL.EMAIL_INVALID'),
+      roleRequired: this.i18nService.translate('USERS.MODAL.ROLE_REQUIRED'),
+      passwordRequired: this.i18nService.translate('USERS.MODAL.PASSWORD_REQUIRED'),
+      rolesError: this.i18nService.translate('USERS.MESSAGES.ERROR_LOADING_ROLES'),
+      createdMessage: this.i18nService.translate('USERS.MESSAGES.CREATED'),
+      createError: this.i18nService.translate('USERS.MESSAGES.ERROR_CREATING')
+    };
   }
 
   /**

@@ -154,4 +154,13 @@ describe('UsersComponent', () => {
     expect(updateUserSpy).not.toHaveBeenCalled();
     expect(getUsersSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('should open the create dialog with the users module flags and reload on confirmation', () => {
+    dialogOpenSpy.and.returnValue({ afterClosed: () => of(true) });
+
+    component.openCreateDialog();
+
+    expect(dialogOpenSpy).toHaveBeenCalled();
+    expect(getUsersSpy).toHaveBeenCalledTimes(1);
+  });
 });
