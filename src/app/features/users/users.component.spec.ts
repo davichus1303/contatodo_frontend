@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
@@ -11,12 +11,14 @@ import { User } from '@core/domain/models/user.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { UserRequest } from '@core/application/dto/user-request.dto';
 import { UserFormDialogData } from '@shared/interfaces/user-form-dialog.interfaces';
+import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
 
 describe('UsersComponent', () => {
   let component: UsersComponent;
   let fixture: ComponentFixture<UsersComponent>;
   let getUsersSpy: jasmine.Spy;
   let updateUserSpy: jasmine.Spy;
+  let deleteUserSpy: jasmine.Spy;
   let errorSpy: jasmine.Spy;
   let successSpy: jasmine.Spy;
   let translateSpy: jasmine.Spy;
@@ -63,6 +65,7 @@ describe('UsersComponent', () => {
   beforeEach(() => {
     getUsersSpy = jasmine.createSpy('getUsers').and.returnValue(of(usersResponse));
     updateUserSpy = jasmine.createSpy('updateUser');
+    deleteUserSpy = jasmine.createSpy('deleteUser');
     errorSpy = jasmine.createSpy('error');
     successSpy = jasmine.createSpy('success');
     translateSpy = jasmine.createSpy('translate').and.callFake((key: string) => key);
@@ -75,7 +78,7 @@ describe('UsersComponent', () => {
       providers: [
         {
           provide: UsersService,
-          useValue: { getUsers: getUsersSpy, updateUser: updateUserSpy }
+          useValue: { getUsers: getUsersSpy, updateUser: updateUserSpy, deleteUser: deleteUserSpy }
         },
         { provide: NotificationService, useValue: { success: successSpy, error: errorSpy } },
         { provide: I18nService, useValue: { translate: translateSpy } },
@@ -184,6 +187,44 @@ describe('UsersComponent', () => {
 
     component.openEditDialog(user);
 
+    expect(getUsersSpy).not.toHaveBeenCalled();
+  });
+
+  it('should delete the user after the confirmation dialog is accepted', () => {
+    dialogOpenSpy.and.returnValue({ afterClosed: () => of(true) });
+    deleteUserSpy.and.returnValue(of({ status: 200, message: 'OK', data: null }));
+    const user = component.users[0];
+
+    component.onDelete(user);
+
+    const dialogData = dialogOpenSpy.calls.mostRecent().args[1].data as ConfirmationDialogData;
+    expect(dialogData.titleKey).toBe('USERS.CONFIRM_DELETE_TITLE');
+    expect(dialogData.messageParams).toEqual({ email: user.email });
+    expect(deleteUserSpy).toHaveBeenCalledWith('u1');
+    expect(successSpy).toHaveBeenCalledTimes(1);
+    expect(getUsersSpy).toHaveBeenCalledTimes(1);
+    expect(component.isUpdating('u1')).toBeFalse();
+  });
+
+  it('should notify the error and keep the catalog when the deletion fails', () => {
+    dialogOpenSpy.and.returnValue({ afterClosed: () => of(true) });
+    deleteUserSpy.and.returnValue(throwError(() => ({ status: 500 })));
+    const user = component.users[0];
+
+    component.onDelete(user);
+
+    expect(errorSpy).toHaveBeenCalled();
+    expect(getUsersSpy).not.toHaveBeenCalled();
+    expect(component.isUpdating('u1')).toBeFalse();
+  });
+
+  it('should not delete the user when the confirmation dialog is cancelled', () => {
+    dialogOpenSpy.and.returnValue({ afterClosed: () => of(false) });
+    const user = component.users[0];
+
+    component.onDelete(user);
+
+    expect(deleteUserSpy).not.toHaveBeenCalled();
     expect(getUsersSpy).not.toHaveBeenCalled();
   });
 });

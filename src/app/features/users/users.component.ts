@@ -27,9 +27,9 @@ import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/use
  * Lists active users with their related role and offers create, edit, delete
  * and status actions. Create opens a reusable user form dialog and reloads the
  * catalog when a user is created. Edit opens the same dialog pre-filled and
- * reloads the catalog when a user is updated. Delete is rendered but disabled:
- * this view only prepares it for a later implementation. The status toggle is
- * functional and updates the user through the update endpoint.
+ * reloads the catalog when a user is updated. Delete asks for confirmation and
+ * removes the user through the delete endpoint. The status toggle updates the
+ * user through the update endpoint.
  */
 @Component({
   selector: 'app-users',
@@ -222,11 +222,58 @@ export class UsersComponent {
   }
 
   /**
-   * Placeholder for the delete-user flow, prepared for a later implementation.
+   * Opens the delete confirmation dialog for a user.
+   *
+   * The warning states the user will be permanently removed. Only a confirmed
+   * dialog sends the deletion; cancelling leaves the catalog untouched.
    *
    * @param user User selected for deletion.
    */
   onDelete(user: User): void {
+    const dialogRef = openConfirmationDialog(
+      this.dialog,
+      {
+        titleKey: 'USERS.CONFIRM_DELETE_TITLE',
+        messageKey: 'USERS.CONFIRM_DELETE_MESSAGE',
+        cancelKey: 'USERS.CANCEL',
+        confirmKey: 'USERS.DELETE',
+        messageParams: { email: user.email }
+      },
+      '420px'
+    );
+
+    dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
+      if (confirmed) {
+        this.deleteUser(user);
+      }
+    });
+  }
+
+  /**
+   * Sends the deletion of a user through the delete endpoint.
+   *
+   * Only the user identifier is sent, as the endpoint does not need a body.
+   *
+   * @param user User to delete.
+   */
+  private deleteUser(user: User): void {
+    this.updatingIds = addPendingId(this.updatingIds, user.id);
+    this.changeDetectorRef.markForCheck();
+
+    this.usersService.deleteUser(user.id).subscribe({
+      next: () => {
+        this.notifications.success(this.i18nService.translate('USERS.MESSAGES.DELETE_SUCCESS'));
+        this.updatingIds = removePendingId(this.updatingIds, user.id);
+        this.loadUsers();
+      },
+      error: (error: unknown) => {
+        this.notifications.error(
+          extractApiErrorMessage(error, this.i18nService.translate('USERS.MESSAGES.DELETE_ERROR'))
+        );
+        this.updatingIds = removePendingId(this.updatingIds, user.id);
+        this.changeDetectorRef.markForCheck();
+      }
+    });
   }
 
   /**

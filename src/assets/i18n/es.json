@@ -349,6 +349,9 @@
     "CANCEL": "Cancelar",
     "ACTIVATE": "Activar",
     "DEACTIVATE": "Desactivar",
+    "CONFIRM_DELETE_TITLE": "Eliminar usuario",
+    "CONFIRM_DELETE_MESSAGE": "¿De verdad quiere eliminar {{email}}? Se eliminará permanentemente del sistema y no podrá recuperarse.",
+    "DELETE": "Eliminar",
     "MODAL": {
       "CREATE_TITLE": "Nuevo usuario",
       "EDIT_TITLE": "Editar usuario",
@@ -380,6 +383,8 @@
       "UPDATE_ERROR": "Error actualizando el usuario",
       "CREATED": "Usuario creado exitosamente",
       "ERROR_CREATING": "Error creando el usuario",
+      "DELETE_SUCCESS": "Usuario eliminado exitosamente",
+      "DELETE_ERROR": "Error eliminando el usuario",
       "ERROR_LOADING_ROLES": "Error cargando los roles"
     }
   }
