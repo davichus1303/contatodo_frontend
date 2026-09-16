@@ -1,0 +1,22 @@
+.full-width {
+  width: 100%;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.password-hint {
+  font-size: 12px;
+  color: var(--mdc-theme-text-secondary, #757575);
+  margin: 0 0 8px;
+}
+
+.temporary-note {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mdc-theme-primary, #1976d2);
+  margin: 0 0 8px;
+}
