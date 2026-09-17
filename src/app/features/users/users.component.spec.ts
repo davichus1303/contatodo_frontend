@@ -140,6 +140,15 @@ describe('UsersComponent', () => {
     expect(component.filteredUsers.length).toBe(0);
   });
 
+  it('should filter users by their role name', () => {
+    component.searchControl.setValue('admin');
+    expect(component.filteredUsers.length).toBe(1);
+    expect(component.filteredUsers[0].id).toBe('u1');
+
+    component.searchControl.setValue('VENDEDOR');
+    expect(component.filteredUsers.length).toBe(0);
+  });
+
   it('should return all users when the search term is empty', () => {
     component.searchControl.setValue('   ');
     expect(component.filteredUsers.length).toBe(2);

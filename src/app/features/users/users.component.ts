@@ -78,7 +78,8 @@ export class UsersComponent {
    * Users matching the current search term.
    *
    * Matching is a partial, case-insensitive `contains` over the user name,
-   * email and username.
+   * email, username and role name. Users without a resolved role never match
+   * on the role criterion.
    */
   get filteredUsers(): User[] {
     if (!this.searchTerm) {
@@ -88,7 +89,8 @@ export class UsersComponent {
     return this.users.filter((user: User) =>
       user.name.toLowerCase().includes(this.searchTerm) ||
       user.email.toLowerCase().includes(this.searchTerm) ||
-      user.userName.toLowerCase().includes(this.searchTerm)
+      user.userName.toLowerCase().includes(this.searchTerm) ||
+      user.role?.name.toLowerCase().includes(this.searchTerm)
     );
   }
 

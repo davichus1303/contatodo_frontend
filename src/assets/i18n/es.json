@@ -324,7 +324,7 @@
     "NEW_USER": "Nuevo usuario",
     "SEARCH": {
       "LABEL": "Buscar",
-      "PLACEHOLDER": "Buscar por nombre, correo o usuario"
+      "PLACEHOLDER": "Buscar por nombre, correo, usuario o rol"
     },
     "EMPTY_STATE": "No se encontraron usuarios",
     "NO_ROLE": "Sin rol",
