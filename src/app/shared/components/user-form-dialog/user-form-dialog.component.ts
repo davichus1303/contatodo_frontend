@@ -33,6 +33,7 @@ type UserFormModel = {
   userName: FormControl<string>;
   name: FormControl<string>;
   email: FormControl<string>;
+  phoneNumber: FormControl<string>;
   roleId: FormControl<string>;
   password: FormControl<string>;
 };
@@ -89,6 +90,7 @@ export class UserFormDialogComponent {
   private initialUserName = GENERAL_CONSTANTS.EMPTY;
   private initialName = GENERAL_CONSTANTS.EMPTY;
   private initialEmail = GENERAL_CONSTANTS.EMPTY;
+  private initialPhoneNumber = GENERAL_CONSTANTS.EMPTY;
   private initialRoleId = GENERAL_CONSTANTS.EMPTY;
 
   constructor() {
@@ -102,6 +104,7 @@ export class UserFormDialogComponent {
       email: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: [Validators.required, domainEmail()]
       }),
+      phoneNumber: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY),
       roleId: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: [Validators.required]
       }),
@@ -115,6 +118,7 @@ export class UserFormDialogComponent {
         userName: this.user.userName,
         name: this.user.name,
         email: this.user.email,
+        phoneNumber: this.user.phoneNumber ?? GENERAL_CONSTANTS.EMPTY,
         roleId: this.user.role?.id ?? GENERAL_CONSTANTS.EMPTY
       });
     } else if (this.generatePassword) {
@@ -125,6 +129,7 @@ export class UserFormDialogComponent {
     this.initialUserName = initialValue.userName;
     this.initialName = initialValue.name;
     this.initialEmail = initialValue.email;
+    this.initialPhoneNumber = initialValue.phoneNumber;
     this.initialRoleId = initialValue.roleId;
 
     this.form.valueChanges
@@ -153,6 +158,7 @@ export class UserFormDialogComponent {
     return current.userName !== this.initialUserName ||
       current.name !== this.initialName ||
       current.email !== this.initialEmail ||
+      current.phoneNumber !== this.initialPhoneNumber ||
       current.roleId !== this.initialRoleId ||
       current.password.length > 0;
   }
@@ -213,6 +219,7 @@ export class UserFormDialogComponent {
       userName: this.form.controls.userName.value.trim(),
       name: this.form.controls.name.value.trim(),
       email: this.form.controls.email.value.trim(),
+      phoneNumber: this.form.controls.phoneNumber.value.trim(),
       roleId: this.form.controls.roleId.value,
       password: this.form.controls.password.value
     };
@@ -249,6 +256,7 @@ export class UserFormDialogComponent {
       userName: this.form.controls.userName.value.trim(),
       name: this.form.controls.name.value.trim(),
       email: this.form.controls.email.value.trim(),
+      phoneNumber: this.form.controls.phoneNumber.value.trim(),
       roleId: this.form.controls.roleId.value
     };
 

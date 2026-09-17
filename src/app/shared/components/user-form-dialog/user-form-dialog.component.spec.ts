@@ -30,6 +30,8 @@ describe('UserFormDialogComponent', () => {
     fullNamePlaceholder: 'Ej. Juan Pérez',
     emailLabel: 'Correo electrónico',
     emailPlaceholder: 'Ej. juan@empresa.com',
+    phoneLabel: 'Teléfono',
+    phonePlaceholder: 'Ej. 987654321',
     roleLabel: 'Rol',
     rolePlaceholder: 'Selecciona un rol',
     passwordLabel: 'Contraseña',
@@ -57,6 +59,7 @@ describe('UserFormDialogComponent', () => {
     userName: 'david',
     email: 'david@example.com',
     name: 'David Contado',
+    phoneNumber: '987654321',
     createdDate: '2026-01-01',
     updatedDate: '2026-01-01',
     active: true,
@@ -169,6 +172,7 @@ describe('UserFormDialogComponent', () => {
     component.form.controls.userName.setValue('  jperez  ');
     component.form.controls.name.setValue('Juan Pérez');
     component.form.controls.email.setValue('juan@empresa.com');
+    component.form.controls.phoneNumber.setValue(' 987654321 ');
     component.form.controls.roleId.setValue('r2');
     component.form.controls.password.setValue('Clave123!');
 
@@ -178,6 +182,7 @@ describe('UserFormDialogComponent', () => {
       userName: 'jperez',
       name: 'Juan Pérez',
       email: 'juan@empresa.com',
+      phoneNumber: '987654321',
       roleId: 'r2',
       password: 'Clave123!'
     };
@@ -215,6 +220,7 @@ describe('UserFormDialogComponent', () => {
     expect(component.form.controls.userName.value).toBe('david');
     expect(component.form.controls.name.value).toBe('David Contado');
     expect(component.form.controls.email.value).toBe('david@example.com');
+    expect(component.form.controls.phoneNumber.value).toBe('987654321');
     expect(component.form.controls.roleId.value).toBe('r1');
     expect(component.form.controls.password.value).toBe('');
   });
@@ -264,6 +270,7 @@ describe('UserFormDialogComponent', () => {
       userName: 'david',
       name: 'David Actualizado',
       email: 'david@example.com',
+      phoneNumber: '987654321',
       roleId: 'r1'
     };
     expect(updateUserSpy).toHaveBeenCalledWith('u1', expected);
@@ -286,8 +293,36 @@ describe('UserFormDialogComponent', () => {
       userName: 'david',
       name: 'David Contado',
       email: 'david@example.com',
+      phoneNumber: '987654321',
       roleId: 'r1',
       password: 'Clave123!'
+    };
+    expect(updateUserSpy).toHaveBeenCalledWith('u1', expected);
+  });
+
+  it('should detect and send a phone number change in edit mode', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: userToEdit,
+      labels
+    });
+
+    expect(component.hasChanges).toBeFalse();
+
+    component.form.controls.phoneNumber.setValue(' 999888777 ');
+
+    expect(component.hasChanges).toBeTrue();
+    expect(component.isSubmitDisabled).toBeFalse();
+
+    component.submit();
+
+    const expected: Partial<UserRequest> = {
+      userName: 'david',
+      name: 'David Contado',
+      email: 'david@example.com',
+      phoneNumber: '999888777',
+      roleId: 'r1'
     };
     expect(updateUserSpy).toHaveBeenCalledWith('u1', expected);
   });
