@@ -11,6 +11,7 @@ export interface UserRequest {
   userName: string;
   name: string;
   email: string;
+  phoneNumber?: string;
   roleId: string;
   password: string;
   isActive?: boolean;

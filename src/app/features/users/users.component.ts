@@ -103,6 +103,16 @@ export class UsersComponent {
   }
 
   /**
+   * Resolves the phone number shown on a user card.
+   *
+   * @param user User whose phone number must be displayed.
+   * @returns The phone number, or the localized placeholder when it is empty.
+   */
+  getPhoneNumber(user: User): string {
+    return user.phoneNumber || this.i18nService.translate('USERS.NO_PHONE');
+  }
+
+  /**
    * Loads the users catalog from the backend.
    */
   loadUsers(): void {
@@ -169,6 +179,8 @@ export class UsersComponent {
       fullNamePlaceholder: this.i18nService.translate('USERS.MODAL.FULL_NAME_PLACEHOLDER'),
       emailLabel: this.i18nService.translate('USERS.MODAL.EMAIL_LABEL'),
       emailPlaceholder: this.i18nService.translate('USERS.MODAL.EMAIL_PLACEHOLDER'),
+      phoneLabel: this.i18nService.translate('USERS.MODAL.PHONE_LABEL'),
+      phonePlaceholder: this.i18nService.translate('USERS.MODAL.PHONE_PLACEHOLDER'),
       roleLabel: this.i18nService.translate('USERS.MODAL.ROLE_LABEL'),
       rolePlaceholder: this.i18nService.translate('USERS.MODAL.ROLE_PLACEHOLDER'),
       passwordLabel: this.i18nService.translate('USERS.MODAL.PASSWORD_LABEL'),

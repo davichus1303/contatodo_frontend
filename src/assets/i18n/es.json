@@ -328,9 +328,11 @@
     },
     "EMPTY_STATE": "No se encontraron usuarios",
     "NO_ROLE": "Sin rol",
+    "NO_PHONE": "Sin teléfono",
     "FIELDS": {
       "EMAIL": "Correo",
       "USERNAME": "Usuario",
+      "PHONE": "Teléfono",
       "ROLE": "Rol"
     },
     "STATUS": {
@@ -361,6 +363,8 @@
       "FULL_NAME_PLACEHOLDER": "Ej. Juan Pérez",
       "EMAIL_LABEL": "Correo electrónico",
       "EMAIL_PLACEHOLDER": "Ej. juan@empresa.com",
+      "PHONE_LABEL": "Teléfono",
+      "PHONE_PLACEHOLDER": "Ej. 987654321",
       "ROLE_LABEL": "Rol",
       "ROLE_PLACEHOLDER": "Selecciona un rol",
       "PASSWORD_LABEL": "Contraseña",

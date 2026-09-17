@@ -48,6 +48,17 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ labels.phoneLabel }}</mat-label>
+        <input
+          matInput
+          formControlName="phoneNumber"
+          type="tel"
+          [placeholder]="labels.phonePlaceholder"
+          [attr.aria-label]="labels.phoneLabel"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ labels.roleLabel }}</mat-label>
         <mat-select formControlName="roleId" [placeholder]="labels.rolePlaceholder">
           @for (role of roles; track role.id) {

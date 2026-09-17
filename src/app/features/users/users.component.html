@@ -54,6 +54,10 @@
                 <span class="detail-value">{{ user.userName }}</span>
               </div>
               <div class="detail-row">
+                <span class="detail-label">{{ i18nService.translate('USERS.FIELDS.PHONE') }}:</span>
+                <span class="detail-value">{{ getPhoneNumber(user) }}</span>
+              </div>
+              <div class="detail-row">
                 <span class="detail-label">{{ i18nService.translate('USERS.FIELDS.ROLE') }}:</span>
                 <span class="detail-value">{{ getRoleName(user) }}</span>
               </div>

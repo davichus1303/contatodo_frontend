@@ -15,6 +15,7 @@ export interface User {
   readonly userName: string;
   readonly email: string;
   readonly name: string;
+  readonly phoneNumber?: string | null;
   readonly createdDate: string;
   readonly updatedDate: string;
   readonly active: boolean;
