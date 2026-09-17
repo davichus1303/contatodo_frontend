@@ -257,6 +257,38 @@
       "UPDATE_ERROR": "Error actualizando tipo de adquisición"
     }
   },
+  "COMPANY_CATALOG": {
+    "TITLE": "Compañías",
+    "SUBTITLE": "Gestiona las compañías registradas",
+    "NEW_COMPANY": "Nueva compañía",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por nombre, RFC, página, ubicación o contacto"
+    },
+    "EMPTY_STATE": "No se encontraron compañías",
+    "NOT_AVAILABLE": "No registrado",
+    "NO_CONTACT": "Sin contacto",
+    "NO_PHONE": "Sin teléfono",
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "FIELDS": {
+      "RFC": "RFC",
+      "WEBSITE": "Página web",
+      "UBICATION": "Ubicación",
+      "CONTACT": "Contacto",
+      "CONTACT_PHONE": "Teléfono"
+    },
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Activar/Desactivar"
+    },
+    "MESSAGES": {
+      "ERROR_LOADING": "Error cargando compañías"
+    }
+  },
   "ROLES": {
     "TITLE": "Roles",
     "SUBTITLE": "Gestiona los roles del sistema",
