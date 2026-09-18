@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { HTTP_PORT } from '../ports/http.port';
 import { ApiResponse } from '../ports/api-response.interface';
-import { Acquisition } from '../../domain/models/acquisition.model';
+import { Acquisition, createAcquisition } from '../../domain/models/acquisition.model';
+import { DomainError } from '../../domain/errors/domain-error';
+import { Result } from '../../domain/result';
+import { mapAcquisitions } from './acquisition.mapper';
 import { CreateAcquisitionRequest } from '../dto/acquisition-request.dto';
 import { ACQUISITIONS_URL } from '../../config/api-routes.constants';
 
@@ -23,7 +26,9 @@ export class AcquisitionsService {
    * @returns Observable with API response containing the created acquisition.
    */
   createAcquisition(request: CreateAcquisitionRequest): Observable<ApiResponse<Acquisition>> {
-    return this.http.post<ApiResponse<Acquisition>>(this.apiUrl, request);
+    return this.http.post<ApiResponse<unknown>>(this.apiUrl, request).pipe(
+      map((response) => this.withMappedData(response, createAcquisition(response.data)))
+    );
   }
 
   /**
@@ -36,11 +41,34 @@ export class AcquisitionsService {
    * @returns Observable with API response containing acquisitions.
    */
   getAcquisitions(startDate?: Date, endDate?: Date): Observable<ApiResponse<Acquisition[]>> {
-    if (startDate && endDate) {
-      return this.http.get<ApiResponse<Acquisition[]>>(
-        `${this.apiUrl}?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
-      );
+    const url =
+      startDate && endDate
+        ? `${this.apiUrl}?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+        : this.apiUrl;
+
+    return this.http.get<ApiResponse<unknown>>(url).pipe(
+      map((response) => this.withMappedData(response, mapAcquisitions(response.data)))
+    );
+  }
+
+  /**
+   * Replaces the raw transport `data` with its validated domain value.
+   *
+   * Fail-fast: a contract violation is rethrown through the observable error
+   * channel, so callers never receive unvalidated transport data.
+   *
+   * @param response Raw API response.
+   * @param mapped Result of mapping {@link ApiResponse.data}.
+   * @returns API response whose `data` is the domain value.
+   */
+  private withMappedData<T>(
+    response: ApiResponse<unknown>,
+    mapped: Result<T, readonly DomainError[]>
+  ): ApiResponse<T> {
+    if (!mapped.ok) {
+      throw mapped.error;
     }
-    return this.http.get<ApiResponse<Acquisition[]>>(this.apiUrl);
+
+    return { ...response, data: mapped.value };
   }
 }
