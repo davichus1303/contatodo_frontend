@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Observable, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -12,9 +13,9 @@ import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/sl
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { CompaniesService } from '@core/application/companies/companies.service';
-import { resolveContactPhoneUpdate, toCreateCompanyRequest } from '@core/application/companies/company-request.mapper';
+import { resolveContactPhoneUpdate, toCreateCompanyRequest, toUpdateCompanyRequest } from '@core/application/companies/company-request.mapper';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
-import { CreateCompaniesRequest, UpdateCompanyRequest } from '@core/application/dto/company-request.dto';
+import { UpdateCompanyRequest } from '@core/application/dto/company-request.dto';
 import { UsersService } from '@core/application/users/users.service';
 import { Company } from '@core/domain/models/company.model';
 import { User } from '@core/domain/models/user.model';
@@ -23,7 +24,7 @@ import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 import { displayOrFallback } from '@shared/utils/display.utils';
 import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
 import { filterBySearchTerm, normalizeSearchTerm } from '@shared/utils/search.utils';
-import { CompanyDialogComponent, CompanyDialogData } from './company-dialog/company-dialog.component';
+import { CompanyDialogComponent, CompanyDialogData, CompanyDialogMode } from './company-dialog/company-dialog.component';
 import { CompanyFormModel } from './company-dialog/company-form.model';
 
 /**
@@ -32,9 +33,9 @@ import { CompanyFormModel } from './company-dialog/company-form.model';
  * Lists the registered, non-deleted companies as cards and filters them by a
  * case-insensitive partial term matched over the company name, RFC, web site,
  * location and contact data. The status toggle activates or deactivates a
- * company through a confirmation dialog and the create action opens the
- * reusable company dialog; edit and delete actions are shown as disabled
- * placeholders until their flows are implemented.
+ * company through a confirmation dialog and the create/edit actions open the
+ * reusable company dialog; the delete action is shown as a disabled
+ * placeholder until its flow is implemented.
  */
 @Component({
   selector: 'app-company-catalog',
@@ -225,8 +226,22 @@ export class CompanyCatalogComponent {
    * so the contact list is never incomplete.
    */
   openCreateDialog(): void {
+    this.loadContactsAndOpenDialog('create');
+  }
+
+  /**
+   * Loads the non-deleted users and opens the reusable company dialog in edit
+   * mode, prefilled with the selected company.
+   *
+   * @param company Company selected for edition.
+   */
+  openEditDialog(company: Company): void {
+    this.loadContactsAndOpenDialog('edit', company);
+  }
+
+  private loadContactsAndOpenDialog(mode: CompanyDialogMode, company?: Company): void {
     this.usersService.getUsers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response: ApiResponse<User[]>) => this.openCreateCompanyDialog(response.data ?? []),
+      next: (response: ApiResponse<User[]>) => this.openCompanyDialog(mode, response.data ?? [], company),
       error: (error: unknown) => {
         this.notifications.error(
           extractApiErrorMessage(error, this.i18nService.translate('COMPANY_CATALOG.MESSAGES.ERROR_LOADING_USERS'))
@@ -235,15 +250,15 @@ export class CompanyCatalogComponent {
     });
   }
 
-  private openCreateCompanyDialog(users: User[]): void {
+  private openCompanyDialog(mode: CompanyDialogMode, users: User[], company?: Company): void {
     const dialogRef = this.dialog.open(CompanyDialogComponent, {
       width: '480px',
-      data: { mode: 'create', users } as CompanyDialogData
+      data: { mode, users, company } as CompanyDialogData
     });
 
     dialogRef.componentInstance.formSubmit
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((model: CompanyFormModel) => this.saveCompany(dialogRef, users, model));
+      .subscribe((model: CompanyFormModel) => this.saveCompany(dialogRef, users, model, company));
 
     dialogRef.afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -255,35 +270,42 @@ export class CompanyCatalogComponent {
   }
 
   /**
-   * Creates the company and, when a new contact phone was written, persists it
-   * on the selected user afterwards.
+   * Creates or updates the company and, when a new contact phone was written,
+   * persists it on the selected user afterwards.
    *
    * @param dialogRef Dialog that emitted the form.
    * @param users Contacts loaded for the dialog.
    * @param model Raw form state emitted by the dialog.
+   * @param company Company being edited, absent when creating.
    */
   private saveCompany(
     dialogRef: MatDialogRef<CompanyDialogComponent>,
     users: User[],
-    model: CompanyFormModel
+    model: CompanyFormModel,
+    company?: Company
   ): void {
-    const request: CreateCompaniesRequest = { companies: [toCreateCompanyRequest(model)] };
+    const save$: Observable<void> = company
+      ? this.companiesService.updateCompany(company.id, toUpdateCompanyRequest(model)).pipe(map(() => void 0))
+      : this.companiesService.createCompanies({ companies: [toCreateCompanyRequest(model)] }).pipe(map(() => void 0));
 
-    this.companiesService.createCompanies(request)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => this.updateContactPhone(dialogRef, users, model),
-        error: (error: unknown) => {
-          dialogRef.componentInstance.isSaving.set(false);
-          this.notifications.error(
-            extractApiErrorMessage(error, this.i18nService.translate('COMPANY_CATALOG.MESSAGES.ERROR_CREATING'))
-          );
-        }
-      });
+    save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.updateContactPhone(dialogRef, users, model, Boolean(company)),
+      error: (error: unknown) => {
+        dialogRef.componentInstance.isSaving.set(false);
+        this.notifications.error(
+          extractApiErrorMessage(
+            error,
+            this.i18nService.translate(
+              company ? 'COMPANY_CATALOG.MESSAGES.UPDATE_ERROR' : 'COMPANY_CATALOG.MESSAGES.ERROR_CREATING'
+            )
+          )
+        );
+      }
+    });
   }
 
   /**
-   * Persists a written contact phone after the company was created.
+   * Persists a written contact phone after the company was saved.
    *
    * The company is already persisted, so a failure on this last step is
    * notified without blocking the catalog refresh.
@@ -291,23 +313,25 @@ export class CompanyCatalogComponent {
    * @param dialogRef Dialog that emitted the form.
    * @param users Contacts loaded for the dialog.
    * @param model Raw form state emitted by the dialog.
+   * @param isUpdate Whether the company was updated instead of created.
    */
   private updateContactPhone(
     dialogRef: MatDialogRef<CompanyDialogComponent>,
     users: User[],
-    model: CompanyFormModel
+    model: CompanyFormModel,
+    isUpdate: boolean
   ): void {
     const phoneUpdate = resolveContactPhoneUpdate(model, users);
 
     if (!phoneUpdate) {
-      this.finishCompanySave(dialogRef);
+      this.finishCompanySave(dialogRef, isUpdate);
       return;
     }
 
     this.usersService.updateUser(phoneUpdate.id, { phoneNumber: phoneUpdate.phoneNumber })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.finishCompanySave(dialogRef),
+        next: () => this.finishCompanySave(dialogRef, isUpdate),
         error: (error: unknown) => {
           this.notifications.error(
             extractApiErrorMessage(error, this.i18nService.translate('COMPANY_CATALOG.MESSAGES.ERROR_UPDATING_CONTACT'))
@@ -317,20 +341,14 @@ export class CompanyCatalogComponent {
       });
   }
 
-  private finishCompanySave(dialogRef: MatDialogRef<CompanyDialogComponent>): void {
-    this.notifications.success(this.i18nService.translate('COMPANY_CATALOG.MESSAGES.CREATED'));
+  private finishCompanySave(dialogRef: MatDialogRef<CompanyDialogComponent>, isUpdate: boolean): void {
+    this.notifications.success(
+      this.i18nService.translate(
+        isUpdate ? 'COMPANY_CATALOG.MESSAGES.UPDATE_SUCCESS' : 'COMPANY_CATALOG.MESSAGES.CREATED'
+      )
+    );
     dialogRef.close(true);
   }
-
-  /**
-   * Placeholder for the edit-company flow.
-   *
-   * The dialog already supports edit mode, but the edit action is disabled
-   * until that flow is enabled.
-   *
-   * @param company Company selected for edition.
-   */
-  openEditDialog(company: Company): void {}
 
   /**
    * Placeholder for the delete-company flow.

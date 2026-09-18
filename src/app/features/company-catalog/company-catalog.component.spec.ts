@@ -207,7 +207,7 @@ describe('CompanyCatalogComponent', () => {
     expect(component.getStatusBadgeClass(false)).toBe('status-badge inactive');
   });
 
-  it('should render edit/delete as disabled placeholders and enable create and the status toggle', () => {
+  it('should enable create, edit and the status toggle and keep delete as a disabled placeholder', () => {
     const createButton = fixture.nativeElement.querySelector('.page-header .actions button') as HTMLButtonElement;
     expect(createButton.disabled).toBeFalse();
 
@@ -216,7 +216,8 @@ describe('CompanyCatalogComponent', () => {
     cards.forEach((card) => {
       const actionButtons = card.querySelectorAll('.card-actions > button') as NodeListOf<HTMLButtonElement>;
       expect(actionButtons.length).toBe(2);
-      actionButtons.forEach((button) => expect(button.disabled).toBeTrue());
+      expect(actionButtons[0].disabled).toBeFalse();
+      expect(actionButtons[1].disabled).toBeTrue();
 
       const switchButton = card.querySelector('.card-actions mat-slide-toggle button') as HTMLButtonElement;
       expect(switchButton.disabled).toBeFalse();
@@ -238,6 +239,32 @@ describe('CompanyCatalogComponent', () => {
     expect(dialogOpenSpy.calls.mostRecent().args[0]).toBe(CompanyDialogComponent);
     expect(dialogOpenSpy.calls.mostRecent().args[1].data.users).toBe(users);
     expect(getCompaniesSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should open the edit dialog prefilled with the selected company', () => {
+    component.openEditDialog(component.companies()[0]);
+
+    expect(getUsersSpy).toHaveBeenCalledTimes(1);
+    expect(dialogOpenSpy.calls.mostRecent().args[1].data.mode).toBe('edit');
+    expect(dialogOpenSpy.calls.mostRecent().args[1].data.company).toBe(component.companies()[0]);
+    expect(dialogOpenSpy.calls.mostRecent().args[1].data.users).toBe(users);
+  });
+
+  it('should update the company from the dialog output', () => {
+    const company = component.companies()[0];
+    component.openEditDialog(company);
+
+    formSubmit.emit({
+      name: '  Acme Updated  ',
+      webSite: '',
+      ubication: '',
+      contactUserOId: '',
+      phoneNumber: ''
+    });
+
+    expect(updateCompanySpy).toHaveBeenCalledWith('c1', { name: 'Acme Updated' });
+    expect(createCompaniesSpy).not.toHaveBeenCalled();
+    expect(successSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should create the company and update a changed contact phone from the dialog output', () => {
