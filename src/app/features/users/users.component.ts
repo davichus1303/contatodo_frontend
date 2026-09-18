@@ -18,6 +18,8 @@ import { UserRequest } from '@core/application/dto/user-request.dto';
 import { I18nService } from '@core/i18n/i18n.service';
 import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
+import { filterBySearchTerm, normalizeSearchTerm } from '@shared/utils/search.utils';
+import { displayOrFallback } from '@shared/utils/display.utils';
 import { UserFormDialogComponent } from '@shared/components/user-form-dialog/user-form-dialog.component';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
 
@@ -68,7 +70,7 @@ export class UsersComponent {
     this.searchControl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value: string | null) => {
-        this.searchTerm = value?.trim().toLowerCase() ?? '';
+        this.searchTerm = normalizeSearchTerm(value);
         this.changeDetectorRef.markForCheck();
       });
     this.loadUsers();
@@ -82,16 +84,12 @@ export class UsersComponent {
    * on the role criterion.
    */
   get filteredUsers(): User[] {
-    if (!this.searchTerm) {
-      return this.users;
-    }
-
-    return this.users.filter((user: User) =>
-      user.name.toLowerCase().includes(this.searchTerm) ||
-      user.email.toLowerCase().includes(this.searchTerm) ||
-      user.userName.toLowerCase().includes(this.searchTerm) ||
-      user.role?.name.toLowerCase().includes(this.searchTerm)
-    );
+    return filterBySearchTerm(this.users, this.searchTerm, (user: User) => [
+      user.name,
+      user.email,
+      user.userName,
+      user.role?.name
+    ]);
   }
 
   /**
@@ -101,7 +99,7 @@ export class UsersComponent {
    * @returns The role name, or the localized placeholder when it has no role.
    */
   getRoleName(user: User): string {
-    return user.role?.name ?? this.i18nService.translate('USERS.NO_ROLE');
+    return displayOrFallback(user.role?.name, this.i18nService.translate('USERS.NO_ROLE'));
   }
 
   /**
@@ -111,7 +109,7 @@ export class UsersComponent {
    * @returns The phone number, or the localized placeholder when it is empty.
    */
   getPhoneNumber(user: User): string {
-    return user.phoneNumber || this.i18nService.translate('USERS.NO_PHONE');
+    return displayOrFallback(user.phoneNumber, this.i18nService.translate('USERS.NO_PHONE'));
   }
 
   /**

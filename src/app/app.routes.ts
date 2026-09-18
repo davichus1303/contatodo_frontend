@@ -8,6 +8,7 @@ import { NewAcquisitionComponent } from './features/acquisitions/new-acquisition
 import { AcquisitionTypeCatalogComponent } from './features/acquisition-type-catalog/acquisition-type-catalog.component';
 import { RolesComponent } from './features/roles/roles.component';
 import { UsersComponent } from './features/users/users.component';
+import { CompanyCatalogComponent } from './features/company-catalog/company-catalog.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
 
@@ -55,6 +56,11 @@ export const routes: Routes = [
   {
     path: 'users',
     component: UsersComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'companies',
+    component: CompanyCatalogComponent,
     canActivate: [AuthGuard]
   },
   {
