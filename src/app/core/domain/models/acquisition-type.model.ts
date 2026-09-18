@@ -1,6 +1,6 @@
 import { DomainError, domainError } from '../errors/domain-error';
 import { err, ok, Result } from '../result';
-import { isBoolean, isNonEmptyString, isRecord } from '../validation/primitive.rules';
+import { isBoolean, isNonEmptyString, isRecord, optionalString } from '../validation/primitive.rules';
 
 /**
  * Acquisition type entity (catalog of purchase categories).
@@ -20,8 +20,9 @@ export interface AcquisitionType {
  * Builds a validated {@link AcquisitionType} from raw transport data.
  *
  * Load-bearing invariants are enforced: the payload must be an object and
- * `id`/`name` must be non-empty strings. Boolean flags are accepted as-is
- * because consumers already treat them with nullish fallbacks.
+ * `id`/`name` must be non-empty strings. Text fields are normalized
+ * (trimmed), the status flags are coerced to booleans and the optional
+ * `affectsInventory` collapses to `undefined` when absent.
  *
  * @param raw Raw payload, typically an API list item.
  * @returns Successful result with the acquisition type, or every violation found.
@@ -50,5 +51,16 @@ export function createAcquisitionType(raw: unknown): Result<AcquisitionType, rea
     return err(errors);
   }
 
-  return ok(raw as unknown as AcquisitionType);
+  const affectsInventory = raw['affectsInventory'];
+
+  return ok({
+    id: (raw['id'] as string).trim(),
+    name: (raw['name'] as string).trim(),
+    description: optionalString(raw['description']),
+    isActive: raw['isActive'] === true,
+    isDeleted: raw['isDeleted'] === true,
+    affectsInventory: typeof affectsInventory === 'boolean' ? affectsInventory : undefined,
+    createdDate: optionalString(raw['createdDate']),
+    updatedDate: optionalString(raw['updatedDate'])
+  });
 }
