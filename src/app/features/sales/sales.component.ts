@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SalesService } from '@core/application/sales/sales.service';
 import { ProductsService } from '@core/application/products/products.service';
+import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { Product } from '@core/domain/models/product.model';
 import { SaleDialogComponent } from './sale-dialog/sale-dialog.component';
 import { SALES_CONSTANTS } from '@shared/constants/sales.constants';
@@ -76,12 +77,12 @@ export class SalesComponent implements OnInit {
   public loadProducts(): void {
     this.isLoading.set(true);
     this.productsService.getAvailableProducts().subscribe({
-      next: (response: any) => {
-        this.products.set(response.data);
+      next: (response: ApiResponse<Product[]>) => {
+        this.products.set(response.data ?? []);
         this.filteredProducts.set([...this.products()]);
         this.isLoading.set(false);
       },
-      error: (error: any) => {
+      error: () => {
         this.notifications.error(SALES_CONSTANTS.MESSAGES.ERROR_LOADING_PRODUCTS);
         this.isLoading.set(false);
       }
