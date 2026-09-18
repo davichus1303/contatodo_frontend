@@ -40,6 +40,53 @@ describe('createCompany', () => {
     }
   });
 
+  it('should build a new object with trimmed required and optional strings', () => {
+    const result = createCompany({
+      id: '  company-1  ',
+      name: '  Acme  ',
+      rfc: '  ACM010101ABC  ',
+      webSite: '  https://acme.example.com  '
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.id).toBe('company-1');
+      expect(result.value.name).toBe('Acme');
+      expect(result.value.rfc).toBe('ACM010101ABC');
+      expect(result.value.webSite).toBe('https://acme.example.com');
+    }
+  });
+
+  it('should normalize blank and null optional fields to undefined', () => {
+    const result = createCompany(validCompany({ rfc: '   ', webSite: null, contactPhone: '' }));
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.rfc).toBeUndefined();
+      expect(result.value.webSite).toBeUndefined();
+      expect(result.value.contactPhone).toBeUndefined();
+    }
+  });
+
+  it('should default status flags to false and coerce true values', () => {
+    const absent = createCompany({ id: 'company-1', name: 'Acme' });
+    const active = createCompany(validCompany({ isActive: true, isDeleted: true }));
+
+    if (absent.ok) {
+      expect(absent.value.isActive).toBeFalse();
+      expect(absent.value.isDeleted).toBeFalse();
+    } else {
+      fail('expected a valid company');
+    }
+
+    if (active.ok) {
+      expect(active.value.isActive).toBeTrue();
+      expect(active.value.isDeleted).toBeTrue();
+    } else {
+      fail('expected a valid company');
+    }
+  });
+
   it('should reject non-object payloads', () => {
     expect(createCompany(null).ok).toBeFalse();
     expect(createCompany('company').ok).toBeFalse();

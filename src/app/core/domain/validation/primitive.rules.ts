@@ -1,7 +1,8 @@
 /**
- * Primitive, framework-free validation predicates shared by every entity
- * factory. Each predicate narrows the `unknown` input so factories can
- * safely build typed models afterwards.
+ * Primitive, framework-free validation predicates and normalizers shared by
+ * every entity factory. Each predicate narrows the `unknown` input so
+ * factories can safely build typed models afterwards; normalizers turn an
+ * already-accepted `unknown` into the domain representation of a field.
  */
 
 /**
@@ -42,4 +43,23 @@ export function isBoolean(value: unknown): value is boolean {
  */
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Normalizes an optional textual value to the domain standard.
+ *
+ * Absent, `null`, non-string and blank values collapse to `undefined`;
+ * otherwise the trimmed string is returned. Callers are expected to have
+ * validated the field first, so this function never throws.
+ *
+ * @param value Value under normalization.
+ * @returns Trimmed string, or `undefined` when there is no usable text.
+ */
+export function optionalString(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
