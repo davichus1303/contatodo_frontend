@@ -14,6 +14,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SalesService } from '@core/application/sales/sales.service';
 import { ExpensesService } from '@core/application/expenses/expenses.service';
 import { Sale } from '@core/domain/models/sale.model';
+import { ApiResponse } from '@core/application/ports/api-response.interface';
+import { TotalExpensesResponse } from '@core/application/expenses/expenses.service';
 import { I18nService } from '@core/i18n/i18n.service';
 import { formatCurrency as formatCurrencyUtil, formatDateISO } from '@shared/utils/format.utils';
 import { calculateProfit as calculateProfitUtil, getProfitColorClass as getProfitColorClassUtil } from '../sales.utils';
@@ -130,12 +132,12 @@ export class SalesHistoryComponent implements OnInit {
     const formattedEndDate = this.getFormatedDate(endDate, SALES_HISTORY_CONSTANTS.DATE.DEFAULT_END_TIME);
 
     this.salesService.getSalesByDateRange(formattedStartDate, formattedEndDate).subscribe({
-      next: (response: any) => {
+      next: (response: ApiResponse<Sale[]>) => {
         this.sales.set(response.data || []);
         this.filteredSales.set([...this.sales()]);
         this.loadTotalExpenses();
       },
-      error: (error: any) => {
+      error: () => {
         this.notifications.error(this.i18nService.translate('SALES_HISTORY.ERROR_LOADING_SALES'));
         this.isLoading.set(false);
       }
@@ -177,11 +179,11 @@ export class SalesHistoryComponent implements OnInit {
       startDate: startDateStr,
       endDate: endDateStr
     }).subscribe({
-      next: (response: any) => {
+      next: (response: ApiResponse<TotalExpensesResponse>) => {
         this.rebuildSummary(response.data?.total || 0);
         this.isLoading.set(false);
       },
-      error: (error: any) => {
+      error: () => {
         this.notifications.error(this.i18nService.translate('SALES_HISTORY.ERROR_LOADING_EXPENSES'));
         this.rebuildSummary(0);
         this.isLoading.set(false);
