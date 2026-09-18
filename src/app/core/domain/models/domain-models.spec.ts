@@ -183,4 +183,38 @@ describe('createUser', () => {
       expect(result.value.userName).toBe('david');
     }
   });
+
+  it('should normalize the optional phone number and status flag', () => {
+    const result = createUser({
+      id: 'u1',
+      userName: 'david',
+      email: 'david@example.com',
+      name: 'David',
+      phoneNumber: null,
+      active: undefined
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.phoneNumber).toBeUndefined();
+      expect(result.value.active).toBeFalse();
+      expect(result.value.role).toBeUndefined();
+    }
+  });
+
+  it('should validate an embedded role', () => {
+    const result = createUser({
+      id: 'u1',
+      userName: 'david',
+      email: 'david@example.com',
+      name: 'David',
+      active: true,
+      role: { id: '', name: '', permissions: [] }
+    });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.map((currentError) => currentError.field)).toContain('role.id');
+    }
+  });
 });
