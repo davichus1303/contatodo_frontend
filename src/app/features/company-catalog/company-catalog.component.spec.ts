@@ -21,6 +21,7 @@ describe('CompanyCatalogComponent', () => {
   let getCompaniesSpy: jasmine.Spy;
   let updateCompanySpy: jasmine.Spy;
   let createCompaniesSpy: jasmine.Spy;
+  let deleteCompanySpy: jasmine.Spy;
   let getUsersSpy: jasmine.Spy;
   let updateUserSpy: jasmine.Spy;
   let successSpy: jasmine.Spy;
@@ -98,6 +99,11 @@ describe('CompanyCatalogComponent', () => {
       message: 'OK',
       data: [sampleCompanies[0]]
     } as ApiResponse<Company[]>));
+    deleteCompanySpy = jasmine.createSpy('deleteCompany').and.returnValue(of({
+      status: 200,
+      message: 'OK',
+      data: null
+    } as ApiResponse<unknown>));
     getUsersSpy = jasmine.createSpy('getUsers').and.returnValue(of({
       status: 200,
       message: 'OK',
@@ -127,7 +133,8 @@ describe('CompanyCatalogComponent', () => {
           useValue: {
             getCompanies: getCompaniesSpy,
             updateCompany: updateCompanySpy,
-            createCompanies: createCompaniesSpy
+            createCompanies: createCompaniesSpy,
+            deleteCompany: deleteCompanySpy
           }
         },
         { provide: UsersService, useValue: { getUsers: getUsersSpy, updateUser: updateUserSpy } },
@@ -207,7 +214,7 @@ describe('CompanyCatalogComponent', () => {
     expect(component.getStatusBadgeClass(false)).toBe('status-badge inactive');
   });
 
-  it('should enable create, edit and the status toggle and keep delete as a disabled placeholder', () => {
+  it('should enable create, edit, delete and the status toggle', () => {
     const createButton = fixture.nativeElement.querySelector('.page-header .actions button') as HTMLButtonElement;
     expect(createButton.disabled).toBeFalse();
 
@@ -217,7 +224,7 @@ describe('CompanyCatalogComponent', () => {
       const actionButtons = card.querySelectorAll('.card-actions > button') as NodeListOf<HTMLButtonElement>;
       expect(actionButtons.length).toBe(2);
       expect(actionButtons[0].disabled).toBeFalse();
-      expect(actionButtons[1].disabled).toBeTrue();
+      expect(actionButtons[1].disabled).toBeFalse();
 
       const switchButton = card.querySelector('.card-actions mat-slide-toggle button') as HTMLButtonElement;
       expect(switchButton.disabled).toBeFalse();
@@ -328,6 +335,41 @@ describe('CompanyCatalogComponent', () => {
 
     expect(errorSpy).toHaveBeenCalled();
     expect(dialogOpenSpy).not.toHaveBeenCalled();
+  });
+
+  it('should open the delete warning and not delete when cancelled', () => {
+    dialogOpenSpy.and.returnValue({ afterClosed: () => of(false) });
+
+    component.onDelete(component.companies()[0]);
+
+    const data = dialogOpenSpy.calls.mostRecent().args[1].data;
+    expect(data.titleKey).toBe('COMPANY_CATALOG.MESSAGES.CONFIRM_DELETE_TITLE');
+    expect(data.messageKey).toBe('COMPANY_CATALOG.MESSAGES.CONFIRM_DELETE_MESSAGE');
+    expect(data.cancelKey).toBe('COMPANY_CATALOG.MESSAGES.CANCEL');
+    expect(data.confirmKey).toBe('COMPANY_CATALOG.MESSAGES.DELETE');
+    expect(deleteCompanySpy).not.toHaveBeenCalled();
+  });
+
+  it('should delete the company and reload after the confirmation', () => {
+    dialogOpenSpy.and.returnValue({ afterClosed: () => of(true) });
+    getCompaniesSpy.calls.reset();
+
+    component.onDelete(component.companies()[0]);
+
+    expect(deleteCompanySpy).toHaveBeenCalledWith('c1');
+    expect(successSpy).toHaveBeenCalledTimes(1);
+    expect(getCompaniesSpy).toHaveBeenCalledTimes(1);
+    expect(component.isUpdating('c1')).toBeFalse();
+  });
+
+  it('should notify an error and clear the pending state when the delete fails', () => {
+    dialogOpenSpy.and.returnValue({ afterClosed: () => of(true) });
+    deleteCompanySpy.and.returnValue(throwError(() => ({ status: 500 })));
+
+    component.onDelete(component.companies()[0]);
+
+    expect(errorSpy).toHaveBeenCalled();
+    expect(component.isUpdating('c1')).toBeFalse();
   });
 
   it('should open a confirmation dialog and update the status after acceptance', () => {

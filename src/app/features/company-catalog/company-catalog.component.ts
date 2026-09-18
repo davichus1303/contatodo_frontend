@@ -33,9 +33,9 @@ import { CompanyFormModel } from './company-dialog/company-form.model';
  * Lists the registered, non-deleted companies as cards and filters them by a
  * case-insensitive partial term matched over the company name, RFC, web site,
  * location and contact data. The status toggle activates or deactivates a
- * company through a confirmation dialog and the create/edit actions open the
- * reusable company dialog; the delete action is shown as a disabled
- * placeholder until its flow is implemented.
+ * company through a confirmation dialog, the create/edit actions open the
+ * reusable company dialog and the delete action removes the company after a
+ * confirmation warning.
  */
 @Component({
   selector: 'app-company-catalog',
@@ -351,9 +351,59 @@ export class CompanyCatalogComponent {
   }
 
   /**
-   * Placeholder for the delete-company flow.
+   * Opens the delete confirmation dialog for a company.
+   *
+   * The warning states the company will be permanently removed. Only a
+   * confirmed dialog sends the deletion; cancelling just closes the dialog and
+   * leaves the catalog untouched.
    *
    * @param company Company selected for deletion.
    */
-  onDelete(company: Company): void {}
+  onDelete(company: Company): void {
+    const dialogRef = openConfirmationDialog(
+      this.dialog,
+      {
+        titleKey: 'COMPANY_CATALOG.MESSAGES.CONFIRM_DELETE_TITLE',
+        messageKey: 'COMPANY_CATALOG.MESSAGES.CONFIRM_DELETE_MESSAGE',
+        cancelKey: 'COMPANY_CATALOG.MESSAGES.CANCEL',
+        confirmKey: 'COMPANY_CATALOG.MESSAGES.DELETE'
+      },
+      '420px'
+    );
+
+    dialogRef.afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((confirmed?: boolean) => {
+        if (confirmed) {
+          this.deleteCompany(company);
+        }
+      });
+  }
+
+  /**
+   * Sends the deletion of a company through the delete endpoint.
+   *
+   * @param company Company to delete.
+   */
+  private deleteCompany(company: Company): void {
+    this.updatingIds.update((ids) => addPendingId(ids, company.id));
+
+    this.companiesService.deleteCompany(company.id).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (response: ApiResponse<unknown>) => {
+        this.notifications.success(
+          response.message || this.i18nService.translate('COMPANY_CATALOG.MESSAGES.DELETE_SUCCESS')
+        );
+        this.updatingIds.update((ids) => removePendingId(ids, company.id));
+        this.loadCompanies();
+      },
+      error: (error: unknown) => {
+        this.notifications.error(
+          extractApiErrorMessage(error, this.i18nService.translate('COMPANY_CATALOG.MESSAGES.DELETE_ERROR'))
+        );
+        this.updatingIds.update((ids) => removePendingId(ids, company.id));
+      }
+    });
+  }
 }

@@ -315,6 +315,11 @@
       "ERROR_CREATING": "Error creando la compañía",
       "UPDATE_SUCCESS": "Compañía actualizada exitosamente",
       "UPDATE_ERROR": "Error actualizando la compañía",
+      "CONFIRM_DELETE_TITLE": "Eliminar compañía",
+      "CONFIRM_DELETE_MESSAGE": "La compañía va a ser eliminada del sistema, esta acción no puede restaurarse",
+      "DELETE": "Eliminar",
+      "DELETE_SUCCESS": "Compañía eliminada exitosamente",
+      "DELETE_ERROR": "Error eliminando la compañía",
       "ERROR_UPDATING_CONTACT": "La compañía se guardó, pero no se pudo actualizar el número del contacto"
     }
   },

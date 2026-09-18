@@ -46,4 +46,17 @@ export class CompaniesService {
   updateCompany(id: string, request: UpdateCompanyRequest): Observable<ApiResponse<Company>> {
     return this.http.put<ApiResponse<Company>>(`${this.apiUrl}/${id}`, request);
   }
+
+  /**
+   * Deletes an existing company.
+   *
+   * Only the company identifier travels in the path; the endpoint needs no
+   * request body.
+   *
+   * @param id Company identifier.
+   * @returns Observable with the API response of the deletion.
+   */
+  deleteCompany(id: string): Observable<ApiResponse<unknown>> {
+    return this.http.delete<ApiResponse<unknown>>(`${this.apiUrl}/${id}`);
+  }
 }
