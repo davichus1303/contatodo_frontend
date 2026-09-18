@@ -75,4 +75,49 @@ describe('createRole', () => {
       expect(fields).toContain('permissions[1].permissions');
     }
   });
+
+  it('should build a new object with trimmed strings', () => {
+    const result = createRole(validRole({
+      id: '  role-1  ',
+      name: '  Administrador  ',
+      createdBy: '  user-1  ',
+      permissions: [
+        { moduleOid: '  module-1  ', permissions: { create: true, update: true, delete: false, view: true } }
+      ]
+    }));
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.id).toBe('role-1');
+      expect(result.value.name).toBe('Administrador');
+      expect(result.value.createdBy).toBe('user-1');
+      expect(result.value.permissions[0].moduleOid).toBe('module-1');
+    }
+  });
+
+  it('should default absent status flags to false', () => {
+    const result = createRole({
+      id: 'role-1',
+      name: 'Administrador',
+      permissions: [],
+      createdDate: '2026-01-01',
+      updatedDate: '2026-01-02',
+      createdBy: 'user-1'
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.isActive).toBeFalse();
+      expect(result.value.isDeleted).toBeFalse();
+    }
+  });
+
+  it('should reject non-boolean status flags when present', () => {
+    const result = createRole(validRole({ isActive: 'yes' }));
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.map((e) => e.field)).toContain('isActive');
+    }
+  });
 });
