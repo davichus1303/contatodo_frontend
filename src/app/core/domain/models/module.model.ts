@@ -17,7 +17,8 @@ export interface Module {
  *
  * Load-bearing invariants are enforced: the payload must be an object and
  * `id`/`name`/`link` must be non-empty strings (a module without a link
- * cannot be navigated).
+ * cannot be navigated). Text fields are normalized (trimmed) and the optional
+ * `category` collapses to `undefined` when absent or blank.
  *
  * @param raw Raw payload, typically an API list item.
  * @returns Successful result with the module, or every violation found.
@@ -38,10 +39,21 @@ export function createModule(raw: unknown): Result<Module, readonly DomainError[
   if (!isNonEmptyString(raw['link'])) {
     errors.push(domainError('link', 'Module link must be a non-empty string.'));
   }
+  const category = raw['category'];
+  if (category !== undefined && category !== null && typeof category !== 'string') {
+    errors.push(domainError('category', 'Module category must be a string when present.'));
+  }
 
   if (errors.length > 0) {
     return err(errors);
   }
 
-  return ok(raw as unknown as Module);
+  const trimmedCategory = typeof category === 'string' ? category.trim() : '';
+
+  return ok({
+    id: (raw['id'] as string).trim(),
+    name: (raw['name'] as string).trim(),
+    link: (raw['link'] as string).trim(),
+    category: trimmedCategory.length > 0 ? trimmedCategory : undefined
+  });
 }
