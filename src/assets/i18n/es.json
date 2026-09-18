@@ -285,8 +285,37 @@
       "DELETE": "Eliminar",
       "TOGGLE_STATUS": "Activar/Desactivar"
     },
+    "MODAL": {
+      "CREATE_TITLE": "Nueva compañía",
+      "EDIT_TITLE": "Editar compañía",
+      "NAME": "Nombre de la compañía",
+      "WEBSITE": "Página web",
+      "UBICATION": "Ubicación",
+      "CONTACT": "Contacto",
+      "CONTACT_NONE": "Sin contacto",
+      "PHONE": "Número",
+      "PHONE_LOCKED_HINT": "El contacto ya tiene un número registrado",
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar"
+    },
+    "VALIDATION": {
+      "NAME_REQUIRED": "El nombre es requerido"
+    },
     "MESSAGES": {
-      "ERROR_LOADING": "Error cargando compañías"
+      "ERROR_LOADING": "Error cargando compañías",
+      "ERROR_LOADING_USERS": "Error cargando los usuarios",
+      "CONFIRM_ACTIVATE_TITLE": "Activar compañía",
+      "CONFIRM_DEACTIVATE_TITLE": "Desactivar compañía",
+      "CONFIRM_ACTIVATE_MESSAGE": "La compañía {{companyName}} será activada y podrá ser usada en el sistema",
+      "CONFIRM_DEACTIVATE_MESSAGE": "La compañía {{companyName}} será desactivada y no podrá usarse en el sistema",
+      "CANCEL": "Cancelar",
+      "ACTIVATE": "Activar",
+      "DEACTIVATE": "Desactivar",
+      "CREATED": "Compañía creada exitosamente",
+      "ERROR_CREATING": "Error creando la compañía",
+      "UPDATE_SUCCESS": "Compañía actualizada exitosamente",
+      "UPDATE_ERROR": "Error actualizando la compañía",
+      "ERROR_UPDATING_CONTACT": "La compañía se guardó, pero no se pudo actualizar el número del contacto"
     }
   },
   "ROLES": {

@@ -54,7 +54,7 @@ src/app/
 │   │                           #   acquisition-form = presentational child;
 │   │                           #   mapper in core/application
 │   ├── acquisition-type-catalog/  # + dialog/, delete-dialog/
-│   ├── company-catalog/           # companies list + search
+│   ├── company-catalog/           # companies list + search; company-dialog/ = reusable create/edit form
 │   └── roles/
 │
 ├── layout/

@@ -5,7 +5,7 @@
       <p>{{ i18nService.translate('COMPANY_CATALOG.SUBTITLE') }}</p>
     </div>
     <div class="actions">
-      <button mat-raised-button color="primary" disabled (click)="openCreateDialog()">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
         <mat-icon>add</mat-icon>
         <span>{{ i18nService.translate('COMPANY_CATALOG.NEW_COMPANY') }}</span>
       </button>
@@ -87,7 +87,7 @@
               </button>
               <mat-slide-toggle
                 [checked]="company.isActive"
-                [disabled]="true"
+                [disabled]="isUpdating(company.id)"
                 (change)="onToggleChange(company, $event)"
                 [title]="i18nService.translate('COMPANY_CATALOG.ACTIONS.TOGGLE_STATUS')"
               ></mat-slide-toggle>
