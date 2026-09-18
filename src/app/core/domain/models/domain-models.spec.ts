@@ -49,6 +49,30 @@ describe('createSale', () => {
       }
     }
   });
+
+  it('should require the identity and date fields', () => {
+    const result = createSale({ id: 's1', saleNumber: 1 });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      const fields = result.error.map((currentError) => currentError.field);
+      expect(fields).toContain('productOid');
+      expect(fields).toContain('userOid');
+      expect(fields).toContain('saleDate');
+      expect(fields).toContain('createdDate');
+    }
+  });
+
+  it('should normalize optional productName and default blank notes to empty string', () => {
+    const result = createSale({ ...validSale, id: ' s1 ', productName: '  Arroz  ', notes: null });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.id).toBe('s1');
+      expect(result.value.productName).toBe('Arroz');
+      expect(result.value.notes).toBe('');
+    }
+  });
 });
 
 describe('createAcquisition', () => {

@@ -108,7 +108,7 @@ export class SaleDialogComponent {
         this.notifications.success(SALES_CONSTANTS.MESSAGES.SALE_CREATED_SUCCESSFULLY);
         this.dialogRef.close(true);
       },
-      error: (error: any) => {
+      error: (error: unknown) => {
         this.isLoading.set(false);
         this.notifications.error(extractApiErrorMessage(error, SALES_CONSTANTS.MESSAGES.ERROR_CREATING_SALE));
       }
