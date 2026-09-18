@@ -1,5 +1,5 @@
 import { isValidEmail } from './email.rule';
-import { isBoolean, isFiniteNumber, isNonEmptyString, isRecord } from './primitive.rules';
+import { isBoolean, isFiniteNumber, isNonEmptyString, isRecord, optionalString } from './primitive.rules';
 
 describe('primitive rules', () => {
   describe('isNonEmptyString', () => {
@@ -52,6 +52,25 @@ describe('primitive rules', () => {
       expect(isRecord([1, 2])).toBeFalse();
       expect(isRecord('obj')).toBeFalse();
       expect(isRecord(undefined)).toBeFalse();
+    });
+  });
+
+  describe('optionalString', () => {
+    it('should trim strings with content', () => {
+      expect(optionalString('  Acme  ')).toBe('Acme');
+    });
+
+    it('should collapse absent, null and blank values to undefined', () => {
+      expect(optionalString(undefined)).toBeUndefined();
+      expect(optionalString(null)).toBeUndefined();
+      expect(optionalString('')).toBeUndefined();
+      expect(optionalString('   ')).toBeUndefined();
+    });
+
+    it('should collapse non-string values to undefined', () => {
+      expect(optionalString(42)).toBeUndefined();
+      expect(optionalString(true)).toBeUndefined();
+      expect(optionalString({})).toBeUndefined();
     });
   });
 });
