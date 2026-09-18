@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { HTTP_PORT } from '../ports/http.port';
 import { ApiResponse } from '../ports/api-response.interface';
-import { Product } from '../../domain/models/product.model';
+import { createProduct, Product } from '../../domain/models/product.model';
+import { DomainError } from '../../domain/errors/domain-error';
+import { Result } from '../../domain/result';
+import { mapProducts } from './product.mapper';
 import { PRODUCTS_URL } from '../../config/api-routes.constants';
 import { AuthService } from '../../auth/auth.service';
 import { ProductCreatePayload, ProductUpdatePayload } from '../dto/product-request.dto';
@@ -26,7 +29,9 @@ export class ProductsService {
    * @returns Observable with API response containing all products.
    */
   getAllProducts(): Observable<ApiResponse<Product[]>> {
-    return this.http.get<ApiResponse<Product[]>>(this.apiUrl);
+    return this.http.get<ApiResponse<unknown>>(this.apiUrl).pipe(
+      map((response) => this.withMappedData(response, mapProducts(response.data)))
+    );
   }
 
   /**
@@ -40,9 +45,11 @@ export class ProductsService {
   getAvailableProducts(): Observable<ApiResponse<Product[]>> {
     const userOid: string = this.authService.getUserInfo()?.id ?? '';
 
-    return this.http.get<ApiResponse<Product[]>>(`${this.apiUrl}/available`, {
-      headers: { [USER_OID_HEADER]: userOid }
-    });
+    return this.http
+      .get<ApiResponse<unknown>>(`${this.apiUrl}/available`, {
+        headers: { [USER_OID_HEADER]: userOid }
+      })
+      .pipe(map((response) => this.withMappedData(response, mapProducts(response.data))));
   }
 
   /**
@@ -52,7 +59,9 @@ export class ProductsService {
    * @returns Observable with API response containing the product.
    */
   getProductById(id: string): Observable<ApiResponse<Product>> {
-    return this.http.get<ApiResponse<Product>>(`${this.apiUrl}/${id}`);
+    return this.http.get<ApiResponse<unknown>>(`${this.apiUrl}/${id}`).pipe(
+      map((response) => this.withMappedData(response, createProduct(response.data)))
+    );
   }
 
   /**
@@ -62,7 +71,9 @@ export class ProductsService {
    * @returns Observable with API response containing the created product.
    */
   createProduct(product: ProductCreatePayload): Observable<ApiResponse<Product>> {
-    return this.http.post<ApiResponse<Product>>(this.apiUrl, product);
+    return this.http.post<ApiResponse<unknown>>(this.apiUrl, product).pipe(
+      map((response) => this.withMappedData(response, createProduct(response.data)))
+    );
   }
 
   /**
@@ -73,6 +84,29 @@ export class ProductsService {
    * @returns Observable with API response containing the updated product.
    */
   updateProduct(id: string, product: ProductUpdatePayload): Observable<ApiResponse<Product>> {
-    return this.http.put<ApiResponse<Product>>(`${this.apiUrl}/${id}`, product);
+    return this.http.put<ApiResponse<unknown>>(`${this.apiUrl}/${id}`, product).pipe(
+      map((response) => this.withMappedData(response, createProduct(response.data)))
+    );
+  }
+
+  /**
+   * Replaces the raw transport `data` with its validated domain value.
+   *
+   * Fail-fast: a contract violation is rethrown through the observable error
+   * channel, so callers never receive unvalidated transport data.
+   *
+   * @param response Raw API response.
+   * @param mapped Result of mapping {@link ApiResponse.data}.
+   * @returns API response whose `data` is the domain value.
+   */
+  private withMappedData<T>(
+    response: ApiResponse<unknown>,
+    mapped: Result<T, readonly DomainError[]>
+  ): ApiResponse<T> {
+    if (!mapped.ok) {
+      throw mapped.error;
+    }
+
+    return { ...response, data: mapped.value };
   }
 }
