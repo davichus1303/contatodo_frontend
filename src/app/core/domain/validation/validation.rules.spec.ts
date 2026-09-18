@@ -1,5 +1,5 @@
 import { isValidEmail } from './email.rule';
-import { isBoolean, isFiniteNumber, isNonEmptyString, isRecord, optionalString } from './primitive.rules';
+import { isBoolean, isFiniteNumber, isNonEmptyString, isRecord, optionalNumber, optionalString } from './primitive.rules';
 
 describe('primitive rules', () => {
   describe('isNonEmptyString', () => {
@@ -71,6 +71,22 @@ describe('primitive rules', () => {
       expect(optionalString(42)).toBeUndefined();
       expect(optionalString(true)).toBeUndefined();
       expect(optionalString({})).toBeUndefined();
+    });
+  });
+
+  describe('optionalNumber', () => {
+    it('should keep finite numbers including zero', () => {
+      expect(optionalNumber(0)).toBe(0);
+      expect(optionalNumber(-3.5)).toBe(-3.5);
+    });
+
+    it('should collapse absent, null and non-finite values to undefined', () => {
+      expect(optionalNumber(undefined)).toBeUndefined();
+      expect(optionalNumber(null)).toBeUndefined();
+      expect(optionalNumber(Number.NaN)).toBeUndefined();
+      expect(optionalNumber(Number.POSITIVE_INFINITY)).toBeUndefined();
+      expect(optionalNumber('12')).toBeUndefined();
+      expect(optionalNumber({})).toBeUndefined();
     });
   });
 });
