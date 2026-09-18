@@ -107,6 +107,45 @@ describe('createAcquisition', () => {
       expect(result.error.map((currentError) => currentError.field)).toContain('quantity');
     }
   });
+
+  it('should require monetary fields and identity text', () => {
+    const result = createAcquisition({ id: 'a1', productName: 'Arroz', acquisitionType: 'x' });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      const fields = result.error.map((currentError) => currentError.field);
+      expect(fields).toContain('acquisitionDate');
+      expect(fields).toContain('realCost');
+      expect(fields).toContain('unitRealCost');
+    }
+  });
+
+  it('should normalize nullable optional fields to undefined', () => {
+    const result = createAcquisition({
+      id: ' a1 ',
+      productName: ' Arroz ',
+      acquisitionType: ' Mercancia ',
+      quantity: null,
+      realCost: 50,
+      unitRealCost: 0,
+      unitPublicCost: null,
+      supplierName: '   ',
+      invoiceNumber: null,
+      acquisitionDate: '2026-08-21T10:00:00',
+      observations: null
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.id).toBe('a1');
+      expect(result.value.acquisitionType).toBe('Mercancia');
+      expect(result.value.quantity).toBeUndefined();
+      expect(result.value.unitPublicCost).toBeUndefined();
+      expect(result.value.supplierName).toBeUndefined();
+      expect(result.value.invoiceNumber).toBeUndefined();
+      expect(result.value.observations).toBeUndefined();
+    }
+  });
 });
 
 describe('createAcquisitionType', () => {

@@ -63,3 +63,17 @@ export function optionalString(value: unknown): string | undefined {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
 }
+
+/**
+ * Normalizes an optional numeric value to the domain standard.
+ *
+ * Absent, `null` and non-finite values collapse to `undefined`; otherwise the
+ * finite number is returned. Callers are expected to have validated the field
+ * first, so this function never throws.
+ *
+ * @param value Value under normalization.
+ * @returns Finite number, or `undefined` when there is no usable numeric value.
+ */
+export function optionalNumber(value: unknown): number | undefined {
+  return isFiniteNumber(value) ? value : undefined;
+}
