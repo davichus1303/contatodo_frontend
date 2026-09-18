@@ -9,19 +9,22 @@ const validProduct = {
   realCost: 8,
   unitRealCost: 8,
   unitPublicCost: 15,
-  urlPhoto: '',
   isActive: true,
   createdDate: '2026-01-01',
   updatedDate: '2026-01-01'
 };
 
 describe('createProduct', () => {
-  it('should accept a fully populated payload and preserve every field', () => {
-    const result = createProduct(validProduct);
+  it('should accept a fully populated payload and build the product', () => {
+    const result = createProduct({ ...validProduct, urlPhoto: 'https://cdn.example.com/p1.png' });
 
     expect(result.ok).toBeTrue();
     if (result.ok) {
-      expect(result.value).toEqual(validProduct);
+      expect(result.value.id).toBe('p1');
+      expect(result.value.name).toBe('Ceviche');
+      expect(result.value.stock).toBe(10);
+      expect(result.value.urlPhoto).toBe('https://cdn.example.com/p1.png');
+      expect(result.value.isActive).toBeTrue();
     }
   });
 
@@ -58,7 +61,7 @@ describe('createProduct', () => {
 
   const numericFields = ['stock', 'realCost', 'unitRealCost', 'unitPublicCost'] as const;
 
-  it('should reject non-numeric monetary and stock fields when present', () => {
+  it('should reject non-numeric monetary and stock fields', () => {
     for (const field of numericFields) {
       const result = createProduct({ ...validProduct, [field]: '12abc' });
 
@@ -69,15 +72,41 @@ describe('createProduct', () => {
     }
   });
 
-  it('should accept payloads whose optional numeric fields are absent (API fidelity)', () => {
-    const sparse = { id: 'p2', name: 'Solo' };
+  it('should reject payloads missing required numeric fields', () => {
+    const { stock, ...withoutStock } = validProduct;
 
-    const result = createProduct(sparse);
+    const result = createProduct(withoutStock);
+
+    expect(stock).toBe(10);
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.map((currentError) => currentError.field)).toContain('stock');
+    }
+  });
+
+  it('should normalize optional text and status fields', () => {
+    const result = createProduct({
+      ...validProduct,
+      id: '  p1  ',
+      name: '  Ceviche  ',
+      code: '  ',
+      description: null,
+      urlPhoto: '   ',
+      isActive: undefined,
+      createdDate: undefined,
+      updatedDate: undefined
+    });
 
     expect(result.ok).toBeTrue();
     if (result.ok) {
-      expect(result.value.stock).toBeUndefined();
-      expect(result.value.name).toBe('Solo');
+      expect(result.value.id).toBe('p1');
+      expect(result.value.name).toBe('Ceviche');
+      expect(result.value.code).toBe('');
+      expect(result.value.description).toBe('');
+      expect(result.value.urlPhoto).toBeUndefined();
+      expect(result.value.isActive).toBeFalse();
+      expect(result.value.createdDate).toBe('');
+      expect(result.value.updatedDate).toBe('');
     }
   });
 
