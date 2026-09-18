@@ -149,6 +149,28 @@ describe('createAcquisitionType', () => {
     expect(result.ok).toBeTrue();
     if (result.ok) {
       expect(result.value.affectsInventory).toBeUndefined();
+      expect(result.value.isActive).toBeFalse();
+      expect(result.value.isDeleted).toBeFalse();
+    }
+  });
+
+  it('should normalize text fields and preserve affectsInventory', () => {
+    const result = createAcquisitionType({
+      id: '  t1  ',
+      name: '  Mercancia  ',
+      description: '   ',
+      isActive: true,
+      isDeleted: false,
+      affectsInventory: false
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.id).toBe('t1');
+      expect(result.value.name).toBe('Mercancia');
+      expect(result.value.description).toBeUndefined();
+      expect(result.value.isActive).toBeTrue();
+      expect(result.value.affectsInventory).toBeFalse();
     }
   });
 });
