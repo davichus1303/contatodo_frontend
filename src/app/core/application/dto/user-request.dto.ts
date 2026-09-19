@@ -15,4 +15,5 @@ export interface UserRequest {
   roleId: string;
   password: string;
   isActive?: boolean;
+  companyOid?: string;
 }

@@ -445,7 +445,9 @@
       "ROLE_REQUIRED": "Selecciona un rol",
       "PASSWORD_REQUIRED": "La contraseña es obligatoria",
       "CANCEL": "Cancelar",
-      "SAVE": "Guardar"
+      "SAVE": "Guardar",
+      "COMPANY_LABEL": "Compañía",
+      "COMPANY_PLACEHOLDER": "Selecciona una compañía"
     },
     "MESSAGES": {
       "ERROR_LOADING": "Error cargando usuarios",
