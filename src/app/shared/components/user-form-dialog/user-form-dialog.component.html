@@ -71,6 +71,15 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ labels.companyLabel }}</mat-label>
+        <mat-select formControlName="companyOid" [placeholder]="labels.companyPlaceholder">
+          @for (company of companies; track company.id) {
+            <mat-option [value]="company.id">{{ company.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ labels.passwordLabel }}</mat-label>
         <input
           matInput

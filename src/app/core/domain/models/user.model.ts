@@ -16,6 +16,7 @@ export interface User {
   readonly email: string;
   readonly name: string;
   readonly phoneNumber?: string | null;
+  readonly companyOid?: string | null;
   readonly createdDate: string;
   readonly updatedDate: string;
   readonly active: boolean;
@@ -89,6 +90,7 @@ export function createUser(raw: unknown): Result<User, readonly DomainError[]> {
     email: (raw['email'] as string).trim(),
     name: (raw['name'] as string).trim(),
     phoneNumber: optionalString(raw['phoneNumber']),
+    companyOid: optionalString(raw['companyOid']),
     createdDate: optionalString(raw['createdDate']) ?? '',
     updatedDate: optionalString(raw['updatedDate']) ?? '',
     active: raw['active'] === true,
