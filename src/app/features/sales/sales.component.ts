@@ -122,6 +122,7 @@ export class SalesComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(result => {
         if (result) {
+          this.searchControl.reset();
           this.loadProducts();
           this.notifications.success(SALES_CONSTANTS.MESSAGES.SALE_CREATED_SUCCESSFULLY);
         }
