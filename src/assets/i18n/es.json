@@ -79,6 +79,11 @@
       "FORBIDDEN": "No tienes permisos para realizar esta acción."
     }
   },
+  "ACCESS_DENIED": {
+    "TITLE": "Acceso denegado",
+    "MESSAGE": "No tienes permisos para acceder a esta página.",
+    "BACK": "Volver al inicio"
+  },
   "MODULES_NAVIGATION": {
     "MODULES": "Módulos",
     "LOADING": "Cargando...",

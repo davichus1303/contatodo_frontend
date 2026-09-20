@@ -1,0 +1,14 @@
+<div class="access-denied-container">
+  <mat-card class="access-denied-card">
+    <mat-card-content>
+      <div class="icon-container">
+        <mat-icon>lock</mat-icon>
+      </div>
+      <h1 class="title">{{ i18nService.translate('ACCESS_DENIED.TITLE') }}</h1>
+      <p class="message">{{ i18nService.translate('ACCESS_DENIED.MESSAGE') }}</p>
+      <button mat-raised-button color="primary" (click)="goHome()">
+        {{ i18nService.translate('ACCESS_DENIED.BACK') }}
+      </button>
+    </mat-card-content>
+  </mat-card>
+</div>
