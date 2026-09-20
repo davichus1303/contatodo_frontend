@@ -12,6 +12,7 @@ import { CompanyCatalogComponent } from './features/company-catalog/company-cata
 import { AccessDeniedComponent } from './features/access-denied/access-denied.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
+import { PermissionGuard } from './core/guards/permission.guard';
 
 export const routes: Routes = [
   {
@@ -22,47 +23,56 @@ export const routes: Routes = [
   {
     path: 'sales',
     component: SalesComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/sales' } }
   },
   {
     path: 'sales-history',
     component: SalesHistoryComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/sales-history' } }
   },
   {
     path: 'products',
     component: ProductsComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/products' } }
   },
   {
     path: 'acquisitions',
     component: AcquisitionsComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/acquisitions' } }
   },
   {
     path: 'acquisitions/new',
     component: NewAcquisitionComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/acquisitions' } }
   },
   {
     path: 'acquisition-type-catalog',
     component: AcquisitionTypeCatalogComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/acquisition-type-catalog' } }
   },
   {
     path: 'roles',
     component: RolesComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/roles' } }
   },
   {
     path: 'users',
     component: UsersComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/users' } }
   },
   {
     path: 'companies',
     component: CompanyCatalogComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/companies' } }
   },
   {
     path: 'forbidden',
