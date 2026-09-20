@@ -13,5 +13,10 @@ export const GENERAL_CONSTANTS = {
     CURRENCY_CODE: 'PEN'
   },
   // Strings
-  EMPTY: ''
+  EMPTY: '',
+  // Numbers
+  NUMBERS: {
+    ZERO: 0,
+    ONE: 1
+  }
 };

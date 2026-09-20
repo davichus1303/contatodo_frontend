@@ -5,6 +5,7 @@ import { ModulesService } from '../modules/modules.service';
 import { Module } from '../../domain/models/module.model';
 import { decodeJwtPayload } from '../../auth/jwt-utils';
 import { JwtClaims, PermissionAction, parseJwtClaims } from '../../auth/jwt-claims.model';
+import { GENERAL_CONSTANTS } from '../../../shared/constants/general.constants';
 
 /**
  * Role claim value emitted by the backend for the root role.
@@ -115,7 +116,7 @@ export class PermissionService {
    */
   private loadModules(): Promise<Map<string, Module>> {
     return new Promise<Map<string, Module>>((resolve) => {
-      this.modulesService.getModules().pipe(take(1)).subscribe({
+      this.modulesService.getModules().pipe(take(GENERAL_CONSTANTS.NUMBERS.ONE)).subscribe({
         next: (response) => {
           this.loaded = true;
           this.modulesByLink = this.indexByLink(response.data ?? []);
