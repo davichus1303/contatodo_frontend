@@ -33,22 +33,41 @@ export class PermissionDirective implements OnDestroy {
     private readonly viewContainer: ViewContainerRef
   ) {}
 
+  /**
+   * Sets the module link the content depends on and reevaluates the check.
+   *
+   * @param link Module route link, for example {@code '/products'}.
+   */
   @Input()
   set appPermission(link: string) {
     this.link = link;
     this.evaluate();
   }
 
+  /**
+   * Sets the action the content requires and reevaluates the check.
+   *
+   * @param action Action to require; when omitted it defaults to {@code view}.
+   */
   @Input()
   set appPermissionAction(action: PermissionAction) {
     this.action = action ?? 'view';
     this.evaluate();
   }
 
+  /**
+   * Releases the pending permission check to prevent leaks after the
+   * directive is destroyed.
+   */
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
   }
 
+  /**
+   * Revalidates the permission and updates the rendered content.
+   *
+   * <p>A content without a module link renders nothing, failing closed.</p>
+   */
   private evaluate(): void {
     this.subscription?.unsubscribe();
     this.subscription = null;
@@ -63,6 +82,11 @@ export class PermissionDirective implements OnDestroy {
       .subscribe((allowed) => this.render(allowed));
   }
 
+  /**
+   * Renders or removes the embedded view according to the check result.
+   *
+   * @param allowed Whether the current user is permitted.
+   */
   private render(allowed: boolean): void {
     if (allowed && !this.rendered) {
       this.viewContainer.createEmbeddedView(this.templateRef);

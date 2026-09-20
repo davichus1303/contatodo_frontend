@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 import { ProductsService } from '@core/application/products/products.service';
 import { Product } from '@core/domain/models/product.model';
 import { ProductFormComponent } from './product-form/product-form.component';
+import { PermissionDirective } from '@shared/directives/permission.directive';
 import { ProductFormPayload } from '@core/application/dto/product-request.dto';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { I18nService } from '@core/i18n/i18n.service';
@@ -32,7 +33,8 @@ import { openConfirmationDialog } from '@shared/utils/dialog.utils';
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    ProductFormComponent
+    ProductFormComponent,
+    PermissionDirective
   ],
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.scss'],

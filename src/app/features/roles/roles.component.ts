@@ -23,6 +23,7 @@ import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
 import { RoleDialogComponent } from './role-dialog/role-dialog.component';
 import { RoleDialogData, RoleDialogLabels } from '@shared/interfaces/role-dialog.interfaces';
 import { ModulesNavigationComponent } from '../../layout/modules-navigation/modules-navigation.component';
+import { PermissionDirective } from '@shared/directives/permission.directive';
 
 interface RoleView extends Role {
   displayModules: string[];

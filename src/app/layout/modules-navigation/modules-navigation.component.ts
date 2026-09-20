@@ -44,17 +44,17 @@ export class ModulesNavigationComponent {
   menuOpen = signal<boolean>(false);
   currentView = signal<'full' | 'catalogs'>('full');
 
-  private visibleModules(): Module[] {
+  visibleModules(): Module[] {
     return this.modules().filter(m => this.permissionService.has(m.id, 'view'));
   }
 
-  readonly catalogModules = computed(() => 
-    this.visibleModules().filter(m => m.category === MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG)
-  );
+  getCatalogModules(): Module[] {
+    return this.visibleModules().filter(m => m.category === MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG);
+  }
 
-  readonly nonCatalogModules = computed(() => 
-    this.visibleModules().filter(m => !m.category || m.category !== MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG)
-  );
+  getNonCatalogModules(): Module[] {
+    return this.visibleModules().filter(m => !m.category || m.category !== MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG);
+  }
 
   /**
    * Opens the modules menu and loads modules if not already loaded.

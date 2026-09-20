@@ -6,7 +6,7 @@
       <p>{{ i18nService.translate('ROLES.SUBTITLE') }}</p>
     </div>
     <div class="actions">
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()" *appPermission="'/roles'; action: 'create'">
         <mat-icon>add</mat-icon>
         <span>{{ i18nService.translate('ROLES.NEW_ROLE') }}</span>
       </button>
@@ -52,14 +52,20 @@
               </div>
             }
             <div class="card-actions">
-              <button mat-icon-button color="primary" [title]="i18nService.translate('ROLES.ACTIONS.EDIT')" (click)="openEditDialog(role)">
+              <button
+                mat-icon-button
+                color="primary"
+                [title]="i18nService.translate('ROLES.ACTIONS.EDIT')"
+                (click)="openEditDialog(role)"
+                *appPermission="'/roles'; action: 'update'"
+              >
                 <mat-icon>edit</mat-icon>
               </button>
               <button
+                *appPermission="'/roles'; action: 'delete'"
                 mat-icon-button
                 color="warn"
                 [title]="i18nService.translate('ROLES.ACTIONS.DELETE')"
-                [disabled]="isDeleting(role.id)"
                 (click)="onDelete(role)"
               >
                 @if (isDeleting(role.id)) {

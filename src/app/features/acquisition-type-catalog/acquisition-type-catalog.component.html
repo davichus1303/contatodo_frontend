@@ -5,7 +5,7 @@
       <p>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.SUBTITLE') }}</p>
     </div>
     <div class="actions">
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <button *appPermission="'/acquisition-type-catalog'; action: 'create'"  mat-raised-button color="primary" (click)="openCreateDialog()">
         <mat-icon>add</mat-icon>
         <span>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.NEW_BUTTON') }}</span>
       </button>

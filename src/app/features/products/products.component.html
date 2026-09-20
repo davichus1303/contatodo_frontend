@@ -5,7 +5,13 @@
       <p>{{ i18nService.translate('PRODUCTS.SUBTITLE') }}</p>
     </div>
     <div class="actions">
-      <button mat-raised-button color="primary" (click)="openCreateDialog()" [disabled]="isSaving()">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="openCreateDialog()"
+        [disabled]="isSaving()"
+        *appPermission="'/products'; action: 'create'"
+      >
         <mat-icon>add</mat-icon>
         <span>{{ i18nService.translate('PRODUCTS.ADD_PRODUCT') }}</span>
       </button>
@@ -67,7 +73,13 @@
             </div>
           </mat-card-content>
           <mat-card-actions align="end">
-            <button mat-stroked-button color="primary" (click)="openEditDialog(product)" [disabled]="isSaving()">
+            <button
+              mat-stroked-button
+              color="primary"
+              (click)="openEditDialog(product)"
+              [disabled]="isSaving()"
+              *appPermission="'/products'; action: 'update'"
+            >
               {{ i18nService.translate('PRODUCTS.EDIT_PRODUCT') }}
             </button>
           </mat-card-actions>
