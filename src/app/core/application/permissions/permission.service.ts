@@ -137,11 +137,11 @@ export class PermissionService {
    * @returns Map of links to modules.
    */
   private indexByLink(modules: Module[]): Map<string, Module> {
-    const map = new Map<string, Module>();
+    const byLink = new Map<string, Module>();
     modules.forEach((module) => {
-      map.set(module.link, module);
+      byLink.set(module.link, module);
     });
-    return map;
+    return byLink;
   }
 
   /**
