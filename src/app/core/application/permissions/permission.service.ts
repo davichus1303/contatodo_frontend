@@ -150,12 +150,12 @@ export class PermissionService {
    * @returns Parsed claims, or null when there is no token or it is invalid.
    */
   private currentClaims(): JwtClaims | null {
-    const token = this.authService.getToken();
-    if (!token) {
-      return null;
-    }
-
     try {
+      const token = this.authService.getToken();
+      if (!token) {
+        return null;
+      }
+
       const parsed = parseJwtClaims(decodeJwtPayload(token));
       return parsed.ok ? parsed.value : null;
     } catch {
