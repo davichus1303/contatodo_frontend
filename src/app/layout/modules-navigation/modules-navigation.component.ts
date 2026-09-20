@@ -44,9 +44,9 @@ export class ModulesNavigationComponent {
   menuOpen = signal<boolean>(false);
   currentView = signal<'full' | 'catalogs'>('full');
 
-  readonly visibleModules = computed(() =>
-    this.modules().filter(m => this.permissionService.has(m.id, 'view'))
-  );
+  private visibleModules(): Module[] {
+    return this.modules().filter(m => this.permissionService.has(m.id, 'view'));
+  }
 
   readonly catalogModules = computed(() => 
     this.visibleModules().filter(m => m.category === MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG)
