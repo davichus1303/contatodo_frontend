@@ -11,6 +11,7 @@ import { Module } from '@core/domain/models/module.model';
 import { Router } from '@angular/router';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { I18nService } from '@core/i18n/i18n.service';
+import { PermissionService } from '@core/application/permissions/permission.service';
 import { MODULES_NAVIGATION_CONSTANTS } from '@shared/constants/modules-navigation.constants';
 
 /**
@@ -36,18 +37,23 @@ export class ModulesNavigationComponent {
   readonly modulesService = inject(ModulesService);
   readonly router = inject(Router);
   readonly i18nService = inject(I18nService);
+  readonly permissionService = inject(PermissionService);
 
   modules = signal<Module[]>([]);
   isLoading = signal<boolean>(false);
   menuOpen = signal<boolean>(false);
   currentView = signal<'full' | 'catalogs'>('full');
 
+  readonly visibleModules = computed(() =>
+    this.modules().filter(m => this.permissionService.has(m.id, 'view'))
+  );
+
   readonly catalogModules = computed(() => 
-    this.modules().filter(m => m.category === MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG)
+    this.visibleModules().filter(m => m.category === MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG)
   );
 
   readonly nonCatalogModules = computed(() => 
-    this.modules().filter(m => !m.category || m.category !== MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG)
+    this.visibleModules().filter(m => !m.category || m.category !== MODULES_NAVIGATION_CONSTANTS.CATEGORIES.CATALOG)
   );
 
   /**
