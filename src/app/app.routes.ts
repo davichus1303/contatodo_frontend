@@ -30,7 +30,7 @@ export const routes: Routes = [
     path: 'sales-history',
     component: SalesHistoryComponent,
     canActivate: [AuthGuard, PermissionGuard],
-    data: { permission: { moduleLink: '/sales-history' } }
+    data: { permission: { moduleLink: '/sales' } }
   },
   {
     path: 'products',
