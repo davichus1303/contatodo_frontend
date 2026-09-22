@@ -42,7 +42,8 @@ interface RoleView extends Role {
     MatInputModule,
     MatProgressSpinnerModule,
     MatSlideToggleModule,
-    ModulesNavigationComponent
+    ModulesNavigationComponent,
+    PermissionDirective
   ],
   templateUrl: './roles.component.html',
   styleUrls: ['./roles.component.scss'],

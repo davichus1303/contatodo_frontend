@@ -18,7 +18,7 @@ const getEnvValue = (key: string, fallback: string): string => {
   return fallback;
 };
 
-export const BASE_URL = getEnvValue('BASE_URL', 'http://localhost:8080');
+export const BASE_URL = getEnvValue('BASE_URL', 'http://localhost:8081');
 export const SLASH = getEnvValue('SLASH', '/');
 export const PRODUCTS = getEnvValue('PRODUCTS', 'products');
 export const SALES = getEnvValue('SALES', 'sales');
