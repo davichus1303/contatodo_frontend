@@ -22,6 +22,7 @@ import { filterBySearchTerm, normalizeSearchTerm } from '@shared/utils/search.ut
 import { displayOrFallback } from '@shared/utils/display.utils';
 import { UserFormDialogComponent } from '@shared/components/user-form-dialog/user-form-dialog.component';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
+import { PermissionDirective } from '@shared/directives/permission.directive';
 
 /**
  * Users catalog page.
@@ -45,7 +46,8 @@ import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/use
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    PermissionDirective
   ],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss'],

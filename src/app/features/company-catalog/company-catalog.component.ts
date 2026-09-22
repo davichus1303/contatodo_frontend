@@ -26,6 +26,7 @@ import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
 import { filterBySearchTerm, normalizeSearchTerm } from '@shared/utils/search.utils';
 import { CompanyDialogComponent, CompanyDialogData, CompanyDialogMode } from './company-dialog/company-dialog.component';
 import { CompanyFormModel } from './company-dialog/company-form.model';
+import { PermissionDirective } from '@shared/directives/permission.directive';
 
 /**
  * Companies view.
@@ -49,7 +50,8 @@ import { CompanyFormModel } from './company-dialog/company-form.model';
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    PermissionDirective
   ],
   templateUrl: './company-catalog.component.html',
   styleUrls: ['./company-catalog.component.scss'],
