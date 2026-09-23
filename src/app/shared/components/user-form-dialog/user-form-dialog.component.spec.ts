@@ -6,8 +6,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { UserFormDialogComponent } from './user-form-dialog.component';
 import { UsersService } from '@core/application/users/users.service';
 import { RolesService } from '@core/application/roles/roles.service';
+import { CompaniesService } from '@core/application/companies/companies.service';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { Role } from '@core/domain/models/role.model';
+import { Company } from '@core/domain/models/company.model';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
 import { UserRequest } from '@core/application/dto/user-request.dto';
 import { User } from '@core/domain/models/user.model';
@@ -18,6 +20,7 @@ describe('UserFormDialogComponent', () => {
   let createUserSpy: jasmine.Spy;
   let updateUserSpy: jasmine.Spy;
   let getRolesSpy: jasmine.Spy;
+  let getCompaniesSpy: jasmine.Spy;
   let successSpy: jasmine.Spy;
   let errorSpy: jasmine.Spy;
   let closeSpy: jasmine.Spy;
@@ -30,8 +33,12 @@ describe('UserFormDialogComponent', () => {
     fullNamePlaceholder: 'Ej. Juan Pérez',
     emailLabel: 'Correo electrónico',
     emailPlaceholder: 'Ej. juan@empresa.com',
+    phoneLabel: 'Teléfono',
+    phonePlaceholder: 'Ej. 987654321',
     roleLabel: 'Rol',
     rolePlaceholder: 'Selecciona un rol',
+    companyLabel: 'Compañía',
+    companyPlaceholder: 'Selecciona una compañía',
     passwordLabel: 'Contraseña',
     passwordPlaceholder: 'Contraseña generada',
     passwordEditPlaceholder: 'Nueva contraseña (opcional)',
@@ -57,6 +64,8 @@ describe('UserFormDialogComponent', () => {
     userName: 'david',
     email: 'david@example.com',
     name: 'David Contado',
+    phoneNumber: '987654321',
+    companyOid: undefined,
     createdDate: '2026-01-01',
     updatedDate: '2026-01-01',
     active: true,
@@ -95,6 +104,21 @@ describe('UserFormDialogComponent', () => {
     }
   ];
 
+  const companiesData: Company[] = [
+    {
+      id: 'c1',
+      name: 'Empresa 1',
+      isActive: true,
+      isDeleted: false
+    },
+    {
+      id: 'c2',
+      name: 'Empresa 2',
+      isActive: true,
+      isDeleted: false
+    }
+  ];
+
   function configureDialog(data: UserFormDialogData): void {
     TestBed.configureTestingModule({
       imports: [UserFormDialogComponent, MatSelectModule],
@@ -103,6 +127,7 @@ describe('UserFormDialogComponent', () => {
         { provide: MAT_DIALOG_DATA, useValue: data },
         { provide: UsersService, useValue: { createUser: createUserSpy, updateUser: updateUserSpy } },
         { provide: RolesService, useValue: { getRoles: getRolesSpy } },
+        { provide: CompaniesService, useValue: { getCompanies: getCompaniesSpy } },
         { provide: NotificationService, useValue: { success: successSpy, error: errorSpy } },
         provideAnimationsAsync()
       ]
@@ -117,6 +142,7 @@ describe('UserFormDialogComponent', () => {
     createUserSpy = jasmine.createSpy('createUser').and.returnValue(of({ status: 200, message: 'OK', data: null }));
     updateUserSpy = jasmine.createSpy('updateUser').and.returnValue(of({ status: 200, message: 'OK', data: null }));
     getRolesSpy = jasmine.createSpy('getRoles').and.returnValue(of({ status: 200, message: 'OK', data: rolesData }));
+    getCompaniesSpy = jasmine.createSpy('getCompanies').and.returnValue(of({ status: 200, message: 'OK', data: companiesData }));
     successSpy = jasmine.createSpy('success');
     errorSpy = jasmine.createSpy('error');
     closeSpy = jasmine.createSpy('close');
@@ -128,6 +154,14 @@ describe('UserFormDialogComponent', () => {
     expect(getRolesSpy).toHaveBeenCalled();
     expect(component.roles.length).toBe(2);
     expect(component.isLoadingRoles).toBeFalse();
+  });
+
+  it('should load the companies into the select', () => {
+    configureDialog({ generatePassword: true, showTemporaryPasswordNote: true, labels });
+
+    expect(getCompaniesSpy).toHaveBeenCalled();
+    expect(component.companies.length).toBe(2);
+    expect(component.isLoadingCompanies).toBeFalse();
   });
 
   it('should prefill the password with a generated one when opened from the users module', () => {
@@ -169,7 +203,9 @@ describe('UserFormDialogComponent', () => {
     component.form.controls.userName.setValue('  jperez  ');
     component.form.controls.name.setValue('Juan Pérez');
     component.form.controls.email.setValue('juan@empresa.com');
+    component.form.controls.phoneNumber.setValue(' 987654321 ');
     component.form.controls.roleId.setValue('r2');
+    component.form.controls.companyOid.setValue('c2');
     component.form.controls.password.setValue('Clave123!');
 
     component.submit();
@@ -178,8 +214,10 @@ describe('UserFormDialogComponent', () => {
       userName: 'jperez',
       name: 'Juan Pérez',
       email: 'juan@empresa.com',
+      phoneNumber: '987654321',
       roleId: 'r2',
-      password: 'Clave123!'
+      password: 'Clave123!',
+      companyOid: 'c2'
     };
     expect(createUserSpy).toHaveBeenCalledWith(expected);
     expect(successSpy).toHaveBeenCalledWith('Usuario creado');
@@ -215,7 +253,9 @@ describe('UserFormDialogComponent', () => {
     expect(component.form.controls.userName.value).toBe('david');
     expect(component.form.controls.name.value).toBe('David Contado');
     expect(component.form.controls.email.value).toBe('david@example.com');
+    expect(component.form.controls.phoneNumber.value).toBe('987654321');
     expect(component.form.controls.roleId.value).toBe('r1');
+    expect(component.form.controls.companyOid.value).toBe('');
     expect(component.form.controls.password.value).toBe('');
   });
 
@@ -264,7 +304,9 @@ describe('UserFormDialogComponent', () => {
       userName: 'david',
       name: 'David Actualizado',
       email: 'david@example.com',
-      roleId: 'r1'
+      phoneNumber: '987654321',
+      roleId: 'r1',
+      companyOid: undefined
     };
     expect(updateUserSpy).toHaveBeenCalledWith('u1', expected);
     expect(successSpy).toHaveBeenCalledWith('Usuario actualizado');
@@ -286,8 +328,66 @@ describe('UserFormDialogComponent', () => {
       userName: 'david',
       name: 'David Contado',
       email: 'david@example.com',
+      phoneNumber: '987654321',
       roleId: 'r1',
+      companyOid: undefined,
       password: 'Clave123!'
+    };
+    expect(updateUserSpy).toHaveBeenCalledWith('u1', expected);
+  });
+
+  it('should detect and send a phone number change in edit mode', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: userToEdit,
+      labels
+    });
+
+    expect(component.hasChanges).toBeFalse();
+
+    component.form.controls.phoneNumber.setValue(' 999888777 ');
+
+    expect(component.hasChanges).toBeTrue();
+    expect(component.isSubmitDisabled).toBeFalse();
+
+    component.submit();
+
+    const expected: Partial<UserRequest> = {
+      userName: 'david',
+      name: 'David Contado',
+      email: 'david@example.com',
+      phoneNumber: '999888777',
+      roleId: 'r1',
+      companyOid: undefined
+    };
+    expect(updateUserSpy).toHaveBeenCalledWith('u1', expected);
+  });
+
+  it('should detect and send a company change in edit mode', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: userToEdit,
+      labels
+    });
+
+    expect(component.hasChanges).toBeFalse();
+
+    component.form.controls.companyOid.setValue('c2');
+
+    expect(component.hasChanges).toBeTrue();
+    expect(component.isSubmitDisabled).toBeFalse();
+
+    component.submit();
+
+    const expected: Partial<UserRequest> = {
+      userName: 'david',
+      name: 'David Contado',
+      email: 'david@example.com',
+      phoneNumber: '987654321',
+      roleId: 'r1',
+      companyOid: 'c2'
     };
     expect(updateUserSpy).toHaveBeenCalledWith('u1', expected);
   });

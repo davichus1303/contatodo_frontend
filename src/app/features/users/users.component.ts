@@ -18,8 +18,11 @@ import { UserRequest } from '@core/application/dto/user-request.dto';
 import { I18nService } from '@core/i18n/i18n.service';
 import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
+import { filterBySearchTerm, normalizeSearchTerm } from '@shared/utils/search.utils';
+import { displayOrFallback } from '@shared/utils/display.utils';
 import { UserFormDialogComponent } from '@shared/components/user-form-dialog/user-form-dialog.component';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
+import { PermissionDirective } from '@shared/directives/permission.directive';
 
 /**
  * Users catalog page.
@@ -43,7 +46,8 @@ import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/use
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    PermissionDirective
   ],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss'],
@@ -68,7 +72,7 @@ export class UsersComponent {
     this.searchControl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value: string | null) => {
-        this.searchTerm = value?.trim().toLowerCase() ?? '';
+        this.searchTerm = normalizeSearchTerm(value);
         this.changeDetectorRef.markForCheck();
       });
     this.loadUsers();
@@ -78,18 +82,16 @@ export class UsersComponent {
    * Users matching the current search term.
    *
    * Matching is a partial, case-insensitive `contains` over the user name,
-   * email and username.
+   * email, username and role name. Users without a resolved role never match
+   * on the role criterion.
    */
   get filteredUsers(): User[] {
-    if (!this.searchTerm) {
-      return this.users;
-    }
-
-    return this.users.filter((user: User) =>
-      user.name.toLowerCase().includes(this.searchTerm) ||
-      user.email.toLowerCase().includes(this.searchTerm) ||
-      user.userName.toLowerCase().includes(this.searchTerm)
-    );
+    return filterBySearchTerm(this.users, this.searchTerm, (user: User) => [
+      user.name,
+      user.email,
+      user.userName,
+      user.role?.name
+    ]);
   }
 
   /**
@@ -99,7 +101,17 @@ export class UsersComponent {
    * @returns The role name, or the localized placeholder when it has no role.
    */
   getRoleName(user: User): string {
-    return user.role?.name ?? this.i18nService.translate('USERS.NO_ROLE');
+    return displayOrFallback(user.role?.name, this.i18nService.translate('USERS.NO_ROLE'));
+  }
+
+  /**
+   * Resolves the phone number shown on a user card.
+   *
+   * @param user User whose phone number must be displayed.
+   * @returns The phone number, or the localized placeholder when it is empty.
+   */
+  getPhoneNumber(user: User): string {
+    return displayOrFallback(user.phoneNumber, this.i18nService.translate('USERS.NO_PHONE'));
   }
 
   /**
@@ -169,8 +181,12 @@ export class UsersComponent {
       fullNamePlaceholder: this.i18nService.translate('USERS.MODAL.FULL_NAME_PLACEHOLDER'),
       emailLabel: this.i18nService.translate('USERS.MODAL.EMAIL_LABEL'),
       emailPlaceholder: this.i18nService.translate('USERS.MODAL.EMAIL_PLACEHOLDER'),
+      phoneLabel: this.i18nService.translate('USERS.MODAL.PHONE_LABEL'),
+      phonePlaceholder: this.i18nService.translate('USERS.MODAL.PHONE_PLACEHOLDER'),
       roleLabel: this.i18nService.translate('USERS.MODAL.ROLE_LABEL'),
       rolePlaceholder: this.i18nService.translate('USERS.MODAL.ROLE_PLACEHOLDER'),
+      companyLabel: this.i18nService.translate('USERS.MODAL.COMPANY_LABEL'),
+      companyPlaceholder: this.i18nService.translate('USERS.MODAL.COMPANY_PLACEHOLDER'),
       passwordLabel: this.i18nService.translate('USERS.MODAL.PASSWORD_LABEL'),
       passwordPlaceholder: this.i18nService.translate('USERS.MODAL.PASSWORD_PLACEHOLDER'),
       passwordEditPlaceholder: this.i18nService.translate('USERS.MODAL.PASSWORD_EDIT_PLACEHOLDER'),
@@ -334,13 +350,13 @@ export class UsersComponent {
 
     this.usersService.updateUser(user.id, request).subscribe({
       next: () => {
-        this.notifications.success(this.i18nService.translate('USERS.UPDATE_SUCCESS'));
+        this.notifications.success(this.i18nService.translate('USERS.MESSAGES.UPDATE_SUCCESS'));
         this.updatingIds = removePendingId(this.updatingIds, user.id);
         this.loadUsers();
       },
       error: (error: unknown) => {
         this.notifications.error(
-          extractApiErrorMessage(error, this.i18nService.translate('USERS.UPDATE_ERROR'))
+          extractApiErrorMessage(error, this.i18nService.translate('USERS.MESSAGES.UPDATE_ERROR'))
         );
         this.updatingIds = removePendingId(this.updatingIds, user.id);
         this.changeDetectorRef.markForCheck();

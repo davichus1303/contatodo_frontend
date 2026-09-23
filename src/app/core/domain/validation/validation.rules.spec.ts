@@ -1,5 +1,5 @@
 import { isValidEmail } from './email.rule';
-import { isBoolean, isFiniteNumber, isNonEmptyString, isRecord } from './primitive.rules';
+import { isBoolean, isFiniteNumber, isNonEmptyString, isRecord, optionalNumber, optionalString } from './primitive.rules';
 
 describe('primitive rules', () => {
   describe('isNonEmptyString', () => {
@@ -52,6 +52,41 @@ describe('primitive rules', () => {
       expect(isRecord([1, 2])).toBeFalse();
       expect(isRecord('obj')).toBeFalse();
       expect(isRecord(undefined)).toBeFalse();
+    });
+  });
+
+  describe('optionalString', () => {
+    it('should trim strings with content', () => {
+      expect(optionalString('  Acme  ')).toBe('Acme');
+    });
+
+    it('should collapse absent, null and blank values to undefined', () => {
+      expect(optionalString(undefined)).toBeUndefined();
+      expect(optionalString(null)).toBeUndefined();
+      expect(optionalString('')).toBeUndefined();
+      expect(optionalString('   ')).toBeUndefined();
+    });
+
+    it('should collapse non-string values to undefined', () => {
+      expect(optionalString(42)).toBeUndefined();
+      expect(optionalString(true)).toBeUndefined();
+      expect(optionalString({})).toBeUndefined();
+    });
+  });
+
+  describe('optionalNumber', () => {
+    it('should keep finite numbers including zero', () => {
+      expect(optionalNumber(0)).toBe(0);
+      expect(optionalNumber(-3.5)).toBe(-3.5);
+    });
+
+    it('should collapse absent, null and non-finite values to undefined', () => {
+      expect(optionalNumber(undefined)).toBeUndefined();
+      expect(optionalNumber(null)).toBeUndefined();
+      expect(optionalNumber(Number.NaN)).toBeUndefined();
+      expect(optionalNumber(Number.POSITIVE_INFINITY)).toBeUndefined();
+      expect(optionalNumber('12')).toBeUndefined();
+      expect(optionalNumber({})).toBeUndefined();
     });
   });
 });

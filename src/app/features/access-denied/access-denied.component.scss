@@ -1,0 +1,56 @@
+.access-denied-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.access-denied-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  text-align: center;
+}
+
+mat-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon-container {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.12);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-container mat-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  color: #667eea;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.message {
+  margin: 0;
+  font-size: 16px;
+  color: #666;
+}
+
+button {
+  width: 100%;
+}

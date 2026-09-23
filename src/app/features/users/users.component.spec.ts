@@ -30,6 +30,7 @@ describe('UsersComponent', () => {
       userName: 'david',
       email: 'david@example.com',
       name: 'David Contado',
+      phoneNumber: '987654321',
       createdDate: '2026-01-01',
       updatedDate: '2026-01-01',
       active: true,
@@ -117,6 +118,15 @@ describe('UsersComponent', () => {
     expect(translateSpy).toHaveBeenCalledWith('USERS.NO_ROLE');
   });
 
+  it('should show the user phone number on a card', () => {
+    expect(component.getPhoneNumber(component.users[0])).toBe('987654321');
+  });
+
+  it('should use the localized placeholder when a user has no phone number', () => {
+    expect(component.getPhoneNumber(component.users[1])).toBe('USERS.NO_PHONE');
+    expect(translateSpy).toHaveBeenCalledWith('USERS.NO_PHONE');
+  });
+
   it('should filter users by the search term across name, email and username', () => {
     component.searchControl.setValue('DAVID');
     expect(component.filteredUsers.length).toBe(1);
@@ -127,6 +137,15 @@ describe('UsersComponent', () => {
     expect(component.filteredUsers[0].id).toBe('u2');
 
     component.searchControl.setValue('nope');
+    expect(component.filteredUsers.length).toBe(0);
+  });
+
+  it('should filter users by their role name', () => {
+    component.searchControl.setValue('admin');
+    expect(component.filteredUsers.length).toBe(1);
+    expect(component.filteredUsers[0].id).toBe('u1');
+
+    component.searchControl.setValue('VENDEDOR');
     expect(component.filteredUsers.length).toBe(0);
   });
 

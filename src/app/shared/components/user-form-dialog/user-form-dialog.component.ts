@@ -14,8 +14,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { Company } from '@core/domain/models/company.model';
 import { Role } from '@core/domain/models/role.model';
 import { User } from '@core/domain/models/user.model';
+import { CompaniesService } from '@core/application/companies/companies.service';
 import { RolesService } from '@core/application/roles/roles.service';
 import { UsersService } from '@core/application/users/users.service';
 import { NotificationService } from '@core/application/notifications/notification.service';
@@ -33,7 +35,9 @@ type UserFormModel = {
   userName: FormControl<string>;
   name: FormControl<string>;
   email: FormControl<string>;
+  phoneNumber: FormControl<string>;
   roleId: FormControl<string>;
+  companyOid: FormControl<string>;
   password: FormControl<string>;
 };
 
@@ -70,6 +74,7 @@ export class UserFormDialogComponent {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly usersService = inject(UsersService);
   private readonly rolesService = inject(RolesService);
+  private readonly companiesService = inject(CompaniesService);
   private readonly notifications = inject(NotificationService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -81,7 +86,9 @@ export class UserFormDialogComponent {
   readonly isEditMode = this.user !== null;
 
   roles: Role[] = [];
+  companies: Company[] = [];
   isLoadingRoles = false;
+  isLoadingCompanies = false;
   isSaving = false;
 
   readonly form: FormGroup<UserFormModel>;
@@ -89,7 +96,9 @@ export class UserFormDialogComponent {
   private initialUserName = GENERAL_CONSTANTS.EMPTY;
   private initialName = GENERAL_CONSTANTS.EMPTY;
   private initialEmail = GENERAL_CONSTANTS.EMPTY;
+  private initialPhoneNumber = GENERAL_CONSTANTS.EMPTY;
   private initialRoleId = GENERAL_CONSTANTS.EMPTY;
+  private initialCompanyOid = GENERAL_CONSTANTS.EMPTY;
 
   constructor() {
     this.form = this.formBuilder.group({
@@ -102,9 +111,11 @@ export class UserFormDialogComponent {
       email: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: [Validators.required, domainEmail()]
       }),
+      phoneNumber: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY),
       roleId: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: [Validators.required]
       }),
+      companyOid: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY),
       password: this.formBuilder.control(GENERAL_CONSTANTS.EMPTY, {
         validators: this.isEditMode ? [] : [Validators.required]
       })
@@ -115,7 +126,9 @@ export class UserFormDialogComponent {
         userName: this.user.userName,
         name: this.user.name,
         email: this.user.email,
-        roleId: this.user.role?.id ?? GENERAL_CONSTANTS.EMPTY
+        phoneNumber: this.user.phoneNumber ?? GENERAL_CONSTANTS.EMPTY,
+        roleId: this.user.role?.id ?? GENERAL_CONSTANTS.EMPTY,
+        companyOid: this.user.companyOid ?? GENERAL_CONSTANTS.EMPTY
       });
     } else if (this.generatePassword) {
       this.form.controls.password.setValue(generateRandomPassword());
@@ -125,13 +138,16 @@ export class UserFormDialogComponent {
     this.initialUserName = initialValue.userName;
     this.initialName = initialValue.name;
     this.initialEmail = initialValue.email;
+    this.initialPhoneNumber = initialValue.phoneNumber;
     this.initialRoleId = initialValue.roleId;
+    this.initialCompanyOid = initialValue.companyOid;
 
     this.form.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.changeDetectorRef.markForCheck());
 
     this.loadRoles();
+    this.loadCompanies();
   }
 
   /**
@@ -141,7 +157,7 @@ export class UserFormDialogComponent {
    * so an update is never sent with the original values.
    */
   get isSubmitDisabled(): boolean {
-    return this.isSaving || this.isLoadingRoles || this.form.invalid || (this.isEditMode && !this.hasChanges);
+    return this.isSaving || this.isLoadingRoles || this.isLoadingCompanies || this.form.invalid || (this.isEditMode && !this.hasChanges);
   }
 
   /**
@@ -153,7 +169,9 @@ export class UserFormDialogComponent {
     return current.userName !== this.initialUserName ||
       current.name !== this.initialName ||
       current.email !== this.initialEmail ||
+      current.phoneNumber !== this.initialPhoneNumber ||
       current.roleId !== this.initialRoleId ||
+      current.companyOid !== this.initialCompanyOid ||
       current.password.length > 0;
   }
 
@@ -197,7 +215,27 @@ export class UserFormDialogComponent {
       },
       error: (error: unknown) => {
         this.isLoadingRoles = false;
-        this.notifications.error(extractApiErrorMessage(error, this.labels.rolesError));
+        this.notifications.error(extractApiErrorMessage(error, this.labels.rolesError ?? ''));
+        this.changeDetectorRef.markForCheck();
+      }
+    });
+  }
+
+  /**
+   * Loads the companies to populate the company select.
+   */
+  private loadCompanies(): void {
+    this.isLoadingCompanies = true;
+
+    this.companiesService.getCompanies().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (response) => {
+        this.companies = response.data ?? [];
+        this.isLoadingCompanies = false;
+        this.changeDetectorRef.markForCheck();
+      },
+      error: (error: unknown) => {
+        this.isLoadingCompanies = false;
+        this.notifications.error(extractApiErrorMessage(error, this.labels.rolesError ?? ''));
         this.changeDetectorRef.markForCheck();
       }
     });
@@ -209,12 +247,15 @@ export class UserFormDialogComponent {
   private createUser(): void {
     this.isSaving = true;
 
+    const companyOid = this.form.controls.companyOid.value.trim();
     const payload: UserRequest = {
       userName: this.form.controls.userName.value.trim(),
       name: this.form.controls.name.value.trim(),
       email: this.form.controls.email.value.trim(),
+      phoneNumber: this.form.controls.phoneNumber.value.trim(),
       roleId: this.form.controls.roleId.value,
-      password: this.form.controls.password.value
+      password: this.form.controls.password.value,
+      companyOid: companyOid || undefined
     };
 
     this.usersService.createUser(payload).subscribe({
@@ -245,11 +286,14 @@ export class UserFormDialogComponent {
 
     this.isSaving = true;
 
+    const companyOid = this.form.controls.companyOid.value.trim();
     const payload: Partial<UserRequest> = {
       userName: this.form.controls.userName.value.trim(),
       name: this.form.controls.name.value.trim(),
       email: this.form.controls.email.value.trim(),
-      roleId: this.form.controls.roleId.value
+      phoneNumber: this.form.controls.phoneNumber.value.trim(),
+      roleId: this.form.controls.roleId.value,
+      companyOid: companyOid || undefined
     };
 
     const password = this.form.controls.password.value;

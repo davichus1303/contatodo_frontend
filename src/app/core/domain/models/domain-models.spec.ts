@@ -49,6 +49,30 @@ describe('createSale', () => {
       }
     }
   });
+
+  it('should require the identity and date fields', () => {
+    const result = createSale({ id: 's1', saleNumber: 1 });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      const fields = result.error.map((currentError) => currentError.field);
+      expect(fields).toContain('productOid');
+      expect(fields).toContain('userOid');
+      expect(fields).toContain('saleDate');
+      expect(fields).toContain('createdDate');
+    }
+  });
+
+  it('should normalize optional productName and default blank notes to empty string', () => {
+    const result = createSale({ ...validSale, id: ' s1 ', productName: '  Arroz  ', notes: null });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.id).toBe('s1');
+      expect(result.value.productName).toBe('Arroz');
+      expect(result.value.notes).toBe('');
+    }
+  });
 });
 
 describe('createAcquisition', () => {
@@ -83,6 +107,45 @@ describe('createAcquisition', () => {
       expect(result.error.map((currentError) => currentError.field)).toContain('quantity');
     }
   });
+
+  it('should require monetary fields and identity text', () => {
+    const result = createAcquisition({ id: 'a1', productName: 'Arroz', acquisitionType: 'x' });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      const fields = result.error.map((currentError) => currentError.field);
+      expect(fields).toContain('acquisitionDate');
+      expect(fields).toContain('realCost');
+      expect(fields).toContain('unitRealCost');
+    }
+  });
+
+  it('should normalize nullable optional fields to undefined', () => {
+    const result = createAcquisition({
+      id: ' a1 ',
+      productName: ' Arroz ',
+      acquisitionType: ' Mercancia ',
+      quantity: null,
+      realCost: 50,
+      unitRealCost: 0,
+      unitPublicCost: null,
+      supplierName: '   ',
+      invoiceNumber: null,
+      acquisitionDate: '2026-08-21T10:00:00',
+      observations: null
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.id).toBe('a1');
+      expect(result.value.acquisitionType).toBe('Mercancia');
+      expect(result.value.quantity).toBeUndefined();
+      expect(result.value.unitPublicCost).toBeUndefined();
+      expect(result.value.supplierName).toBeUndefined();
+      expect(result.value.invoiceNumber).toBeUndefined();
+      expect(result.value.observations).toBeUndefined();
+    }
+  });
 });
 
 describe('createAcquisitionType', () => {
@@ -110,6 +173,28 @@ describe('createAcquisitionType', () => {
     expect(result.ok).toBeTrue();
     if (result.ok) {
       expect(result.value.affectsInventory).toBeUndefined();
+      expect(result.value.isActive).toBeFalse();
+      expect(result.value.isDeleted).toBeFalse();
+    }
+  });
+
+  it('should normalize text fields and preserve affectsInventory', () => {
+    const result = createAcquisitionType({
+      id: '  t1  ',
+      name: '  Mercancia  ',
+      description: '   ',
+      isActive: true,
+      isDeleted: false,
+      affectsInventory: false
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.id).toBe('t1');
+      expect(result.value.name).toBe('Mercancia');
+      expect(result.value.description).toBeUndefined();
+      expect(result.value.isActive).toBeTrue();
+      expect(result.value.affectsInventory).toBeFalse();
     }
   });
 });
@@ -159,6 +244,40 @@ describe('createUser', () => {
     expect(result.ok).toBeTrue();
     if (result.ok) {
       expect(result.value.userName).toBe('david');
+    }
+  });
+
+  it('should normalize the optional phone number and status flag', () => {
+    const result = createUser({
+      id: 'u1',
+      userName: 'david',
+      email: 'david@example.com',
+      name: 'David',
+      phoneNumber: null,
+      active: undefined
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.phoneNumber).toBeUndefined();
+      expect(result.value.active).toBeFalse();
+      expect(result.value.role).toBeUndefined();
+    }
+  });
+
+  it('should validate an embedded role', () => {
+    const result = createUser({
+      id: 'u1',
+      userName: 'david',
+      email: 'david@example.com',
+      name: 'David',
+      active: true,
+      role: { id: '', name: '', permissions: [] }
+    });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.map((currentError) => currentError.field)).toContain('role.id');
     }
   });
 });

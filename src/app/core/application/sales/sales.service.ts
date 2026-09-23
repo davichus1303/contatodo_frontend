@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { HTTP_PORT } from '../ports/http.port';
 import { ApiResponse } from '../ports/api-response.interface';
-import { Sale } from '../../domain/models/sale.model';
+import { Sale, createSale } from '../../domain/models/sale.model';
+import { DomainError } from '../../domain/errors/domain-error';
+import { Result } from '../../domain/result';
+import { mapSales } from './sale.mapper';
 import { CreateSaleRequest } from '../dto/create-sale-request.dto';
 import { SALES_URL } from '../../config/api-routes.constants';
 import { formatDateISO } from '@shared/utils/format.utils';
@@ -24,7 +27,9 @@ export class SalesService {
    * @returns Observable with API response containing the created sale.
    */
   createSale(request: CreateSaleRequest): Observable<ApiResponse<Sale>> {
-    return this.http.post<ApiResponse<Sale>>(this.apiUrl, request);
+    return this.http.post<ApiResponse<unknown>>(this.apiUrl, request).pipe(
+      map((response) => this.withMappedData(response, createSale(response.data)))
+    );
   }
 
   /**
@@ -33,7 +38,9 @@ export class SalesService {
    * @returns Observable with API response containing today's sales.
    */
   getTodaySales(): Observable<ApiResponse<Sale[]>> {
-    return this.http.get<ApiResponse<Sale[]>>(this.apiUrl);
+    return this.http.get<ApiResponse<unknown>>(this.apiUrl).pipe(
+      map((response) => this.withMappedData(response, mapSales(response.data)))
+    );
   }
 
   /**
@@ -43,7 +50,9 @@ export class SalesService {
    * @returns Observable with API response containing sales for the specified date.
    */
   getSalesByDate(date: string): Observable<ApiResponse<Sale[]>> {
-    return this.http.get<ApiResponse<Sale[]>>(`${this.apiUrl}/date?date=${date}`);
+    return this.http.get<ApiResponse<unknown>>(`${this.apiUrl}/date?date=${date}`).pipe(
+      map((response) => this.withMappedData(response, mapSales(response.data)))
+    );
   }
 
   /**
@@ -56,6 +65,32 @@ export class SalesService {
   getSalesByDateRange(startDate: Date, endDate: Date): Observable<ApiResponse<Sale[]>> {
     const startStr = formatDateISO(startDate);
     const endStr = formatDateISO(endDate);
-    return this.http.get<ApiResponse<Sale[]>>(`${this.apiUrl}/date-range?startDate=${startStr}&endDate=${endStr}`);
+
+    return this.http.get<ApiResponse<unknown>>(
+      `${this.apiUrl}/date-range?startDate=${startStr}&endDate=${endStr}`
+    ).pipe(
+      map((response) => this.withMappedData(response, mapSales(response.data)))
+    );
+  }
+
+  /**
+   * Replaces the raw transport `data` with its validated domain value.
+   *
+   * Fail-fast: a contract violation is rethrown through the observable error
+   * channel, so callers never receive unvalidated transport data.
+   *
+   * @param response Raw API response.
+   * @param mapped Result of mapping {@link ApiResponse.data}.
+   * @returns API response whose `data` is the domain value.
+   */
+  private withMappedData<T>(
+    response: ApiResponse<unknown>,
+    mapped: Result<T, readonly DomainError[]>
+  ): ApiResponse<T> {
+    if (!mapped.ok) {
+      throw mapped.error;
+    }
+
+    return { ...response, data: mapped.value };
   }
 }

@@ -8,8 +8,11 @@ import { NewAcquisitionComponent } from './features/acquisitions/new-acquisition
 import { AcquisitionTypeCatalogComponent } from './features/acquisition-type-catalog/acquisition-type-catalog.component';
 import { RolesComponent } from './features/roles/roles.component';
 import { UsersComponent } from './features/users/users.component';
+import { CompanyCatalogComponent } from './features/company-catalog/company-catalog.component';
+import { AccessDeniedComponent } from './features/access-denied/access-denied.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { LoginGuard } from './core/guards/login.guard';
+import { PermissionGuard } from './core/guards/permission.guard';
 
 export const routes: Routes = [
   {
@@ -20,41 +23,60 @@ export const routes: Routes = [
   {
     path: 'sales',
     component: SalesComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/sales' } }
   },
   {
     path: 'sales-history',
     component: SalesHistoryComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/sales' } }
   },
   {
     path: 'products',
     component: ProductsComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/products' } }
   },
   {
     path: 'acquisitions',
     component: AcquisitionsComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/acquisitions' } }
   },
   {
     path: 'acquisitions/new',
     component: NewAcquisitionComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/acquisitions' } }
   },
   {
     path: 'acquisition-type-catalog',
     component: AcquisitionTypeCatalogComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/acquisition-type-catalog' } }
   },
   {
     path: 'roles',
     component: RolesComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/roles' } }
   },
   {
     path: 'users',
     component: UsersComponent,
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/users' } }
+  },
+  {
+    path: 'companies',
+    component: CompanyCatalogComponent,
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/companies' } }
+  },
+  {
+    path: 'forbidden',
+    component: AccessDeniedComponent,
     canActivate: [AuthGuard]
   },
   {

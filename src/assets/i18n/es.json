@@ -79,6 +79,11 @@
       "FORBIDDEN": "No tienes permisos para realizar esta acción."
     }
   },
+  "ACCESS_DENIED": {
+    "TITLE": "Acceso denegado",
+    "MESSAGE": "No tienes permisos para acceder a esta página.",
+    "BACK": "Volver al inicio"
+  },
   "MODULES_NAVIGATION": {
     "MODULES": "Módulos",
     "LOADING": "Cargando...",
@@ -257,6 +262,72 @@
       "UPDATE_ERROR": "Error actualizando tipo de adquisición"
     }
   },
+  "COMPANY_CATALOG": {
+    "TITLE": "Compañías",
+    "SUBTITLE": "Gestiona las compañías registradas",
+    "NEW_COMPANY": "Nueva compañía",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por nombre, RFC, página, ubicación o contacto"
+    },
+    "EMPTY_STATE": "No se encontraron compañías",
+    "NOT_AVAILABLE": "No registrado",
+    "NO_CONTACT": "Sin contacto",
+    "NO_PHONE": "Sin teléfono",
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "FIELDS": {
+      "RFC": "RFC",
+      "WEBSITE": "Página web",
+      "UBICATION": "Ubicación",
+      "CONTACT": "Contacto",
+      "CONTACT_PHONE": "Teléfono"
+    },
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Activar/Desactivar"
+    },
+    "MODAL": {
+      "CREATE_TITLE": "Nueva compañía",
+      "EDIT_TITLE": "Editar compañía",
+      "NAME": "Nombre de la compañía",
+      "WEBSITE": "Página web",
+      "UBICATION": "Ubicación",
+      "CONTACT": "Contacto",
+      "CONTACT_NONE": "Sin contacto",
+      "PHONE": "Número",
+      "PHONE_LOCKED_HINT": "El contacto ya tiene un número registrado",
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar"
+    },
+    "VALIDATION": {
+      "NAME_REQUIRED": "El nombre es requerido"
+    },
+    "MESSAGES": {
+      "ERROR_LOADING": "Error cargando compañías",
+      "ERROR_LOADING_USERS": "Error cargando los usuarios",
+      "CONFIRM_ACTIVATE_TITLE": "Activar compañía",
+      "CONFIRM_DEACTIVATE_TITLE": "Desactivar compañía",
+      "CONFIRM_ACTIVATE_MESSAGE": "La compañía {{companyName}} será activada y podrá ser usada en el sistema",
+      "CONFIRM_DEACTIVATE_MESSAGE": "La compañía {{companyName}} será desactivada y no podrá usarse en el sistema",
+      "CANCEL": "Cancelar",
+      "ACTIVATE": "Activar",
+      "DEACTIVATE": "Desactivar",
+      "CREATED": "Compañía creada exitosamente",
+      "ERROR_CREATING": "Error creando la compañía",
+      "UPDATE_SUCCESS": "Compañía actualizada exitosamente",
+      "UPDATE_ERROR": "Error actualizando la compañía",
+      "CONFIRM_DELETE_TITLE": "Eliminar compañía",
+      "CONFIRM_DELETE_MESSAGE": "La compañía va a ser eliminada del sistema, esta acción no puede restaurarse",
+      "DELETE": "Eliminar",
+      "DELETE_SUCCESS": "Compañía eliminada exitosamente",
+      "DELETE_ERROR": "Error eliminando la compañía",
+      "ERROR_UPDATING_CONTACT": "La compañía se guardó, pero no se pudo actualizar el número del contacto"
+    }
+  },
   "ROLES": {
     "TITLE": "Roles",
     "SUBTITLE": "Gestiona los roles del sistema",
@@ -324,13 +395,15 @@
     "NEW_USER": "Nuevo usuario",
     "SEARCH": {
       "LABEL": "Buscar",
-      "PLACEHOLDER": "Buscar por nombre, correo o usuario"
+      "PLACEHOLDER": "Buscar por nombre, correo, usuario o rol"
     },
     "EMPTY_STATE": "No se encontraron usuarios",
     "NO_ROLE": "Sin rol",
+    "NO_PHONE": "Sin teléfono",
     "FIELDS": {
       "EMAIL": "Correo",
       "USERNAME": "Usuario",
+      "PHONE": "Teléfono",
       "ROLE": "Rol"
     },
     "STATUS": {
@@ -361,6 +434,8 @@
       "FULL_NAME_PLACEHOLDER": "Ej. Juan Pérez",
       "EMAIL_LABEL": "Correo electrónico",
       "EMAIL_PLACEHOLDER": "Ej. juan@empresa.com",
+      "PHONE_LABEL": "Teléfono",
+      "PHONE_PLACEHOLDER": "Ej. 987654321",
       "ROLE_LABEL": "Rol",
       "ROLE_PLACEHOLDER": "Selecciona un rol",
       "PASSWORD_LABEL": "Contraseña",
@@ -375,7 +450,9 @@
       "ROLE_REQUIRED": "Selecciona un rol",
       "PASSWORD_REQUIRED": "La contraseña es obligatoria",
       "CANCEL": "Cancelar",
-      "SAVE": "Guardar"
+      "SAVE": "Guardar",
+      "COMPANY_LABEL": "Compañía",
+      "COMPANY_PLACEHOLDER": "Selecciona una compañía"
     },
     "MESSAGES": {
       "ERROR_LOADING": "Error cargando usuarios",

@@ -19,6 +19,7 @@ import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 import { ACQUISITIONS_CONSTANTS } from '@shared/constants/acquisitions.constants';
 import { formatCurrency as formatCurrencyUtil } from '@shared/utils/format.utils';
 import { I18nService } from '@core/i18n/i18n.service';
+import { PermissionDirective } from '@shared/directives/permission.directive';
 
 @Component({
   selector: 'app-acquisitions',
@@ -32,7 +33,8 @@ import { I18nService } from '@core/i18n/i18n.service';
     MatInputModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    PermissionDirective
   ],
   templateUrl: './acquisitions.component.html',
   styleUrls: ['./acquisitions.component.scss'],

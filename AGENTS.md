@@ -20,7 +20,7 @@ CHROME="$HOME/.cache/puppeteer-browsers/chrome-headless-shell/linux-152.0.7977.5
 CHROME_BIN="$CHROME" npm test -- --watch=false
 ```
 
-Current state: **103/103 tests**. If you add domain logic or mapping logic, add tests.
+Current state: **268/268 tests**. If you add domain logic or mapping logic, add tests.
 
 ## Rules per layer
 

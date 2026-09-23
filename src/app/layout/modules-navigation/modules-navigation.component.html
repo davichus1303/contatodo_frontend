@@ -17,12 +17,12 @@
         </div>
       } @else {
         @if (currentView() === 'full') {
-          @for (module of nonCatalogModules(); track module.id) {
+          @for (module of getNonCatalogModules(); track module.id) {
             <button mat-menu-item (click)="navigateToModule(module.link)">
               <span>{{ module.name }}</span>
             </button>
           }
-          @if (catalogModules().length > 0) {
+          @if (getCatalogModules().length > 0) {
             <button mat-menu-item (click)="showCatalogs($event)">
               <mat-icon>folder_open</mat-icon>
               <span>{{ i18nService.translate('MODULES_NAVIGATION.CATALOGS') }}</span>
@@ -34,13 +34,13 @@
             <span>{{ i18nService.translate('MODULES_NAVIGATION.BACK_TO_FULL_MENU') }}</span>
           </button>
           <mat-divider></mat-divider>
-          @for (module of catalogModules(); track module.id) {
+          @for (module of getCatalogModules(); track module.id) {
             <button mat-menu-item (click)="navigateToModule(module.link)">
               <span>{{ module.name }}</span>
             </button>
           }
         }
-        @if (modules().length === 0) {
+        @if (visibleModules().length === 0) {
           <div class="no-modules">
             <span>{{ i18nService.translate('MODULES_NAVIGATION.NO_MODULES_AVAILABLE') }}</span>
           </div>

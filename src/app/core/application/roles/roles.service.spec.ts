@@ -60,6 +60,29 @@ describe('RolesService', () => {
     expect(httpMock.get).toHaveBeenCalledWith(ROLES_URL);
   });
 
+  it('should deliver mapped domain roles', () => {
+    httpMock.get.and.returnValue(of({
+      status: 200,
+      message: 'OK',
+      data: [{ ...roleResponse.data, id: ' r1 ', name: ' Admin ' }]
+    }));
+
+    let roles: Role[] = [];
+    service.getRoles().subscribe((response) => (roles = response.data));
+
+    expect(roles[0].id).toBe('r1');
+    expect(roles[0].name).toBe('Admin');
+  });
+
+  it('should emit through the error channel when a role violates the contract', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [{ id: '', name: 'Admin' }] }));
+
+    let errored = false;
+    service.getRoles().subscribe({ error: () => (errored = true) });
+
+    expect(errored).toBeTrue();
+  });
+
   it('should fetch all modules through GET on the modules URL', () => {
     const modules: Module[] = [{ id: 'm1', name: 'Ventas', link: '/sales' }];
     httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: modules }));
@@ -67,6 +90,15 @@ describe('RolesService', () => {
     service.getModules().subscribe();
 
     expect(httpMock.get).toHaveBeenCalledWith(MODULES_URL);
+  });
+
+  it('should emit through the error channel when the modules payload is not a collection', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: { id: 'm1' } }));
+
+    let errored = false;
+    service.getModules().subscribe({ error: () => (errored = true) });
+
+    expect(errored).toBeTrue();
   });
 
   it('should create a role through a POST with the request payload', () => {

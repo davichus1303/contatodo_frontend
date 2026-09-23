@@ -19,7 +19,7 @@ src/app/
 │   ├── domain/                 # PURE — no Angular or RxJS
 │   │   ├── models/             # readonly entities + validated factories
 │   │   │                       #   product/sale/acquisition/acquisition-type/
-│   │   │                       #   module/user/role  (+ sibling .spec.ts)
+│   │   │                       #   module/user/role/company  (+ sibling .spec.ts)
 │   │   │                       #   createX(raw): Result<X, DomainError[]>
 │   │   ├── errors/             # DomainError + domainError()
 │   │   ├── result/             # Result<T> = { ok: true, value } | { ok: false, error }
@@ -29,7 +29,7 @@ src/app/
 │   │
 │   ├── application/            # use cases
 │   │   ├── products|sales|acquisitions|acquisition-types|
-│   │   │   expenses|modules|roles/     # thin services over HTTP_PORT
+│   │   │   expenses|modules|roles|companies/  # thin services over HTTP_PORT
 │   │   ├── dto/                # transport DTOs (request/response)
 │   │   ├── ports/              # HTTP_PORT, ApiResponse, api-error.ts
 │   │   │                       #   (extractApiErrorMessage — pure)
@@ -54,6 +54,7 @@ src/app/
 │   │                           #   acquisition-form = presentational child;
 │   │                           #   mapper in core/application
 │   ├── acquisition-type-catalog/  # + dialog/, delete-dialog/
+│   ├── company-catalog/           # companies list + search; company-dialog/ = reusable create/edit form
 │   └── roles/
 │
 ├── layout/
@@ -62,6 +63,7 @@ src/app/
 └── shared/
     ├── components/confirmation-dialog/
     ├── constants/              # GENERAL/SALES/LOGIN/... .constants.ts
+    ├── utils/                  # dialog/pending-ids/search/display .utils.ts
     └── validators/             # domain.validators.ts (wrap domain rules)
 
 src/assets/i18n/es.json         # translation keys (I18nService)

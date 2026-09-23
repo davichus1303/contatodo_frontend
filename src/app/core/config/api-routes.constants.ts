@@ -18,7 +18,7 @@ const getEnvValue = (key: string, fallback: string): string => {
   return fallback;
 };
 
-export const BASE_URL = getEnvValue('BASE_URL', 'http://localhost:8080');
+export const BASE_URL = getEnvValue('BASE_URL', 'http://localhost:8081');
 export const SLASH = getEnvValue('SLASH', '/');
 export const PRODUCTS = getEnvValue('PRODUCTS', 'products');
 export const SALES = getEnvValue('SALES', 'sales');
@@ -28,6 +28,7 @@ export const EXPENSES = getEnvValue('EXPENSES', 'expenses');
 export const ROLES = getEnvValue('ROLES', 'roles');
 export const MODULES = getEnvValue('MODULES', 'modules');
 export const USERS = getEnvValue('USERS', 'users');
+export const COMPANIES = getEnvValue('COMPANIES', 'companies');
 
 export const PRODUCTS_URL = `${BASE_URL}${SLASH}${PRODUCTS}`;
 export const SALES_URL = `${BASE_URL}${SLASH}${SALES}`;
@@ -37,3 +38,4 @@ export const EXPENSES_URL = `${BASE_URL}${SLASH}${EXPENSES}`;
 export const ROLES_URL = `${BASE_URL}${SLASH}${ROLES}`;
 export const MODULES_URL = `${BASE_URL}${SLASH}${MODULES}`;
 export const USERS_URL = `${BASE_URL}${SLASH}${USERS}`;
+export const COMPANIES_URL = `${BASE_URL}${SLASH}${COMPANIES}`;

@@ -1,0 +1,63 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="company-dialog-form">
+  <h2 mat-dialog-title>
+    {{
+      mode === 'edit'
+        ? i18nService.translate('COMPANY_CATALOG.MODAL.EDIT_TITLE')
+        : i18nService.translate('COMPANY_CATALOG.MODAL.CREATE_TITLE')
+    }}
+  </h2>
+
+  <mat-dialog-content>
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ i18nService.translate('COMPANY_CATALOG.MODAL.NAME') }}</mat-label>
+        <input matInput formControlName="name" />
+        @if (form.controls.name.touched && (form.controls.name.hasError('required') || form.controls.name.hasError('whitespace'))) {
+          <mat-error>{{ i18nService.translate('COMPANY_CATALOG.VALIDATION.NAME_REQUIRED') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ i18nService.translate('COMPANY_CATALOG.MODAL.WEBSITE') }}</mat-label>
+        <input matInput formControlName="webSite" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ i18nService.translate('COMPANY_CATALOG.MODAL.UBICATION') }}</mat-label>
+        <input matInput formControlName="ubication" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ i18nService.translate('COMPANY_CATALOG.MODAL.CONTACT') }}</mat-label>
+        <mat-select formControlName="contactUserOId" (selectionChange)="onContactChange($event.value)">
+          <mat-option value="">{{ i18nService.translate('COMPANY_CATALOG.MODAL.CONTACT_NONE') }}</mat-option>
+          @for (user of users; track user.id) {
+            <mat-option [value]="user.id">{{ getUserLabel(user) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ i18nService.translate('COMPANY_CATALOG.MODAL.PHONE') }}</mat-label>
+        <input matInput type="tel" formControlName="phoneNumber" [readonly]="isPhoneLocked()" />
+        @if (isPhoneLocked()) {
+          <mat-hint>{{ i18nService.translate('COMPANY_CATALOG.MODAL.PHONE_LOCKED_HINT') }}</mat-hint>
+        }
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" [disabled]="isSaving()" (click)="cancel()">
+      {{ i18nService.translate('COMPANY_CATALOG.MODAL.CANCEL') }}
+    </button>
+
+    <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitDisabled">
+      @if (isSaving()) {
+        <mat-spinner diameter="16"></mat-spinner>
+      } @else {
+        {{ i18nService.translate('COMPANY_CATALOG.MODAL.SAVE') }}
+      }
+    </button>
+  </mat-dialog-actions>
+</form>

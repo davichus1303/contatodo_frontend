@@ -14,8 +14,12 @@ export interface UserFormDialogLabels {
   fullNamePlaceholder: string;
   emailLabel: string;
   emailPlaceholder: string;
+  phoneLabel: string;
+  phonePlaceholder: string;
   roleLabel: string;
   rolePlaceholder: string;
+  companyLabel: string;
+  companyPlaceholder: string;
   passwordLabel: string;
   passwordPlaceholder: string;
   passwordEditPlaceholder: string;

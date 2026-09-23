@@ -1,0 +1,98 @@
+<div class="company-catalog-page">
+  <div class="page-header">
+    <div>
+      <h1>{{ i18nService.translate('COMPANY_CATALOG.TITLE') }}</h1>
+      <p>{{ i18nService.translate('COMPANY_CATALOG.SUBTITLE') }}</p>
+    </div>
+    <div class="actions">
+      <button *appPermission="'/company-catalog'; action: 'create'"  mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        <span>{{ i18nService.translate('COMPANY_CATALOG.NEW_COMPANY') }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>{{ i18nService.translate('COMPANY_CATALOG.SEARCH.LABEL') }}</mat-label>
+      <input matInput [formControl]="searchControl" [placeholder]="i18nService.translate('COMPANY_CATALOG.SEARCH.PLACEHOLDER')" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (filteredCompanies().length === 0) {
+    <div class="empty-state">
+      <mat-icon>business</mat-icon>
+      <p>{{ i18nService.translate('COMPANY_CATALOG.EMPTY_STATE') }}</p>
+    </div>
+  } @else {
+    <div class="companies-grid">
+      @for (company of filteredCompanies(); track company.id) {
+        <mat-card class="company-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3>{{ company.name }}</h3>
+              <span [class]="getStatusBadgeClass(company.isActive)">
+                {{
+                  company.isActive
+                    ? i18nService.translate('COMPANY_CATALOG.STATUS.ACTIVE')
+                    : i18nService.translate('COMPANY_CATALOG.STATUS.INACTIVE')
+                }}
+              </span>
+            </div>
+            <div class="company-details">
+              <div class="detail-row">
+                <span class="detail-label">{{ i18nService.translate('COMPANY_CATALOG.FIELDS.RFC') }}:</span>
+                <span class="detail-value">{{ getFieldValue(company.rfc, 'COMPANY_CATALOG.NOT_AVAILABLE') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">{{ i18nService.translate('COMPANY_CATALOG.FIELDS.WEBSITE') }}:</span>
+                <span class="detail-value">{{ getFieldValue(company.webSite, 'COMPANY_CATALOG.NOT_AVAILABLE') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">{{ i18nService.translate('COMPANY_CATALOG.FIELDS.UBICATION') }}:</span>
+                <span class="detail-value">{{ getFieldValue(company.ubication, 'COMPANY_CATALOG.NOT_AVAILABLE') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">{{ i18nService.translate('COMPANY_CATALOG.FIELDS.CONTACT') }}:</span>
+                <span class="detail-value">{{ getFieldValue(company.contactName, 'COMPANY_CATALOG.NO_CONTACT') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">{{ i18nService.translate('COMPANY_CATALOG.FIELDS.CONTACT_PHONE') }}:</span>
+                <span class="detail-value">{{ getFieldValue(company.contactPhone, 'COMPANY_CATALOG.NO_PHONE') }}</span>
+              </div>
+            </div>
+            <div class="card-actions">
+              <button
+                mat-icon-button
+                color="primary"
+                [title]="i18nService.translate('COMPANY_CATALOG.ACTIONS.EDIT')"
+                (click)="openEditDialog(company)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                color="warn"
+                [title]="i18nService.translate('COMPANY_CATALOG.ACTIONS.DELETE')"
+                (click)="onDelete(company)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+              <mat-slide-toggle
+                [checked]="company.isActive"
+                [disabled]="isUpdating(company.id)"
+                (change)="onToggleChange(company, $event)"
+                [title]="i18nService.translate('COMPANY_CATALOG.ACTIONS.TOGGLE_STATUS')"
+              ></mat-slide-toggle>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>
