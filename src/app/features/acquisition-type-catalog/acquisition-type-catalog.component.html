@@ -5,7 +5,7 @@
       <p>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.SUBTITLE') }}</p>
     </div>
     <div class="actions">
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <button *appPermission="'/acquisition-type-catalog'; action: 'create'"  mat-raised-button color="primary" (click)="openCreateDialog()">
         <mat-icon>add</mat-icon>
         <span>{{ i18nService.translate('ACQUISITION_TYPE_CATALOG.NEW_BUTTON') }}</span>
       </button>
@@ -58,10 +58,10 @@
             }
             <div class="card-actions">
               <button mat-icon-button color="primary" [title]="i18nService.translate('ACQUISITION_TYPE_CATALOG.ACTIONS.EDIT')" (click)="openEditDialog(type)">
-                <i class="bi bi-pencil"></i>
+                <mat-icon>edit</mat-icon>
               </button>
               <button mat-icon-button color="warn" [title]="i18nService.translate('ACQUISITION_TYPE_CATALOG.ACTIONS.DELETE')" (click)="openDeleteDialog(type)">
-                <i class="bi bi-trash"></i>
+                <mat-icon>delete</mat-icon>
               </button>
               <mat-slide-toggle
                 [checked]="type.isActive"

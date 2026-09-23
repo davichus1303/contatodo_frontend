@@ -21,6 +21,7 @@ import { AcquisitionTypeDialogComponent } from './acquisition-type-dialog/acquis
 import { AcquisitionTypeDeleteDialogComponent } from './acquisition-type-delete-dialog/acquisition-type-delete-dialog.component';
 import { UpdateAcquisitionTypeRequest } from '@core/application/dto/acquisition-type-request.dto';
 import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
+import { PermissionDirective } from '@shared/directives/permission.directive';
 
 export type SortOption = 'nameAsc' | 'nameDesc' | 'activeFirst' | 'inactiveFirst';
 
@@ -37,7 +38,8 @@ export type SortOption = 'nameAsc' | 'nameDesc' | 'activeFirst' | 'inactiveFirst
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    PermissionDirective
   ],
   templateUrl: './acquisition-type-catalog.component.html',
   styleUrls: ['./acquisition-type-catalog.component.scss'],

@@ -5,7 +5,12 @@
       <p>{{ i18nService.translate('ACQUISITIONS.SUBTITLE') }}</p>
     </div>
     <div class="actions">
-      <button mat-raised-button color="primary" (click)="goToNewAcquisition()">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="goToNewAcquisition()"
+        *appPermission="'/acquisitions'; action: 'create'"
+      >
         <mat-icon>add</mat-icon>
         <span>{{ i18nService.translate('ACQUISITIONS.NEW_ACQUISITION') }}</span>
       </button>

@@ -22,6 +22,7 @@ import { filterBySearchTerm, normalizeSearchTerm } from '@shared/utils/search.ut
 import { displayOrFallback } from '@shared/utils/display.utils';
 import { UserFormDialogComponent } from '@shared/components/user-form-dialog/user-form-dialog.component';
 import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/user-form-dialog.interfaces';
+import { PermissionDirective } from '@shared/directives/permission.directive';
 
 /**
  * Users catalog page.
@@ -45,7 +46,8 @@ import { UserFormDialogData, UserFormDialogLabels } from '@shared/interfaces/use
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    PermissionDirective
   ],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss'],
@@ -196,7 +198,7 @@ export class UsersComponent {
       fullNameRequired: this.i18nService.translate('USERS.MODAL.FULL_NAME_REQUIRED'),
       emailRequired: this.i18nService.translate('USERS.MODAL.EMAIL_REQUIRED'),
       emailInvalid: this.i18nService.translate('USERS.MODAL.EMAIL_INVALID'),
-      roleRequired: this.i18nService.translate('USERS.MODAL.REQUIRED'),
+      roleRequired: this.i18nService.translate('USERS.MODAL.ROLE_REQUIRED'),
       passwordRequired: this.i18nService.translate('USERS.MODAL.PASSWORD_REQUIRED'),
       rolesError: this.i18nService.translate('USERS.MESSAGES.ERROR_LOADING_ROLES'),
       createdMessage: this.i18nService.translate('USERS.MESSAGES.CREATED'),
@@ -348,13 +350,13 @@ export class UsersComponent {
 
     this.usersService.updateUser(user.id, request).subscribe({
       next: () => {
-        this.notifications.success(this.i18nService.translate('USERS.UPDATE_SUCCESS'));
+        this.notifications.success(this.i18nService.translate('USERS.MESSAGES.UPDATE_SUCCESS'));
         this.updatingIds = removePendingId(this.updatingIds, user.id);
         this.loadUsers();
       },
       error: (error: unknown) => {
         this.notifications.error(
-          extractApiErrorMessage(error, this.i18nService.translate('USERS.UPDATE_ERROR'))
+          extractApiErrorMessage(error, this.i18nService.translate('USERS.MESSAGES.UPDATE_ERROR'))
         );
         this.updatingIds = removePendingId(this.updatingIds, user.id);
         this.changeDetectorRef.markForCheck();
