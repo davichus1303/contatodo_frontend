@@ -2,13 +2,25 @@
   <div class="page-header">
     <div>
       <h1>{{ i18nService.translate('ACQUISITIONS.TITLE') }}</h1>
-      <p>{{ i18nService.translate('ACQUISITIONS.SUBTITLE') }}</p>
+      @if (canSelectCompany) {
+        <mat-form-field appearance="outline" class="company-selector">
+          <mat-label>{{ i18nService.translate('ACQUISITIONS.SELECT_COMPANY') }}</mat-label>
+          <mat-select [value]="companyOid()" (selectionChange)="onCompanySelected($event.value)">
+            @for (company of companies(); track company.id) {
+              <mat-option [value]="company.id">{{ company.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      } @else {
+        <p>{{ i18nService.translate('ACQUISITIONS.SUBTITLE') }}</p>
+      }
     </div>
     <div class="actions">
       <button
         mat-raised-button
         color="primary"
         (click)="goToNewAcquisition()"
+        [disabled]="isCompanyRequired()"
         *appPermission="'/acquisitions'; action: 'create'"
       >
         <mat-icon>add</mat-icon>

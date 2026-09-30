@@ -120,5 +120,17 @@ describe('toCreateAcquisitionRequest', () => {
     expect(empty.invoiceNumber).toBeUndefined();
     expect(empty.observations).toBeUndefined();
   });
+
+  it('should forward the inherited company so the write targets the browsed company', () => {
+    const request = toCreateAcquisitionRequest(baseModel(), 'company-1');
+
+    expect(request.companyOid).toBe('company-1');
+  });
+
+  it('should omit the company when the session carries no selection', () => {
+    const request = toCreateAcquisitionRequest(baseModel());
+
+    expect(request.companyOid).toBeUndefined();
+  });
 });
 

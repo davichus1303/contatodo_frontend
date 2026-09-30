@@ -43,21 +43,43 @@ describe('AcquisitionsService', () => {
     let acquisitions: Acquisition[] = [];
     service.getAcquisitions().subscribe((response) => (acquisitions = response.data));
 
-    expect(httpMock.get).toHaveBeenCalledWith(ACQUISITIONS_URL);
+    expect(httpMock.get).toHaveBeenCalledWith(ACQUISITIONS_URL, { params: { companyOid: undefined } });
     expect(acquisitions[0].id).toBe('a1');
     expect(acquisitions[0].productName).toBe('Arroz');
   });
 
-  it('should append the ISO date range to the URL when both bounds are given', () => {
+  it('should send the ISO date range as params when both bounds are given', () => {
     httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [] }));
     const startDate = new Date('2026-08-01T00:00:00.000Z');
     const endDate = new Date('2026-08-31T23:59:59.000Z');
 
     service.getAcquisitions(startDate, endDate).subscribe();
 
-    expect(httpMock.get).toHaveBeenCalledWith(
-      `${ACQUISITIONS_URL}?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
-    );
+    expect(httpMock.get).toHaveBeenCalledWith(ACQUISITIONS_URL, {
+      params: {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        companyOid: undefined
+      }
+    });
+  });
+
+  it('should omit the date range when a single bound is given', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [] }));
+
+    service.getAcquisitions(new Date('2026-08-01T00:00:00.000Z')).subscribe();
+
+    expect(httpMock.get).toHaveBeenCalledWith(ACQUISITIONS_URL, { params: { companyOid: undefined } });
+  });
+
+  it('should send the companyOid param so a root session can scope the read', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [] }));
+
+    service.getAcquisitions(undefined, undefined, 'company-1').subscribe();
+
+    expect(httpMock.get).toHaveBeenCalledWith(ACQUISITIONS_URL, {
+      params: { companyOid: 'company-1' }
+    });
   });
 
   it('should emit through the error channel when an acquisition violates the contract', () => {
