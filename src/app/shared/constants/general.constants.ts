@@ -12,8 +12,11 @@ export const GENERAL_CONSTANTS = {
     LOCALE: 'es-PE',
     CURRENCY_CODE: 'PEN'
   },
-  // HTTP query parameters and headers shared across application services
+  // HTTP path segments, query parameters and headers shared across application services
   HTTP: {
+    SEGMENTS: {
+      CONTACTS: 'contacts'
+    },
     HEADERS: {
       USER_OID: 'userOid'
     },

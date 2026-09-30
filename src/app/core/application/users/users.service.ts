@@ -40,6 +40,21 @@ export class UsersService {
   }
 
   /**
+   * Retrieves the users that can be picked as the contact of a company.
+   *
+   * The read is not company scoped: the contact may belong to any company and
+   * a company created now has no users yet, so a root session receives every
+   * active user. It must not be used to list the users of a company.
+   *
+   * @returns Observable with API response containing the candidate users.
+   */
+  getContactCandidates(): Observable<ApiResponse<User[]>> {
+    return this.http
+      .get<ApiResponse<unknown>>(`${this.apiUrl}/${GENERAL_CONSTANTS.HTTP.SEGMENTS.CONTACTS}`)
+      .pipe(map((response) => this.withMappedData(response, mapUsers(response.data))));
+  }
+
+  /**
    * Creates a new user.
    *
    * The session token is attached to the request by the authentication
