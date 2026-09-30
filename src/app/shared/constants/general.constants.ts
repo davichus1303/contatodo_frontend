@@ -12,6 +12,17 @@ export const GENERAL_CONSTANTS = {
     LOCALE: 'es-PE',
     CURRENCY_CODE: 'PEN'
   },
+  // HTTP query parameters and headers shared across application services
+  HTTP: {
+    HEADERS: {
+      USER_OID: 'userOid'
+    },
+    PARAMS: {
+      COMPANY_OID: 'companyOid',
+      START_DATE: 'startDate',
+      END_DATE: 'endDate'
+    }
+  },
   // Strings
   EMPTY: '',
   // Numbers

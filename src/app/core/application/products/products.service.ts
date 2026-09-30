@@ -7,11 +7,9 @@ import { DomainError } from '../../domain/errors/domain-error';
 import { Result } from '../../domain/result';
 import { mapProducts } from './product.mapper';
 import { PRODUCTS_URL } from '../../config/api-routes.constants';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 import { AuthService } from '../../auth/auth.service';
 import { ProductCreatePayload, ProductUpdatePayload } from '../dto/product-request.dto';
-
-const USER_OID_HEADER = 'userOid';
-const COMPANY_OID_PARAM = 'companyOid';
 
 /**
  * Use cases for the product catalog (list, detail, create, update).
@@ -54,8 +52,8 @@ export class ProductsService {
 
     return this.http
       .get<ApiResponse<unknown>>(`${this.apiUrl}/available`, {
-        headers: { [USER_OID_HEADER]: userOid },
-        params: { [COMPANY_OID_PARAM]: companyOid }
+        headers: { [GENERAL_CONSTANTS.HTTP.HEADERS.USER_OID]: userOid },
+        params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
       })
       .pipe(map((response) => this.withMappedData(response, mapProducts(response.data))));
   }

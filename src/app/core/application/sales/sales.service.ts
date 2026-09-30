@@ -8,9 +8,8 @@ import { Result } from '../../domain/result';
 import { mapSales } from './sale.mapper';
 import { CreateSaleRequest } from '../dto/create-sale-request.dto';
 import { SALES_URL } from '../../config/api-routes.constants';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 import { formatDateISO } from '@shared/utils/format.utils';
-
-const COMPANY_OID_PARAM = 'companyOid';
 
 /**
  * Use cases for sales (create, list today's sales, query by date/range).
@@ -46,7 +45,9 @@ export class SalesService {
    */
   getTodaySales(companyOid?: string): Observable<ApiResponse<Sale[]>> {
     return this.http
-      .get<ApiResponse<unknown>>(this.apiUrl, { params: { [COMPANY_OID_PARAM]: companyOid } })
+      .get<ApiResponse<unknown>>(this.apiUrl, {
+        params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
+      })
       .pipe(map((response) => this.withMappedData(response, mapSales(response.data))));
   }
 
@@ -68,7 +69,11 @@ export class SalesService {
 
     return this.http
       .get<ApiResponse<unknown>>(`${this.apiUrl}/date-range`, {
-        params: { startDate: startStr, endDate: endStr, [COMPANY_OID_PARAM]: companyOid }
+        params: {
+          [GENERAL_CONSTANTS.HTTP.PARAMS.START_DATE]: startStr,
+          [GENERAL_CONSTANTS.HTTP.PARAMS.END_DATE]: endStr,
+          [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid
+        }
       })
       .pipe(map((response) => this.withMappedData(response, mapSales(response.data))));
   }
