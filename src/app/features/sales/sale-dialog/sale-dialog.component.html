@@ -45,6 +45,9 @@
       <mat-error *ngIf="saleForm.get('totalSalePrice')?.hasError('min')">
         {{ i18nService.translate('sales.salePriceMin') }}
       </mat-error>
+      <mat-error *ngIf="saleForm.hasError('saleWithoutProfit')">
+        {{ i18nService.translate('sales.saleWithoutProfit') }}
+      </mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline">

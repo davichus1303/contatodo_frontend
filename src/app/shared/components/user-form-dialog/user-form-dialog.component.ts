@@ -130,8 +130,13 @@ export class UserFormDialogComponent {
         roleId: this.user.role?.id ?? GENERAL_CONSTANTS.EMPTY,
         companyOid: this.user.companyOid ?? GENERAL_CONSTANTS.EMPTY
       });
-    } else if (this.generatePassword) {
-      this.form.controls.password.setValue(generateRandomPassword());
+    } else {
+      if (this.generatePassword) {
+        this.form.controls.password.setValue(generateRandomPassword());
+      }
+      if (this.data.companyOid) {
+        this.form.controls.companyOid.setValue(this.data.companyOid);
+      }
     }
 
     const initialValue = this.form.getRawValue();

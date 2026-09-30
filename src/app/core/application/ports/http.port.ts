@@ -10,6 +10,14 @@ export interface HttpPortOptions {
    * Additional HTTP headers sent with the request.
    */
   readonly headers?: Record<string, string>;
+
+  /**
+   * Query string parameters sent with the request.
+   *
+   * Entries with a nullish value are omitted, so callers can build the
+   * options from optional arguments without filtering them first.
+   */
+  readonly params?: Readonly<Record<string, string | null | undefined>>;
 }
 
 /**

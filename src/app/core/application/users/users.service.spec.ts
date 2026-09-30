@@ -5,6 +5,7 @@ import { HTTP_PORT } from '../ports/http.port';
 import { User } from '../../domain/models/user.model';
 import { UserRequest } from '../dto/user-request.dto';
 import { USERS_URL } from '../../config/api-routes.constants';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -45,10 +46,30 @@ describe('UsersService', () => {
     let users: User[] = [];
     service.getUsers().subscribe((response) => (users = response.data));
 
-    expect(httpMock.get).toHaveBeenCalledWith(USERS_URL);
+    expect(httpMock.get).toHaveBeenCalledWith(USERS_URL, { params: { companyOid: undefined } });
     expect(users[0].id).toBe('u1');
     expect(users[0].userName).toBe('ana');
     expect(users[0].phoneNumber).toBeUndefined();
+  });
+
+  it('should fetch the contact candidates without a company scope', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [rawUser] }));
+
+    let users: User[] = [];
+    service.getContactCandidates().subscribe((response) => (users = response.data));
+
+    expect(httpMock.get).toHaveBeenCalledWith(
+      `${USERS_URL}/${GENERAL_CONSTANTS.HTTP.SEGMENTS.CONTACTS}`
+    );
+    expect(users[0].id).toBe('u1');
+  });
+
+  it('should scope the request to the given company', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [rawUser] }));
+
+    service.getUsers('company-1').subscribe();
+
+    expect(httpMock.get).toHaveBeenCalledWith(USERS_URL, { params: { companyOid: 'company-1' } });
   });
 
   it('should emit through the error channel when a user violates the contract', () => {

@@ -42,6 +42,28 @@ describe('CompaniesService', () => {
     expect(companies[0].name).toBe('Acme');
   });
 
+  it('should fetch active companies from the /active endpoint', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [rawCompany] }));
+
+    let companies: Company[] = [];
+    service.getActiveCompanies().subscribe((response) => {
+      companies = response.data;
+    });
+
+    expect(httpMock.get).toHaveBeenCalledWith(`${COMPANIES_URL}/active`);
+    expect(companies[0].id).toBe('c1');
+    expect(companies[0].name).toBe('Acme');
+  });
+
+  it('should emit through the error channel when an active company violates the contract', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [{ id: '', name: 'Acme' }] }));
+
+    let errored = false;
+    service.getActiveCompanies().subscribe({ error: () => (errored = true) });
+
+    expect(errored).toBeTrue();
+  });
+
   it('should emit through the error channel when a company violates the contract', () => {
     httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [{ id: '', name: 'Acme' }] }));
 

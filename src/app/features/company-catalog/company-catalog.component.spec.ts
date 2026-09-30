@@ -22,7 +22,7 @@ describe('CompanyCatalogComponent', () => {
   let updateCompanySpy: jasmine.Spy;
   let createCompaniesSpy: jasmine.Spy;
   let deleteCompanySpy: jasmine.Spy;
-  let getUsersSpy: jasmine.Spy;
+  let getContactCandidatesSpy: jasmine.Spy;
   let updateUserSpy: jasmine.Spy;
   let successSpy: jasmine.Spy;
   let errorSpy: jasmine.Spy;
@@ -104,7 +104,7 @@ describe('CompanyCatalogComponent', () => {
       message: 'OK',
       data: null
     } as ApiResponse<unknown>));
-    getUsersSpy = jasmine.createSpy('getUsers').and.returnValue(of({
+    getContactCandidatesSpy = jasmine.createSpy('getContactCandidates').and.returnValue(of({
       status: 200,
       message: 'OK',
       data: users
@@ -137,7 +137,7 @@ describe('CompanyCatalogComponent', () => {
             deleteCompany: deleteCompanySpy
           }
         },
-        { provide: UsersService, useValue: { getUsers: getUsersSpy, updateUser: updateUserSpy } },
+        { provide: UsersService, useValue: { getContactCandidates: getContactCandidatesSpy, updateUser: updateUserSpy } },
         { provide: NotificationService, useValue: { success: successSpy, error: errorSpy } },
         { provide: I18nService, useValue: { translate: translateSpy } },
         provideAnimationsAsync()
@@ -241,7 +241,7 @@ describe('CompanyCatalogComponent', () => {
 
     component.openCreateDialog();
 
-    expect(getUsersSpy).toHaveBeenCalledTimes(1);
+    expect(getContactCandidatesSpy).toHaveBeenCalledTimes(1);
     expect(dialogOpenSpy).toHaveBeenCalledTimes(1);
     expect(dialogOpenSpy.calls.mostRecent().args[0]).toBe(CompanyDialogComponent);
     expect(dialogOpenSpy.calls.mostRecent().args[1].data.users).toBe(users);
@@ -251,7 +251,7 @@ describe('CompanyCatalogComponent', () => {
   it('should open the edit dialog prefilled with the selected company', () => {
     component.openEditDialog(component.companies()[0]);
 
-    expect(getUsersSpy).toHaveBeenCalledTimes(1);
+    expect(getContactCandidatesSpy).toHaveBeenCalledTimes(1);
     expect(dialogOpenSpy.calls.mostRecent().args[1].data.mode).toBe('edit');
     expect(dialogOpenSpy.calls.mostRecent().args[1].data.company).toBe(component.companies()[0]);
     expect(dialogOpenSpy.calls.mostRecent().args[1].data.users).toBe(users);
@@ -329,7 +329,7 @@ describe('CompanyCatalogComponent', () => {
   });
 
   it('should notify an error and not open the dialog when the contacts fail to load', () => {
-    getUsersSpy.and.returnValue(throwError(() => ({ status: 500 })));
+    getContactCandidatesSpy.and.returnValue(throwError(() => ({ status: 500 })));
 
     component.openCreateDialog();
 

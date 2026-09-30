@@ -15,7 +15,7 @@ describe('createRole', () => {
       isActive: true,
       createdDate: '2026-01-01',
       updatedDate: '2026-01-02',
-      createdBy: 'user-1',
+      byUserOid: 'user-1',
       ...overrides
     };
   }
@@ -80,7 +80,7 @@ describe('createRole', () => {
     const result = createRole(validRole({
       id: '  role-1  ',
       name: '  Administrador  ',
-      createdBy: '  user-1  ',
+      byUserOid: '  user-1  ',
       permissions: [
         { moduleOid: '  module-1  ', permissions: { create: true, update: true, delete: false, view: true } }
       ]
@@ -90,7 +90,7 @@ describe('createRole', () => {
     if (result.ok) {
       expect(result.value.id).toBe('role-1');
       expect(result.value.name).toBe('Administrador');
-      expect(result.value.createdBy).toBe('user-1');
+      expect(result.value.byUserOid).toBe('user-1');
       expect(result.value.permissions[0].moduleOid).toBe('module-1');
     }
   });
@@ -102,7 +102,7 @@ describe('createRole', () => {
       permissions: [],
       createdDate: '2026-01-01',
       updatedDate: '2026-01-02',
-      createdBy: 'user-1'
+      byUserOid: 'user-1'
     });
 
     expect(result.ok).toBeTrue();

@@ -11,6 +11,8 @@ export interface ProductFormPayload {
   userOid?: string;
 }
 
-export interface ProductCreatePayload extends ProductFormPayload {}
+export interface ProductCreatePayload extends ProductFormPayload {
+  companyOid?: string;
+}
 
 export interface ProductUpdatePayload extends ProductFormPayload {}

@@ -1,5 +1,14 @@
 <div class="sales-container">
   <div class="header-actions">
+    <mat-form-field *ngIf="canSelectCompany" appearance="outline" class="company-selector">
+      <mat-label>{{ i18nService.translate('sales.selectCompany') }}</mat-label>
+      <mat-select [value]="companyOid()" (selectionChange)="onCompanySelected($event.value)">
+        <mat-option *ngFor="let company of companies()" [value]="company.id">
+          {{ company.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
     <button 
       mat-raised-button 
       color="accent" 
@@ -23,13 +32,18 @@
     <mat-spinner></mat-spinner>
   </div>
 
-  <div *ngIf="!isLoading() && filteredProducts().length === 0" class="empty-state">
+  <div *ngIf="!isLoading() && canSelectCompany && !companyOid()" class="empty-state">
+    <mat-icon>domain</mat-icon>
+    <p>{{ i18nService.translate('sales.selectCompanyPrompt') }}</p>
+  </div>
+
+  <div *ngIf="!isLoading() && visibleProducts().length === 0 && (!canSelectCompany || companyOid())" class="empty-state">
     <mat-icon>inventory_2</mat-icon>
     <p>{{ i18nService.translate('sales.noProducts') }}</p>
   </div>
 
-  <div class="products-grid" *ngIf="!isLoading()">
-    <mat-card *ngFor="let product of filteredProducts()" class="product-card" (click)="openSaleDialog(product)">
+  <div class="products-grid" *ngIf="!isLoading() && visibleProducts().length > 0">
+    <mat-card *ngFor="let product of visibleProducts()" class="product-card" (click)="openSaleDialog(product)">
       <mat-card-header>
         <mat-card-title>{{ product.name }}</mat-card-title>
         <mat-card-subtitle>{{ i18nService.translate('sales.code') }}: {{ product.code }}</mat-card-subtitle>

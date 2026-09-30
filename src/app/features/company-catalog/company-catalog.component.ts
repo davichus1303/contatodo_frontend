@@ -223,7 +223,7 @@ export class CompanyCatalogComponent {
   }
 
   /**
-   * Loads the non-deleted users and opens the reusable company dialog in
+   * Loads the contact candidates and opens the reusable company dialog in
    * create mode. The dialog is not opened when the contacts cannot be loaded,
    * so the contact list is never incomplete.
    */
@@ -232,7 +232,7 @@ export class CompanyCatalogComponent {
   }
 
   /**
-   * Loads the non-deleted users and opens the reusable company dialog in edit
+   * Loads the contact candidates and opens the reusable company dialog in edit
    * mode, prefilled with the selected company.
    *
    * @param company Company selected for edition.
@@ -242,7 +242,7 @@ export class CompanyCatalogComponent {
   }
 
   private loadContactsAndOpenDialog(mode: CompanyDialogMode, company?: Company): void {
-    this.usersService.getUsers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.usersService.getContactCandidates().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response: ApiResponse<User[]>) => this.openCompanyDialog(mode, response.data ?? [], company),
       error: (error: unknown) => {
         this.notifications.error(

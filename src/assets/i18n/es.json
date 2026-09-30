@@ -34,11 +34,15 @@
     "quantityMin": "Cantidad debe ser al menos 1",
     "salePriceRequired": "Precio de venta es requerido",
     "salePriceMin": "Precio de venta debe ser mayor a 0",
+    "saleWithoutProfit": "El precio de venta debe ser mayor al costo total",
     "saleCreated": "Venta creada exitosamente",
     "errorLoadingProducts": "Error cargando productos",
     "errorCreatingSale": "Error creando venta",
     "history": "Historial de Ventas",
-    "price": "Precio"
+    "price": "Precio",
+    "selectCompany": "Selecciona una compañía",
+    "selectCompanyPrompt": "Selecciona una compañía para ver sus productos disponibles",
+    "errorLoadingCompanies": "Error cargando las compañías"
   },
   "toolbar": {
     "logout": "Cerrar sesión"
@@ -95,6 +99,8 @@
   "PRODUCTS": {
     "TITLE": "Productos",
     "SUBTITLE": "Gestiona tus productos",
+    "SELECT_COMPANY": "Selecciona una compañía",
+    "SELECT_COMPANY_PROMPT": "Selecciona una compañía para ver sus productos",
     "ADD_PRODUCT": "Agregar producto",
     "BACK_TO_SALES": "Volver a ventas",
     "SEARCH_PLACEHOLDER": "Buscar por nombre",
@@ -137,6 +143,7 @@
       "CREATED": "Producto creado correctamente",
       "UPDATED": "Producto actualizado correctamente",
       "ERROR_LOADING_PRODUCTS": "Error cargando productos",
+      "ERROR_LOADING_COMPANIES": "Error cargando las compañías",
       "ERROR_CREATING_PRODUCT": "Error creando producto",
       "ERROR_UPDATING_PRODUCT": "Error actualizando producto"
     }
@@ -392,6 +399,8 @@
   "USERS": {
     "TITLE": "Usuarios",
     "SUBTITLE": "Gestiona los usuarios del sistema",
+    "SELECT_COMPANY": "Selecciona una compañía",
+    "SELECT_COMPANY_PROMPT": "Selecciona una compañía para ver sus usuarios",
     "NEW_USER": "Nuevo usuario",
     "SEARCH": {
       "LABEL": "Buscar",
@@ -456,6 +465,7 @@
     },
     "MESSAGES": {
       "ERROR_LOADING": "Error cargando usuarios",
+      "ERROR_LOADING_COMPANIES": "Error cargando las compañías",
       "UPDATE_SUCCESS": "Usuario actualizado exitosamente",
       "UPDATE_ERROR": "Error actualizando el usuario",
       "CREATED": "Usuario creado exitosamente",
