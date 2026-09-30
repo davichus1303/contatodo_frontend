@@ -8,11 +8,16 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { Router } from '@angular/router';
 import { ProductsService } from '@core/application/products/products.service';
+import { CompaniesService } from '@core/application/companies/companies.service';
+import { CompanySelectionService } from '@core/application/companies/company-selection.service';
+import { PermissionService } from '@core/application/permissions/permission.service';
 import { Product } from '@core/domain/models/product.model';
+import { Company } from '@core/domain/models/company.model';
 import { ProductFormComponent } from './product-form/product-form.component';
 import { PermissionDirective } from '@shared/directives/permission.directive';
 import { ProductFormPayload } from '@core/application/dto/product-request.dto';
@@ -33,6 +38,7 @@ import { openConfirmationDialog } from '@shared/utils/dialog.utils';
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
     ProductFormComponent,
     PermissionDirective
   ],
@@ -42,6 +48,9 @@ import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 })
 export class ProductsComponent {
   private readonly productsService = inject(ProductsService);
+  private readonly companiesService = inject(CompaniesService);
+  private readonly companySelection = inject(CompanySelectionService);
+  private readonly permissionService = inject(PermissionService);
   private readonly dialog = inject(MatDialog);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
@@ -54,6 +63,25 @@ export class ProductsComponent {
   readonly isSaving = signal<boolean>(false);
   readonly sortBy = signal<'name' | 'price' | 'stock'>('name');
   readonly sortDirection = signal<'asc' | 'desc'>('asc');
+  readonly companies = signal<Company[]>([]);
+  readonly companyOid = signal<string | null>(null);
+
+  /**
+   * Whether the session may choose the owning company.
+   *
+   * Only a root session sees the selector: it carries no company claim, so the
+   * company has to be picked explicitly. Every other session is already scoped
+   * to its own company by the backend and must not choose another one.
+   */
+  readonly canSelectCompany = this.permissionService.isRoot();
+
+  /**
+   * Products to render. A root session has nothing to show until a company is
+   * selected, because the backend rejects an unscoped query.
+   */
+  readonly visibleProducts = computed(() =>
+    this.canSelectCompany && !this.companyOid() ? [] : this.filteredProducts()
+  );
 
   readonly filteredProducts = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
@@ -79,6 +107,44 @@ export class ProductsComponent {
     this.searchControl.valueChanges.subscribe((value: string | null) => {
       this.searchTerm.set(value?.trim().toLowerCase() ?? '');
     });
+    this.init();
+  }
+
+  private init(): void {
+    this.companyOid.set(this.companySelection.companyOid());
+
+    if (this.canSelectCompany) {
+      this.loadCompanies();
+      if (this.companyOid()) {
+        this.loadProducts();
+      }
+    } else {
+      this.loadProducts();
+    }
+  }
+
+  /**
+   * Loads the active, non-deleted companies available to a root session.
+   */
+  private loadCompanies(): void {
+    this.companiesService.getActiveCompanies().subscribe({
+      next: (response: ApiResponse<Company[]>) => {
+        this.companies.set(response.data ?? []);
+      },
+      error: () => {
+        this.notifications.error(this.i18nService.translate('PRODUCTS.MESSAGES.ERROR_LOADING_COMPANIES'));
+      }
+    });
+  }
+
+  /**
+   * Handles a company selection and reloads the product list for that company.
+   *
+   * @param companyOid Selected company identifier, or an empty value to clear.
+   */
+  onCompanySelected(companyOid: string | null): void {
+    this.companyOid.set(companyOid);
+    this.companySelection.select(companyOid);
     this.loadProducts();
   }
 
@@ -87,8 +153,12 @@ export class ProductsComponent {
       return;
     }
 
+    if (this.canSelectCompany && !this.companyOid()) {
+      return;
+    }
+
     this.isLoading.set(true);
-    this.productsService.getAllProducts().subscribe({
+    this.productsService.getAllProducts(this.companyOid() ?? undefined).subscribe({
       next: (response: ApiResponse<Product[]>) => {
         this.products.set(response.data ?? []);
         this.isLoading.set(false);
@@ -128,7 +198,9 @@ export class ProductsComponent {
     }
 
     this.isSaving.set(true);
-    this.productsService.createProduct(payload).subscribe({
+    this.productsService
+      .createProduct({ ...payload, companyOid: this.companyOid() ?? undefined })
+      .subscribe({
       next: () => {
         this.isSaving.set(false);
         this.dialog.closeAll();

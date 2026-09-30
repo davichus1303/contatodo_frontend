@@ -25,12 +25,20 @@ export class ProductsService {
   /**
    * Retrieves all products.
    *
+   * <p>The company scope is optional and only takes effect for sessions that
+   * carry no company claim (a root user). For every other session the backend
+   * ignores the parameter and scopes the query to the session company, so the
+   * value is omitted rather than sent empty.</p>
+   *
+   * @param companyOid Owning company, or undefined to use the session company.
    * @returns Observable with API response containing all products.
    */
-  getAllProducts(): Observable<ApiResponse<Product[]>> {
-    return this.http.get<ApiResponse<unknown>>(this.apiUrl).pipe(
-      map((response) => this.withMappedData(response, mapProducts(response.data)))
-    );
+  getAllProducts(companyOid?: string): Observable<ApiResponse<Product[]>> {
+    return this.http
+      .get<ApiResponse<unknown>>(this.apiUrl, {
+        params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
+      })
+      .pipe(map((response) => this.withMappedData(response, mapProducts(response.data))));
   }
 
   /**
