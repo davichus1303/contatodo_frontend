@@ -11,7 +11,7 @@ describe('mapRoles', () => {
     isActive: true,
     createdDate: '2026-01-01',
     updatedDate: '2026-01-02',
-    createdBy: 'user-1'
+    byUserOid: 'user-1'
   };
 
   it('should map a valid collection to domain roles', () => {

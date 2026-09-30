@@ -48,7 +48,7 @@ describe('UsersComponent', () => {
         isActive: true,
         createdDate: '2026-01-01',
         updatedDate: '2026-01-01',
-        createdBy: 'seed'
+        byUserOid: 'user-1'
       }
     },
     {

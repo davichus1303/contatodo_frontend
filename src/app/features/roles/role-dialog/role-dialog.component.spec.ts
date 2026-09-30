@@ -53,7 +53,7 @@ describe('RoleDialogComponent', () => {
     isActive: true,
     createdDate: '2026-01-01',
     updatedDate: '2026-01-01',
-    createdBy: 'user'
+    byUserOid: 'user-1'
   };
 
   function configure(data: RoleDialogData, rolesServiceOverrides: Partial<Record<'getModules' | 'createRole' | 'updateRole', jasmine.Spy>> = {}): void {
