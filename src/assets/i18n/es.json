@@ -399,6 +399,8 @@
   "USERS": {
     "TITLE": "Usuarios",
     "SUBTITLE": "Gestiona los usuarios del sistema",
+    "SELECT_COMPANY": "Selecciona una compañía",
+    "SELECT_COMPANY_PROMPT": "Selecciona una compañía para ver sus usuarios",
     "NEW_USER": "Nuevo usuario",
     "SEARCH": {
       "LABEL": "Buscar",
@@ -463,6 +465,7 @@
     },
     "MESSAGES": {
       "ERROR_LOADING": "Error cargando usuarios",
+      "ERROR_LOADING_COMPANIES": "Error cargando las compañías",
       "UPDATE_SUCCESS": "Usuario actualizado exitosamente",
       "UPDATE_ERROR": "Error actualizando el usuario",
       "CREATED": "Usuario creado exitosamente",

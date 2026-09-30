@@ -8,6 +8,7 @@ import { Result } from '../../domain/result';
 import { mapUsers } from './user.mapper';
 import { UserRequest } from '../dto/user-request.dto';
 import { USERS_URL } from '../../config/api-routes.constants';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 
 /**
  * Use cases for the users catalog.
@@ -22,15 +23,20 @@ export class UsersService {
   /**
    * Retrieves all active users with their related role resolved.
    *
-   * The transport payload is mapped to validated domain users before it
-   * leaves the application layer.
+   * <p>The company scope is optional and only takes effect for sessions that
+   * carry no company claim (a root user). For every other session the backend
+   * ignores the parameter and scopes the query to the session company, so the
+   * value is omitted rather than sent empty.</p>
    *
+   * @param companyOid Owning company, or undefined to use the session company.
    * @returns Observable with API response containing all users.
    */
-  getUsers(): Observable<ApiResponse<User[]>> {
-    return this.http.get<ApiResponse<unknown>>(this.apiUrl).pipe(
-      map((response) => this.withMappedData(response, mapUsers(response.data)))
-    );
+  getUsers(companyOid?: string): Observable<ApiResponse<User[]>> {
+    return this.http
+      .get<ApiResponse<unknown>>(this.apiUrl, {
+        params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
+      })
+      .pipe(map((response) => this.withMappedData(response, mapUsers(response.data))));
   }
 
   /**

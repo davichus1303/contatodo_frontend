@@ -45,10 +45,18 @@ describe('UsersService', () => {
     let users: User[] = [];
     service.getUsers().subscribe((response) => (users = response.data));
 
-    expect(httpMock.get).toHaveBeenCalledWith(USERS_URL);
+    expect(httpMock.get).toHaveBeenCalledWith(USERS_URL, { params: { companyOid: undefined } });
     expect(users[0].id).toBe('u1');
     expect(users[0].userName).toBe('ana');
     expect(users[0].phoneNumber).toBeUndefined();
+  });
+
+  it('should scope the request to the given company', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [rawUser] }));
+
+    service.getUsers('company-1').subscribe();
+
+    expect(httpMock.get).toHaveBeenCalledWith(USERS_URL, { params: { companyOid: 'company-1' } });
   });
 
   it('should emit through the error channel when a user violates the contract', () => {
