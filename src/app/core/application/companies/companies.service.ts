@@ -34,6 +34,21 @@ export class CompaniesService {
   }
 
   /**
+   * Retrieves all active and non-deleted companies with their resolved contact data.
+   *
+   * Used to scope queries that require an explicit owning company, such as the
+   * root user's company selector: a root session carries no company claim, so
+   * the company must be chosen explicitly.
+   *
+   * @returns Observable with API response containing active, non-deleted companies.
+   */
+  getActiveCompanies(): Observable<ApiResponse<Company[]>> {
+    return this.http.get<ApiResponse<unknown>>(`${this.apiUrl}/active`).pipe(
+      map((response) => this.withMappedData(response, mapCompanies(response.data)))
+    );
+  }
+
+  /**
    * Creates one or more companies in a single call.
    *
    * @param request Bulk create request.

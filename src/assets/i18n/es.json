@@ -34,11 +34,15 @@
     "quantityMin": "Cantidad debe ser al menos 1",
     "salePriceRequired": "Precio de venta es requerido",
     "salePriceMin": "Precio de venta debe ser mayor a 0",
+    "saleWithoutProfit": "El precio de venta debe ser mayor al costo total",
     "saleCreated": "Venta creada exitosamente",
     "errorLoadingProducts": "Error cargando productos",
     "errorCreatingSale": "Error creando venta",
     "history": "Historial de Ventas",
-    "price": "Precio"
+    "price": "Precio",
+    "selectCompany": "Selecciona una compañía",
+    "selectCompanyPrompt": "Selecciona una compañía para ver sus productos disponibles",
+    "errorLoadingCompanies": "Error cargando las compañías"
   },
   "toolbar": {
     "logout": "Cerrar sesión"

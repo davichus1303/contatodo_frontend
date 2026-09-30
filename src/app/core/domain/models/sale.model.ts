@@ -26,9 +26,10 @@ export interface Sale {
  *
  * Load-bearing invariants are enforced: the payload must be an object, the
  * identity/date fields must be non-empty strings and every monetary/quantity
- * field must be a finite number. The optional `productName` collapses to
- * `undefined` when absent and `notes` defaults to an empty string so partial
- * payloads never leak invalid values.
+ * field must be a finite number. The owning user comes from the backend's
+ * `byUserOid` field, falling back to `userOid` for tolerance. The optional
+ * `productName` collapses to `undefined` when absent and `notes` defaults to
+ * an empty string so partial payloads never leak invalid values.
  *
  * @param raw Raw payload, typically an API list item.
  * @returns Successful result with the sale, or every violation found.
@@ -40,10 +41,16 @@ export function createSale(raw: unknown): Result<Sale, readonly DomainError[]> {
 
   const errors: DomainError[] = [];
 
-  for (const field of ['id', 'productOid', 'userOid', 'saleDate', 'createdDate', 'updatedDate'] as const) {
+  const rawUserOid = raw['byUserOid'] ?? raw['userOid'];
+
+  for (const field of ['id', 'productOid', 'saleDate', 'createdDate', 'updatedDate'] as const) {
     if (!isNonEmptyString(raw[field])) {
       errors.push(domainError(field, `Sale ${field} must be a non-empty string.`));
     }
+  }
+
+  if (!isNonEmptyString(rawUserOid)) {
+    errors.push(domainError('userOid', 'Sale userOid must be a non-empty string.'));
   }
 
   const numericFields = [
@@ -68,7 +75,7 @@ export function createSale(raw: unknown): Result<Sale, readonly DomainError[]> {
     saleNumber: raw['saleNumber'] as number,
     productOid: (raw['productOid'] as string).trim(),
     productName: optionalString(raw['productName']),
-    userOid: (raw['userOid'] as string).trim(),
+    userOid: (rawUserOid as string).trim(),
     quantity: raw['quantity'] as number,
     totalCost: raw['totalCost'] as number,
     originalTotalPrice: raw['originalTotalPrice'] as number,

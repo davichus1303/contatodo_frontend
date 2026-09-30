@@ -6,7 +6,7 @@ describe('mapSales', () => {
     saleNumber: 1,
     productOid: 'p1',
     productName: 'Arroz',
-    userOid: 'u1',
+    byUserOid: 'u1',
     quantity: 2,
     totalCost: 16,
     originalTotalPrice: 30,
@@ -25,6 +25,16 @@ describe('mapSales', () => {
       expect(result.value.length).toBe(2);
       expect(result.value[0].productName).toBe('Arroz');
       expect(result.value[1].productName).toBeUndefined();
+    }
+  });
+
+  it('should accept the legacy userOid field as a fallback for byUserOid', () => {
+    const legacy = { ...validSale, byUserOid: undefined, userOid: 'legacy-user' };
+    const result = mapSales([legacy]);
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value[0].userOid).toBe('legacy-user');
     }
   });
 

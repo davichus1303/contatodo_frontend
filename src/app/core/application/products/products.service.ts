@@ -11,6 +11,7 @@ import { AuthService } from '../../auth/auth.service';
 import { ProductCreatePayload, ProductUpdatePayload } from '../dto/product-request.dto';
 
 const USER_OID_HEADER = 'userOid';
+const COMPANY_OID_PARAM = 'companyOid';
 
 /**
  * Use cases for the product catalog (list, detail, create, update).
@@ -40,14 +41,21 @@ export class ProductsService {
    * The user id is resolved from the current session and sent in the
    * `userOid` header expected by the backend.
    *
+   * <p>The company scope is optional and only takes effect for sessions that
+   * carry no company claim (a root user). For every other session the backend
+   * ignores the parameter and scopes the query to the session company, so the
+   * value is omitted rather than sent empty.</p>
+   *
+   * @param companyOid Owning company identifier, or undefined to use the session company.
    * @returns Observable with API response containing available products.
    */
-  getAvailableProducts(): Observable<ApiResponse<Product[]>> {
+  getAvailableProducts(companyOid?: string): Observable<ApiResponse<Product[]>> {
     const userOid: string = this.authService.getUserInfo()?.id ?? '';
 
     return this.http
       .get<ApiResponse<unknown>>(`${this.apiUrl}/available`, {
-        headers: { [USER_OID_HEADER]: userOid }
+        headers: { [USER_OID_HEADER]: userOid },
+        params: { [COMPANY_OID_PARAM]: companyOid }
       })
       .pipe(map((response) => this.withMappedData(response, mapProducts(response.data))));
   }

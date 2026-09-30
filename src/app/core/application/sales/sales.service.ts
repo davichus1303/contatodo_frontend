@@ -10,6 +10,8 @@ import { CreateSaleRequest } from '../dto/create-sale-request.dto';
 import { SALES_URL } from '../../config/api-routes.constants';
 import { formatDateISO } from '@shared/utils/format.utils';
 
+const COMPANY_OID_PARAM = 'companyOid';
+
 /**
  * Use cases for sales (create, list today's sales, query by date/range).
  */
@@ -35,42 +37,40 @@ export class SalesService {
   /**
    * Retrieves today's sales for the authenticated user.
    *
+   * <p>The company scope is optional and only takes effect for sessions that
+   * carry no company claim (a root user). For every other session the backend
+   * ignores the parameter and scopes the query to the session company.</p>
+   *
+   * @param companyOid Owning company, or undefined to use the session company.
    * @returns Observable with API response containing today's sales.
    */
-  getTodaySales(): Observable<ApiResponse<Sale[]>> {
-    return this.http.get<ApiResponse<unknown>>(this.apiUrl).pipe(
-      map((response) => this.withMappedData(response, mapSales(response.data)))
-    );
-  }
-
-  /**
-   * Retrieves sales for the authenticated user by date.
-   *
-   * @param date Sale date in YYYY-MM-DD format.
-   * @returns Observable with API response containing sales for the specified date.
-   */
-  getSalesByDate(date: string): Observable<ApiResponse<Sale[]>> {
-    return this.http.get<ApiResponse<unknown>>(`${this.apiUrl}/date?date=${date}`).pipe(
-      map((response) => this.withMappedData(response, mapSales(response.data)))
-    );
+  getTodaySales(companyOid?: string): Observable<ApiResponse<Sale[]>> {
+    return this.http
+      .get<ApiResponse<unknown>>(this.apiUrl, { params: { [COMPANY_OID_PARAM]: companyOid } })
+      .pipe(map((response) => this.withMappedData(response, mapSales(response.data))));
   }
 
   /**
    * Retrieves sales for the authenticated user by date range.
    *
+   * <p>The company scope is optional and only takes effect for sessions that
+   * carry no company claim (a root user). For every other session the backend
+   * ignores the parameter and scopes the query to the session company.</p>
+   *
    * @param startDate Start date.
    * @param endDate End date.
+   * @param companyOid Owning company, or undefined to use the session company.
    * @returns Observable with API response containing sales for the date range.
    */
-  getSalesByDateRange(startDate: Date, endDate: Date): Observable<ApiResponse<Sale[]>> {
+  getSalesByDateRange(startDate: Date, endDate: Date, companyOid?: string): Observable<ApiResponse<Sale[]>> {
     const startStr = formatDateISO(startDate);
     const endStr = formatDateISO(endDate);
 
-    return this.http.get<ApiResponse<unknown>>(
-      `${this.apiUrl}/date-range?startDate=${startStr}&endDate=${endStr}`
-    ).pipe(
-      map((response) => this.withMappedData(response, mapSales(response.data)))
-    );
+    return this.http
+      .get<ApiResponse<unknown>>(`${this.apiUrl}/date-range`, {
+        params: { startDate: startStr, endDate: endStr, [COMPANY_OID_PARAM]: companyOid }
+      })
+      .pipe(map((response) => this.withMappedData(response, mapSales(response.data))));
   }
 
   /**
