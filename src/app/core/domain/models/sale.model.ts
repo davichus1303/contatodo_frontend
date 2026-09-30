@@ -1,6 +1,7 @@
 import { DomainError, domainError } from '../errors/domain-error';
 import { err, ok, Result } from '../result';
 import { isFiniteNumber, isNonEmptyString, isRecord, optionalString } from '../validation/primitive.rules';
+import { SALES_CONSTANTS } from '@shared/constants/sales.constants';
 
 /**
  * Sale entity of the sales domain.
@@ -41,7 +42,8 @@ export function createSale(raw: unknown): Result<Sale, readonly DomainError[]> {
 
   const errors: DomainError[] = [];
 
-  const rawUserOid = raw['byUserOid'] ?? raw['userOid'];
+  const rawUserOid =
+    raw[SALES_CONSTANTS.MODEL.FIELDS.BY_USER_OID] ?? raw[SALES_CONSTANTS.MODEL.FIELDS.USER_OID];
 
   for (const field of ['id', 'productOid', 'saleDate', 'createdDate', 'updatedDate'] as const) {
     if (!isNonEmptyString(raw[field])) {
@@ -50,7 +52,9 @@ export function createSale(raw: unknown): Result<Sale, readonly DomainError[]> {
   }
 
   if (!isNonEmptyString(rawUserOid)) {
-    errors.push(domainError('userOid', 'Sale userOid must be a non-empty string.'));
+    errors.push(
+      domainError(SALES_CONSTANTS.MODEL.FIELDS.USER_OID, SALES_CONSTANTS.MODEL.ERRORS.USER_OID_MUST_BE_NON_EMPTY_STRING)
+    );
   }
 
   const numericFields = [
