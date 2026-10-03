@@ -4,18 +4,23 @@ import { isBoolean, isRecord } from './primitive.rules';
 import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 
 /**
+ * Keys of the permission flags a role can hold over a module.
+ *
+ * Derived from {@link GENERAL_CONSTANTS.PERMISSION_FLAGS} so the flags the
+ * application reads are exactly the ones the backend names, and the type cannot
+ * drift away from the values sent over the wire.
+ */
+export type PermissionFlagKey =
+  (typeof GENERAL_CONSTANTS.PERMISSION_FLAGS)[keyof typeof GENERAL_CONSTANTS.PERMISSION_FLAGS];
+
+/**
  * Permission flags a role holds over a single module.
  *
  * The four keys are the actions the backend can grant, and they match the
  * `Permissions` payload it returns both in the roles catalog and inside the
  * `permissionOfRole` claim.
  */
-export interface PermissionFlags {
-  readonly create: boolean;
-  readonly update: boolean;
-  readonly delete: boolean;
-  readonly view: boolean;
-}
+export type PermissionFlags = { readonly [Flag in PermissionFlagKey]: boolean };
 
 /**
  * Builds validated {@link PermissionFlags} from a raw `permissions` payload.
@@ -44,7 +49,7 @@ export function parsePermissionFlags(
 
   const errors: DomainError[] = [];
 
-  for (const flag of ['create', 'update', 'delete', 'view'] as const) {
+  for (const flag of Object.values(GENERAL_CONSTANTS.PERMISSION_FLAGS)) {
     const value = raw[flag];
     if (value !== undefined && value !== null && !isBoolean(value)) {
       errors.push(domainError(`${path}.${flag}`, GENERAL_CONSTANTS.JWT.ERRORS.PERMISSION_FLAGS_MUST_BE_BOOLEANS));
@@ -55,10 +60,10 @@ export function parsePermissionFlags(
     return err(errors);
   }
 
-  return ok({
-    create: raw['create'] === true,
-    update: raw['update'] === true,
-    delete: raw['delete'] === true,
-    view: raw['view'] === true
-  });
+  const flags = {} as Record<PermissionFlagKey, boolean>;
+  for (const flag of Object.values(GENERAL_CONSTANTS.PERMISSION_FLAGS)) {
+    flags[flag] = raw[flag] === true;
+  }
+
+  return ok(flags);
 }

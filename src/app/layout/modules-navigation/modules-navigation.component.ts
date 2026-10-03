@@ -13,6 +13,7 @@ import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { I18nService } from '@core/i18n/i18n.service';
 import { PermissionService } from '@core/application/permissions/permission.service';
 import { MODULES_NAVIGATION_CONSTANTS } from '@shared/constants/modules-navigation.constants';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 
 /**
  * Modules navigation component displayed at the top of authenticated pages.
@@ -45,7 +46,7 @@ export class ModulesNavigationComponent {
   currentView = signal<'full' | 'catalogs'>('full');
 
   visibleModules(): Module[] {
-    return this.modules().filter(m => this.permissionService.has(m.id, 'view'));
+    return this.modules().filter(m => this.permissionService.has(m.id, GENERAL_CONSTANTS.PERMISSION_FLAGS.VIEW));
   }
 
   getCatalogModules(): Module[] {

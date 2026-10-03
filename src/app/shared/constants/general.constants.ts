@@ -28,6 +28,13 @@ export const GENERAL_CONSTANTS = {
   },
   // Strings
   EMPTY: '',
+  // Permission flags a role can hold over a module
+  PERMISSION_FLAGS: {
+    CREATE: 'create',
+    UPDATE: 'update',
+    DELETE: 'delete',
+    VIEW: 'view'
+  } as const,
   // Numbers
   NUMBERS: {
     ZERO: 0,
