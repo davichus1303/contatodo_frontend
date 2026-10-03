@@ -92,6 +92,7 @@
                 <mat-icon>edit</mat-icon>
               </button>
               <button
+                *appPermission="'/users'; action: 'delete'"
                 mat-icon-button
                 color="warn"
                 [title]="i18nService.translate('USERS.ACTIONS.DELETE')"
@@ -101,6 +102,7 @@
                 <mat-icon>delete</mat-icon>
               </button>
               <mat-slide-toggle
+                *appPermission="'/users'; action: 'update'"
                 [checked]="user.active"
                 [disabled]="isUpdating(user.id)"
                 (change)="onToggleChange(user, $event)"

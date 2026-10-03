@@ -2,6 +2,7 @@ import { Directive, Input, OnDestroy, TemplateRef, ViewContainerRef } from '@ang
 import { Subscription } from 'rxjs';
 import { PermissionAction } from '@core/auth/jwt-claims.model';
 import { PermissionService } from '@core/application/permissions/permission.service';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 
 /**
  * Structural directive that only renders its content when the current user
@@ -23,7 +24,7 @@ import { PermissionService } from '@core/application/permissions/permission.serv
 })
 export class PermissionDirective implements OnDestroy {
   private link: string | null = null;
-  private action: PermissionAction = 'view';
+  private action: PermissionAction = GENERAL_CONSTANTS.PERMISSION_FLAGS.VIEW;
   private rendered = false;
   private subscription: Subscription | null = null;
 
@@ -51,7 +52,7 @@ export class PermissionDirective implements OnDestroy {
    */
   @Input()
   set appPermissionAction(action: PermissionAction) {
-    this.action = action ?? 'view';
+    this.action = action ?? GENERAL_CONSTANTS.PERMISSION_FLAGS.VIEW;
     this.evaluate();
   }
 

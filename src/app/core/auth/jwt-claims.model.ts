@@ -1,17 +1,10 @@
 import { DomainError, domainError } from '../domain/errors/domain-error';
 import { err, ok, Result } from '../domain/result';
-import { isBoolean, isNonEmptyString, isRecord, optionalString } from '../domain/validation/primitive.rules';
+import { PermissionFlags, parsePermissionFlags } from '../domain/validation/permission-flags.rule';
+import { isNonEmptyString, isRecord, optionalString } from '../domain/validation/primitive.rules';
 import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 
-/**
- * Permission flags a role holds over a single module, as carried in the JWT.
- */
-export interface PermissionFlags {
-  readonly create: boolean;
-  readonly update: boolean;
-  readonly delete: boolean;
-  readonly view: boolean;
-}
+export type { PermissionFlags };
 
 /**
  * Action keys accepted by permission checks.
@@ -46,9 +39,9 @@ export interface JwtClaims {
  *
  * Following the domain model convention, load-bearing invariants are
  * enforced: the payload must be an object with a non-empty `sub` subject,
- * and every `permissionOfRole` entry must reference a module and carry four
- * boolean flags. Text fields are trimmed and optional claims collapse to
- * `undefined` when absent or blank.
+ * and every `permissionOfRole` entry must reference a module and carry the four
+ * permission flags, where an unset flag is read as not granted. Text fields are
+ * trimmed and optional claims collapse to `undefined` when absent or blank.
  *
  * @param raw Raw JWT payload.
  * @returns Successful result with the claims, or every violation found.
@@ -82,24 +75,15 @@ export function parseJwtClaims(raw: unknown): Result<JwtClaims, readonly DomainE
           errors.push(domainError(`permissionOfRole[${index}]`, GENERAL_CONSTANTS.JWT.ERRORS.PERMISSION_MODULE_REQUIRED));
           return;
         }
-        const flags = permission['permissions'];
-        if (!isRecord(flags) ||
-            !isBoolean(flags['create']) ||
-            !isBoolean(flags['update']) ||
-            !isBoolean(flags['delete']) ||
-            !isBoolean(flags['view'])) {
-          errors.push(domainError(`permissionOfRole[${index}].permissions`, GENERAL_CONSTANTS.JWT.ERRORS.PERMISSION_FLAGS_MUST_BE_BOOLEANS));
+        const flags = parsePermissionFlags(permission['permissions'], `permissionOfRole[${index}].permissions`);
+        if (!flags.ok) {
+          errors.push(...flags.error);
           return;
         }
 
         permissions.push({
           moduleOid: (permission['moduleOid'] as string).trim(),
-          permissions: {
-            create: flags['create'] === true,
-            update: flags['update'] === true,
-            delete: flags['delete'] === true,
-            view: flags['view'] === true
-          }
+          permissions: flags.value
         });
       });
     }

@@ -1,5 +1,6 @@
 import { DomainError, domainError } from '../errors/domain-error';
 import { err, ok, Result } from '../result';
+import { PermissionFlags, parsePermissionFlags } from '../validation/permission-flags.rule';
 import { isBoolean, isNonEmptyString, isRecord, optionalString } from '../validation/primitive.rules';
 
 /**
@@ -7,12 +8,7 @@ import { isBoolean, isNonEmptyString, isRecord, optionalString } from '../valida
  */
 export interface RolePermission {
   readonly moduleOid: string;
-  readonly permissions: {
-    readonly create: boolean;
-    readonly update: boolean;
-    readonly delete: boolean;
-    readonly view: boolean;
-  };
+  readonly permissions: PermissionFlags;
 }
 
 /**
@@ -36,7 +32,8 @@ export interface Role {
  * Load-bearing invariants are enforced: the payload must be an object,
  * `id`/`name` must be non-empty strings, `createdDate`/`updatedDate` must be
  * present and `permissions` must be an array whose entries carry a module
- * reference and a boolean permission flags record. Text fields are normalized
+ * reference and its four permission flags, where an unset flag is read as not
+ * granted because the backend treats it the same way. Text fields are normalized
  * (trimmed), the audit references are optional because the backend only sends
  * them when a user is attributed and the status flags are coerced to booleans,
  * defaulting to `false`.
@@ -84,24 +81,15 @@ export function createRole(raw: unknown): Result<Role, readonly DomainError[]> {
         errors.push(domainError(`permissions[${index}]`, 'Permission must reference a module.'));
         return;
       }
-      const flags = permission['permissions'];
-      if (!isRecord(flags) ||
-          !isBoolean(flags['create']) ||
-          !isBoolean(flags['update']) ||
-          !isBoolean(flags['delete']) ||
-          !isBoolean(flags['view'])) {
-        errors.push(domainError(`permissions[${index}].permissions`, 'Permission flags must be booleans.'));
+      const flags = parsePermissionFlags(permission['permissions'], `permissions[${index}].permissions`);
+      if (!flags.ok) {
+        errors.push(...flags.error);
         return;
       }
 
       permissions.push({
         moduleOid: (permission['moduleOid'] as string).trim(),
-        permissions: {
-          create: flags['create'] === true,
-          update: flags['update'] === true,
-          delete: flags['delete'] === true,
-          view: flags['view'] === true
-        }
+        permissions: flags.value
       });
     });
   }
