@@ -85,7 +85,42 @@ describe('parseJwtClaims', () => {
     if (!result.ok) {
       const fields = result.error.map((error) => error.field);
       expect(fields).toContain('permissionOfRole[0]');
-      expect(fields).toContain('permissionOfRole[1].permissions');
+      expect(fields).toContain('permissionOfRole[1].permissions.create');
+    }
+  });
+
+  it('should read an unset permission flag as not granted', () => {
+    const result = parseJwtClaims(
+      validClaims({
+        permissionOfRole: [
+          validPermission({ permissions: { create: true, update: null, delete: undefined, view: true } })
+        ]
+      })
+    );
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.permissions[0].permissions).toEqual({
+        create: true,
+        update: false,
+        delete: false,
+        view: true
+      });
+    }
+  });
+
+  it('should keep the granted permissions when a flag is unset', () => {
+    const result = parseJwtClaims(
+      validClaims({
+        permissionOfRole: [validPermission({ permissions: { view: true, create: null } })]
+      })
+    );
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.permissions).toHaveSize(1);
+      expect(result.value.permissions[0].permissions.view).toBeTrue();
+      expect(result.value.permissions[0].permissions.create).toBeFalse();
     }
   });
 

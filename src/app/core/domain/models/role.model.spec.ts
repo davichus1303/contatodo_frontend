@@ -72,7 +72,36 @@ describe('createRole', () => {
     if (!result.ok) {
       const fields = result.error.map((e) => e.field);
       expect(fields).toContain('permissions[0]');
-      expect(fields).toContain('permissions[1].permissions');
+      expect(fields).toContain('permissions[1].permissions.create');
+    }
+  });
+
+  it('should read an unset permission flag as not granted', () => {
+    const result = createRole(validRole({
+      permissions: [
+        { moduleOid: 'module-1', permissions: { create: true, update: null, delete: undefined, view: true } }
+      ]
+    }));
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.permissions[0].permissions).toEqual({
+        create: true,
+        update: false,
+        delete: false,
+        view: true
+      });
+    }
+  });
+
+  it('should keep the granted flags when only one flag is unset', () => {
+    const result = createRole(validRole({
+      permissions: [{ moduleOid: 'module-1', permissions: { view: true } }]
+    }));
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.permissions[0].permissions.view).toBeTrue();
     }
   });
 
