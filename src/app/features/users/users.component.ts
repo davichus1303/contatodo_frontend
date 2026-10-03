@@ -5,14 +5,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule, MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { UsersService } from '@core/application/users/users.service';
+import { CompaniesService } from '@core/application/companies/companies.service';
+import { CompanySelectionService } from '@core/application/companies/company-selection.service';
+import { PermissionService } from '@core/application/permissions/permission.service';
 import { User } from '@core/domain/models/user.model';
+import { Company } from '@core/domain/models/company.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { UserRequest } from '@core/application/dto/user-request.dto';
 import { I18nService } from '@core/i18n/i18n.service';
@@ -33,6 +39,10 @@ import { PermissionDirective } from '@shared/directives/permission.directive';
  * reloads the catalog when a user is updated. Delete asks for confirmation and
  * removes the user through the delete endpoint. The status toggle updates the
  * user through the update endpoint.
+ *
+ * A root session carries no company claim, so it chooses the company to browse
+ * through a selector and the catalog is scoped to it. Every other session is
+ * already scoped to its own company by the backend.
  */
 @Component({
   selector: 'app-users',
@@ -43,9 +53,11 @@ import { PermissionDirective } from '@shared/directives/permission.directive';
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
+    MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
     MatSlideToggleModule,
     PermissionDirective
   ],
@@ -55,6 +67,9 @@ import { PermissionDirective } from '@shared/directives/permission.directive';
 })
 export class UsersComponent {
   private readonly usersService = inject(UsersService);
+  private readonly companiesService = inject(CompaniesService);
+  private readonly companySelection = inject(CompanySelectionService);
+  private readonly permissionService = inject(PermissionService);
   private readonly notifications = inject(NotificationService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -67,6 +82,17 @@ export class UsersComponent {
   searchTerm = '';
   isLoading = false;
   updatingIds = new Set<string>();
+  companies: Company[] = [];
+  companyOid: string | null = null;
+
+  /**
+   * Whether the session may choose the owning company.
+   *
+   * Only a root session sees the selector: it carries no company claim, so the
+   * company has to be picked explicitly. Every other session is already scoped
+   * to its own company by the backend and must not choose another one.
+   */
+  readonly canSelectCompany = this.permissionService.isRoot();
 
   constructor() {
     this.searchControl.valueChanges
@@ -75,6 +101,47 @@ export class UsersComponent {
         this.searchTerm = normalizeSearchTerm(value);
         this.changeDetectorRef.markForCheck();
       });
+    this.init();
+  }
+
+  private init(): void {
+    this.companyOid = this.companySelection.companyOid();
+
+    if (this.canSelectCompany) {
+      this.loadCompanies();
+      if (this.companyOid) {
+        this.loadUsers();
+      }
+    } else {
+      this.loadUsers();
+    }
+  }
+
+  /**
+   * Loads the active, non-deleted companies available to a root session.
+   */
+  private loadCompanies(): void {
+    this.companiesService.getActiveCompanies().subscribe({
+      next: (response: ApiResponse<Company[]>) => {
+        this.companies = response.data ?? [];
+        this.changeDetectorRef.markForCheck();
+      },
+      error: (error: unknown) => {
+        this.notifications.error(
+          extractApiErrorMessage(error, this.i18nService.translate('USERS.MESSAGES.ERROR_LOADING_COMPANIES'))
+        );
+      }
+    });
+  }
+
+  /**
+   * Handles a company selection and reloads the catalog for that company.
+   *
+   * @param companyOid Selected company identifier, or an empty value to clear.
+   */
+  onCompanySelected(companyOid: string | null): void {
+    this.companyOid = companyOid;
+    this.companySelection.select(companyOid);
     this.loadUsers();
   }
 
@@ -116,15 +183,23 @@ export class UsersComponent {
 
   /**
    * Loads the users catalog from the backend.
+   *
+   * A root session sends the selected company so the backend can scope the
+   * query. The request is skipped until a company is chosen because the
+   * backend rejects an unscoped read for that session.
    */
   loadUsers(): void {
     if (this.isLoading) {
       return;
     }
 
+    if (this.canSelectCompany && !this.companyOid) {
+      return;
+    }
+
     this.isLoading = true;
 
-    this.usersService.getUsers().subscribe({
+    this.usersService.getUsers(this.companyOid ?? undefined).subscribe({
       next: (response: ApiResponse<User[]>) => {
         this.users = response.data ?? [];
         this.isLoading = false;
@@ -144,7 +219,9 @@ export class UsersComponent {
    * Opens the reusable user form dialog in create mode.
    *
    * Opened from the users module it suggests a random password and shows the
-   * temporary password note. If the dialog confirms, the catalog is reloaded.
+   * temporary password note. The company selected on the page is preselected so
+   * the new user is created in the company being browsed. If the dialog
+   * confirms, the catalog is reloaded.
    */
   openCreateDialog(): void {
     const dialogRef = this.dialog.open<UserFormDialogComponent, UserFormDialogData, boolean>(
@@ -154,6 +231,7 @@ export class UsersComponent {
         data: {
           generatePassword: true,
           showTemporaryPasswordNote: true,
+          companyOid: this.companyOid ?? undefined,
           labels: this.buildUserFormDialogLabels(this.i18nService.translate('USERS.MODAL.CREATE_TITLE'))
         }
       }
@@ -211,8 +289,9 @@ export class UsersComponent {
   /**
    * Opens the reusable user form dialog in edit mode for the given user.
    *
-   * The form is pre-filled and the dialog only confirms once at least one
-   * field changes. If the dialog confirms, the catalog is reloaded.
+   * The form is pre-filled, company included, so the company of the edited
+   * user is kept and the dialog only confirms once at least one field changes.
+   * If the dialog confirms, the catalog is reloaded.
    *
    * @param user User selected for edition.
    */

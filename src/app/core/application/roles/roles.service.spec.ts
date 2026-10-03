@@ -30,7 +30,7 @@ describe('RolesService', () => {
       isActive: true,
       createdDate: '2026-01-01',
       updatedDate: '2026-01-01',
-      createdBy: 'user'
+      byUserOid: 'user-1'
     }
   };
 

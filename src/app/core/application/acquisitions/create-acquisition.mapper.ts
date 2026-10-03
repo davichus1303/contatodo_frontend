@@ -10,13 +10,21 @@ import { AcquisitionFormModel } from '../../../features/acquisitions/new-acquisi
  * does not affect inventory.
  *
  * @param model Form view model emitted by the acquisition form component.
+ * @param companyOid Company selected in the list page, inherited by the form.
  * @returns Request payload accepted by `POST /acquisitions`.
  */
-export function toCreateAcquisitionRequest(model: AcquisitionFormModel): CreateAcquisitionRequest {
+export function toCreateAcquisitionRequest(
+  model: AcquisitionFormModel,
+  companyOid?: string
+): CreateAcquisitionRequest {
   const request: CreateAcquisitionRequest = {
     acquisitionTypeOid: model.acquisitionTypeOid ?? '',
     realCost: model.realCost as number
   };
+
+  if (companyOid) {
+    request.companyOid = companyOid;
+  }
 
   if (model.affectsInventory) {
     const raw = model.productSearchRaw;

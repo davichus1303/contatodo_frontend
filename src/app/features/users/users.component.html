@@ -2,13 +2,22 @@
   <div class="page-header">
     <div>
       <h1>{{ i18nService.translate('USERS.TITLE') }}</h1>
-      <p>{{ i18nService.translate('USERS.SUBTITLE') }}</p>
+      <mat-form-field *ngIf="canSelectCompany" appearance="outline" class="company-selector">
+        <mat-label>{{ i18nService.translate('USERS.SELECT_COMPANY') }}</mat-label>
+        <mat-select [value]="companyOid" (selectionChange)="onCompanySelected($event.value)">
+          <mat-option *ngFor="let company of companies" [value]="company.id">
+            {{ company.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <p *ngIf="!canSelectCompany">{{ i18nService.translate('USERS.SUBTITLE') }}</p>
     </div>
     <div class="actions">
       <button
         mat-raised-button
         color="primary"
         (click)="openCreateDialog()"
+        [disabled]="canSelectCompany && !companyOid"
         *appPermission="'/users'; action: 'create'"
       >
         <mat-icon>add</mat-icon>
@@ -28,6 +37,11 @@
   @if (isLoading) {
     <div class="loading-state">
       <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (canSelectCompany && !companyOid) {
+    <div class="empty-state">
+      <mat-icon>domain</mat-icon>
+      <p>{{ i18nService.translate('USERS.SELECT_COMPANY_PROMPT') }}</p>
     </div>
   } @else if (filteredUsers.length === 0) {
     <div class="empty-state">
@@ -78,6 +92,7 @@
                 <mat-icon>edit</mat-icon>
               </button>
               <button
+                *appPermission="'/users'; action: 'delete'"
                 mat-icon-button
                 color="warn"
                 [title]="i18nService.translate('USERS.ACTIONS.DELETE')"
@@ -87,6 +102,7 @@
                 <mat-icon>delete</mat-icon>
               </button>
               <mat-slide-toggle
+                *appPermission="'/users'; action: 'update'"
                 [checked]="user.active"
                 [disabled]="isUpdating(user.id)"
                 (change)="onToggleChange(user, $event)"

@@ -8,6 +8,7 @@ import { Result } from '../../domain/result';
 import { mapAcquisitions } from './acquisition.mapper';
 import { CreateAcquisitionRequest } from '../dto/acquisition-request.dto';
 import { ACQUISITIONS_URL } from '../../config/api-routes.constants';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 
 /**
  * Use cases for acquisitions (create, list by optional date range).
@@ -36,19 +37,33 @@ export class AcquisitionsService {
    * By default, returns today's acquisitions.
    * Supports optional date range filtering.
    *
+   * <p>The company scope is optional and only takes effect for sessions that
+   * carry no company claim (a root user). For every other session the backend
+   * ignores the parameter and scopes the query to the session company, so the
+   * value is omitted rather than sent empty.</p>
+   *
    * @param startDate Optional start date.
    * @param endDate Optional end date.
+   * @param companyOid Owning company, or undefined to use the session company.
    * @returns Observable with API response containing acquisitions.
    */
-  getAcquisitions(startDate?: Date, endDate?: Date): Observable<ApiResponse<Acquisition[]>> {
-    const url =
-      startDate && endDate
-        ? `${this.apiUrl}?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
-        : this.apiUrl;
+  getAcquisitions(startDate?: Date, endDate?: Date, companyOid?: string): Observable<ApiResponse<Acquisition[]>> {
+    const hasRange = Boolean(startDate && endDate);
 
-    return this.http.get<ApiResponse<unknown>>(url).pipe(
-      map((response) => this.withMappedData(response, mapAcquisitions(response.data)))
-    );
+    return this.http
+      .get<ApiResponse<unknown>>(this.apiUrl, {
+        params: {
+          // The endpoint reads LocalDateTime, so the bounds keep the full instant.
+          ...(hasRange
+            ? {
+                [GENERAL_CONSTANTS.HTTP.PARAMS.START_DATE]: (startDate as Date).toISOString(),
+                [GENERAL_CONSTANTS.HTTP.PARAMS.END_DATE]: (endDate as Date).toISOString()
+              }
+            : {}),
+          [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid
+        }
+      })
+      .pipe(map((response) => this.withMappedData(response, mapAcquisitions(response.data))));
   }
 
   /**

@@ -77,7 +77,7 @@ describe('UserFormDialogComponent', () => {
       isActive: true,
       createdDate: '2026-01-01',
       updatedDate: '2026-01-01',
-      createdBy: 'seed'
+      byUserOid: 'user-1'
     }
   };
 
@@ -90,7 +90,7 @@ describe('UserFormDialogComponent', () => {
       isActive: true,
       createdDate: '2026-01-01',
       updatedDate: '2026-01-01',
-      createdBy: 'seed'
+      byUserOid: 'user-1'
     },
     {
       id: 'r2',
@@ -100,7 +100,7 @@ describe('UserFormDialogComponent', () => {
       isActive: true,
       createdDate: '2026-01-01',
       updatedDate: '2026-01-01',
-      createdBy: 'seed'
+      byUserOid: 'user-1'
     }
   ];
 
@@ -170,6 +170,49 @@ describe('UserFormDialogComponent', () => {
     expect(component.generatePassword).toBeTrue();
     expect(component.showTemporaryPasswordNote).toBeTrue();
     expect(component.form.controls.password.value.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it('should preselect the given company when opened in create mode', () => {
+    configureDialog({
+      generatePassword: true,
+      showTemporaryPasswordNote: true,
+      companyOid: 'c1',
+      labels
+    });
+
+    expect(component.isEditMode).toBeFalse();
+    expect(component.form.controls.companyOid.value).toBe('c1');
+  });
+
+  it('should create the user in the preselected company', () => {
+    configureDialog({
+      generatePassword: true,
+      showTemporaryPasswordNote: true,
+      companyOid: 'c1',
+      labels
+    });
+
+    component.form.controls.userName.setValue('jperez');
+    component.form.controls.name.setValue('Juan Perez');
+    component.form.controls.email.setValue('juan@empresa.com');
+    component.form.controls.roleId.setValue('r2');
+    component.form.controls.password.setValue('Clave123!');
+
+    component.submit();
+
+    expect(createUserSpy).toHaveBeenCalledWith(jasmine.objectContaining({ companyOid: 'c1' }));
+  });
+
+  it('should keep the company of the edited user over the given company', () => {
+    configureDialog({
+      generatePassword: false,
+      showTemporaryPasswordNote: false,
+      user: { ...userToEdit, companyOid: 'c3' },
+      companyOid: 'c1',
+      labels
+    });
+
+    expect(component.form.controls.companyOid.value).toBe('c3');
   });
 
   it('should not suggest a random password when opened without the flag', () => {

@@ -62,5 +62,10 @@ export interface UserFormDialogData {
    * pre-filled with the given user and the password becomes optional.
    */
   user?: User | null;
+  /**
+   * Company preselected when the dialog is opened in create mode. Ignored when
+   * a user is given because the user carries its own company.
+   */
+  companyOid?: string;
   labels: UserFormDialogLabels;
 }

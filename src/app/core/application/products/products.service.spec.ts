@@ -54,18 +54,42 @@ describe('ProductsService', () => {
     let products: Product[] = [];
     service.getAllProducts().subscribe((response) => (products = response.data));
 
-    expect(httpMock.get).toHaveBeenCalledWith(PRODUCTS_URL);
+    expect(httpMock.get).toHaveBeenCalledWith(PRODUCTS_URL, {
+      params: { companyOid: undefined }
+    });
     expect(products[0].id).toBe('p1');
     expect(products[0].name).toBe('Ceviche');
   });
 
-  it('should fetch available products with the userOid header', () => {
+  it('should send the companyOid param when a company is provided', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [rawProduct] }));
+
+    service.getAllProducts('company-9').subscribe();
+
+    expect(httpMock.get).toHaveBeenCalledWith(PRODUCTS_URL, {
+      params: { companyOid: 'company-9' }
+    });
+  });
+
+  it('should fetch available products with the userOid header and no company param', () => {
     httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [rawProduct] }));
 
     service.getAvailableProducts().subscribe();
 
     expect(httpMock.get).toHaveBeenCalledWith(`${PRODUCTS_URL}/available`, {
-      headers: { userOid: 'user-1' }
+      headers: { userOid: 'user-1' },
+      params: { companyOid: undefined }
+    });
+  });
+
+  it('should send the companyOid param when a company is provided', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [rawProduct] }));
+
+    service.getAvailableProducts('company-9').subscribe();
+
+    expect(httpMock.get).toHaveBeenCalledWith(`${PRODUCTS_URL}/available`, {
+      headers: { userOid: 'user-1' },
+      params: { companyOid: 'company-9' }
     });
   });
 

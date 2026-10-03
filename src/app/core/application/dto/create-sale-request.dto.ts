@@ -6,4 +6,5 @@ export interface CreateSaleRequest {
   quantity: number;
   totalSalePrice: number;
   notes?: string;
+  companyOid?: string;
 }

@@ -7,10 +7,9 @@ import { DomainError } from '../../domain/errors/domain-error';
 import { Result } from '../../domain/result';
 import { mapProducts } from './product.mapper';
 import { PRODUCTS_URL } from '../../config/api-routes.constants';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 import { AuthService } from '../../auth/auth.service';
 import { ProductCreatePayload, ProductUpdatePayload } from '../dto/product-request.dto';
-
-const USER_OID_HEADER = 'userOid';
 
 /**
  * Use cases for the product catalog (list, detail, create, update).
@@ -26,12 +25,20 @@ export class ProductsService {
   /**
    * Retrieves all products.
    *
+   * <p>The company scope is optional and only takes effect for sessions that
+   * carry no company claim (a root user). For every other session the backend
+   * ignores the parameter and scopes the query to the session company, so the
+   * value is omitted rather than sent empty.</p>
+   *
+   * @param companyOid Owning company, or undefined to use the session company.
    * @returns Observable with API response containing all products.
    */
-  getAllProducts(): Observable<ApiResponse<Product[]>> {
-    return this.http.get<ApiResponse<unknown>>(this.apiUrl).pipe(
-      map((response) => this.withMappedData(response, mapProducts(response.data)))
-    );
+  getAllProducts(companyOid?: string): Observable<ApiResponse<Product[]>> {
+    return this.http
+      .get<ApiResponse<unknown>>(this.apiUrl, {
+        params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
+      })
+      .pipe(map((response) => this.withMappedData(response, mapProducts(response.data))));
   }
 
   /**
@@ -40,14 +47,21 @@ export class ProductsService {
    * The user id is resolved from the current session and sent in the
    * `userOid` header expected by the backend.
    *
+   * <p>The company scope is optional and only takes effect for sessions that
+   * carry no company claim (a root user). For every other session the backend
+   * ignores the parameter and scopes the query to the session company, so the
+   * value is omitted rather than sent empty.</p>
+   *
+   * @param companyOid Owning company identifier, or undefined to use the session company.
    * @returns Observable with API response containing available products.
    */
-  getAvailableProducts(): Observable<ApiResponse<Product[]>> {
+  getAvailableProducts(companyOid?: string): Observable<ApiResponse<Product[]>> {
     const userOid: string = this.authService.getUserInfo()?.id ?? '';
 
     return this.http
       .get<ApiResponse<unknown>>(`${this.apiUrl}/available`, {
-        headers: { [USER_OID_HEADER]: userOid }
+        headers: { [GENERAL_CONSTANTS.HTTP.HEADERS.USER_OID]: userOid },
+        params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
       })
       .pipe(map((response) => this.withMappedData(response, mapProducts(response.data))));
   }

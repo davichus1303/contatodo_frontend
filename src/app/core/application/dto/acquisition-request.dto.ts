@@ -12,4 +12,5 @@ export interface CreateAcquisitionRequest {
   supplierName?: string;
   invoiceNumber?: string;
   observations?: string;
+  companyOid?: string;
 }

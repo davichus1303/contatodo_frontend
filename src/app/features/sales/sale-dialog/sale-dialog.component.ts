@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, Inject, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -17,6 +17,49 @@ import { SALES_CONSTANTS } from '@shared/constants/sales.constants';
 import { formatCurrency as formatCurrencyUtil } from '@shared/utils/format.utils';
 import { calculateProfit as calculateProfitUtil } from '../sales.utils';
 import { I18nService } from '@core/i18n/i18n.service';
+
+/**
+ * Cross-field validator mirroring the backend profit invariant.
+ *
+ * The backend rejects a sale whose total price does not strictly exceed the
+ * total cost with a `SaleWithoutProfitException` (HTTP 400), so the rule is
+ * enforced here to keep an impossible sale from ever leaving the browser.
+ *
+ * Incomplete input is left to the per-control `required`/`min` validators: the
+ * rule only judges a fully filled, positive form.
+ *
+ * @param product Product being sold, source of the unit real cost.
+ * @returns Group validator flagging a non-profitable price.
+ */
+function saleMustGenerateProfit(product: Product): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const quantity = Number(control.get('quantity')?.value ?? 0);
+    const totalSalePrice = Number(control.get('totalSalePrice')?.value ?? 0);
+    const unitRealCost = Number(product.unitRealCost ?? 0);
+
+    if (quantity <= 0 || totalSalePrice <= 0) {
+      return null;
+    }
+
+    return totalSalePrice > unitRealCost * quantity ? null : { saleWithoutProfit: true };
+  };
+}
+
+/**
+ * Data handed to the dialog by the sales page.
+ */
+export interface SaleDialogData {
+  /** Product being sold. */
+  readonly product: Product;
+  /**
+   * Company the sale belongs to.
+   *
+   * Present only when a root session picked a company explicitly; a
+   * session-scoped sale leaves it `null` so the backend uses its own
+   * company claim.
+   */
+  readonly companyOid: string | null;
+}
 
 /**
  * Dialog component for creating a sale.
@@ -47,7 +90,7 @@ export class SaleDialogComponent {
 
   constructor(
     private dialogRef: MatDialogRef<SaleDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { product: Product },
+    @Inject(MAT_DIALOG_DATA) public data: SaleDialogData,
     private fb: FormBuilder,
     private salesService: SalesService,
     private notifications: NotificationService,
@@ -57,7 +100,7 @@ export class SaleDialogComponent {
       quantity: [1, [Validators.required, Validators.min(1)]],
       totalSalePrice: ['', [Validators.required, Validators.min(0)]],
       notes: ['']
-    });
+    }, { validators: saleMustGenerateProfit(this.data.product) });
 
     this.saleForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -99,7 +142,8 @@ export class SaleDialogComponent {
       productOid: this.data.product.id,
       quantity: this.saleForm.get('quantity')?.value,
       totalSalePrice: this.saleForm.get('totalSalePrice')?.value,
-      notes: this.saleForm.get('notes')?.value
+      notes: this.saleForm.get('notes')?.value,
+      companyOid: this.data.companyOid ?? undefined
     };
 
     this.salesService.createSale(request).subscribe({

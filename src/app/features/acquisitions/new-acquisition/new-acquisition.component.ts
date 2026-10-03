@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AcquisitionsService } from '@core/application/acquisitions/acquisitions.service';
 import { ProductsService } from '@core/application/products/products.service';
+import { CompanySelectionService } from '@core/application/companies/company-selection.service';
 import { AcquisitionTypeService } from '@core/application/acquisition-types/acquisition-type.service';
 import { toCreateAcquisitionRequest } from '@core/application/acquisitions/create-acquisition.mapper';
 import { Product } from '@core/domain/models/product.model';
@@ -49,6 +50,7 @@ export class NewAcquisitionComponent {
   private readonly dialog = inject(MatDialog);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly companySelection = inject(CompanySelectionService);
   private readonly destroyRef = inject(DestroyRef);
   readonly i18nService = inject(I18nService);
 
@@ -59,6 +61,14 @@ export class NewAcquisitionComponent {
   readonly products = signal<Product[]>([]);
   /** True while an acquisition is being submitted. */
   readonly isSaving = signal<boolean>(false);
+
+  /**
+   * Company chosen in the acquisitions list, inherited by this form.
+   *
+   * <p>The form has no company selector: the read and the write must target the
+   * company the operator already scoped the list to.</p>
+   */
+  private readonly companyOid = this.companySelection.companyOid() ?? undefined;
 
   constructor() {
     this.loadAcquisitionTypes();
@@ -85,7 +95,7 @@ export class NewAcquisitionComponent {
    * Loads all products used to detect brand-new products in the form.
    */
   private loadProducts(): void {
-    this.productsService.getAllProducts()
+    this.productsService.getAllProducts(this.companyOid)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: ApiResponse<Product[]>) => {
@@ -134,7 +144,7 @@ export class NewAcquisitionComponent {
     }
 
     this.isSaving.set(true);
-    const request = toCreateAcquisitionRequest(model);
+    const request = toCreateAcquisitionRequest(model, this.companyOid);
 
     this.acquisitionsService.createAcquisition(request)
       .pipe(takeUntilDestroyed(this.destroyRef))

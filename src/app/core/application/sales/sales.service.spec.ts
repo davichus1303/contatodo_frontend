@@ -18,7 +18,7 @@ describe('SalesService', () => {
     saleNumber: 1,
     productOid: 'p1',
     productName: 'Arroz',
-    userOid: 'u1',
+    byUserOid: 'u1',
     quantity: 2,
     totalCost: 16,
     originalTotalPrice: 30,
@@ -56,16 +56,19 @@ describe('SalesService', () => {
     let sales: Sale[] = [];
     service.getTodaySales().subscribe((response) => (sales = response.data));
 
-    expect(httpMock.get).toHaveBeenCalledWith(SALES_URL);
+    expect(httpMock.get).toHaveBeenCalledWith(SALES_URL, jasmine.any(Object));
     expect(sales[0].productName).toBe('Arroz');
   });
 
-  it('should fetch sales by date from the date endpoint', () => {
+  it('should send the companyOid parameter when a company is provided for today sales', () => {
     httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [rawSale] }));
 
-    service.getSalesByDate('2026-08-21').subscribe();
+    service.getTodaySales('company-1').subscribe();
 
-    expect(httpMock.get).toHaveBeenCalledWith(`${SALES_URL}/date?date=2026-08-21`);
+    expect(httpMock.get).toHaveBeenCalledWith(
+      SALES_URL,
+      jasmine.objectContaining({ params: jasmine.objectContaining({ companyOid: 'company-1' }) })
+    );
   });
 
   it('should fetch sales by date range from the date-range endpoint', () => {
@@ -73,7 +76,25 @@ describe('SalesService', () => {
 
     service.getSalesByDateRange(new Date('2026-08-21T00:00:00'), new Date('2026-08-21T23:59:59')).subscribe();
 
-    expect(httpMock.get).toHaveBeenCalledWith(`${SALES_URL}/date-range?startDate=2026-08-21&endDate=2026-08-21`);
+    expect(httpMock.get).toHaveBeenCalledWith(
+      `${SALES_URL}/date-range`,
+      jasmine.objectContaining({
+        params: jasmine.objectContaining({ startDate: '2026-08-21', endDate: '2026-08-21' })
+      })
+    );
+  });
+
+  it('should send the companyOid parameter when a company is provided for the date range', () => {
+    httpMock.get.and.returnValue(of({ status: 200, message: 'OK', data: [rawSale] }));
+
+    service.getSalesByDateRange(new Date('2026-08-21T00:00:00'), new Date('2026-08-21T23:59:59'), 'company-2').subscribe();
+
+    expect(httpMock.get).toHaveBeenCalledWith(
+      `${SALES_URL}/date-range`,
+      jasmine.objectContaining({
+        params: jasmine.objectContaining({ companyOid: 'company-2' })
+      })
+    );
   });
 
   it('should emit through the error channel when a sale violates the contract', () => {

@@ -1,7 +1,17 @@
 <div class="sales-history-container">
   <!-- Header -->
   <div class="header">
-    <h1>{{ i18nService.translate('SALES_HISTORY.TITLE') }}</h1>
+    <div class="header-title">
+      <h1>{{ i18nService.translate('SALES_HISTORY.TITLE') }}</h1>
+      <mat-form-field *ngIf="canSelectCompany" appearance="outline" class="company-selector">
+        <mat-label>{{ i18nService.translate('sales.selectCompany') }}</mat-label>
+        <mat-select [value]="companyOid()" (selectionChange)="onCompanySelected($event.value)">
+          <mat-option *ngFor="let company of companies()" [value]="company.id">
+            {{ company.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
     <button 
       mat-raised-button 
       color="primary" 
@@ -110,7 +120,12 @@
   </div>
 
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="!isLoading() && filteredSales().length === 0">
+  <div class="empty-state" *ngIf="canSelectCompany && !companyOid()">
+    <mat-icon>domain</mat-icon>
+    <p>{{ i18nService.translate('sales.selectCompanyPrompt') }}</p>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading() && filteredSales().length === 0 && (!canSelectCompany || companyOid())">
     <mat-icon>receipt_long</mat-icon>
     <p>{{ i18nService.translate('SALES_HISTORY.NO_SALES_FOUND') }}</p>
   </div>

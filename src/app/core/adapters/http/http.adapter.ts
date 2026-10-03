@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpPort, HttpPortOptions } from '../../application/ports/http.port';
@@ -38,7 +38,23 @@ export class HttpAdapter implements HttpPort {
    * @param options Port-level options.
    * @returns Options object accepted by `HttpClient` methods.
    */
-  private toHttpOptions(options?: HttpPortOptions): { headers?: Record<string, string> } {
-    return options?.headers ? { headers: options.headers } : {};
+  private toHttpOptions(options?: HttpPortOptions): { headers?: Record<string, string>; params?: HttpParams } {
+    const httpOptions: { headers?: Record<string, string>; params?: HttpParams } = {};
+
+    if (options?.headers) {
+      httpOptions.headers = options.headers;
+    }
+
+    if (options?.params) {
+      let params = new HttpParams();
+      for (const [key, value] of Object.entries(options.params)) {
+        if (value !== null && value !== undefined) {
+          params = params.set(key, value);
+        }
+      }
+      httpOptions.params = params;
+    }
+
+    return httpOptions;
   }
 }

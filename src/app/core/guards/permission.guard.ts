@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { PermissionAction } from '../auth/jwt-claims.model';
 import { PermissionService } from '../application/permissions/permission.service';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 
 /**
  * Guard that blocks a route when the current user lacks the required module
@@ -57,7 +58,7 @@ export class PermissionGuard implements CanActivate {
       return true;
     }
 
-    const action = (requirement.action ?? 'view') as PermissionAction;
+    const action = (requirement.action ?? GENERAL_CONSTANTS.PERMISSION_FLAGS.VIEW) as PermissionAction;
 
     return this.permissionService.hasAccessByLink(requirement.moduleLink, action).pipe(
       map((allowed: boolean) => {

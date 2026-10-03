@@ -15,7 +15,7 @@ describe('createRole', () => {
       isActive: true,
       createdDate: '2026-01-01',
       updatedDate: '2026-01-02',
-      createdBy: 'user-1',
+      byUserOid: 'user-1',
       ...overrides
     };
   }
@@ -72,7 +72,36 @@ describe('createRole', () => {
     if (!result.ok) {
       const fields = result.error.map((e) => e.field);
       expect(fields).toContain('permissions[0]');
-      expect(fields).toContain('permissions[1].permissions');
+      expect(fields).toContain('permissions[1].permissions.create');
+    }
+  });
+
+  it('should read an unset permission flag as not granted', () => {
+    const result = createRole(validRole({
+      permissions: [
+        { moduleOid: 'module-1', permissions: { create: true, update: null, delete: undefined, view: true } }
+      ]
+    }));
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.permissions[0].permissions).toEqual({
+        create: true,
+        update: false,
+        delete: false,
+        view: true
+      });
+    }
+  });
+
+  it('should keep the granted flags when only one flag is unset', () => {
+    const result = createRole(validRole({
+      permissions: [{ moduleOid: 'module-1', permissions: { view: true } }]
+    }));
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.permissions[0].permissions.view).toBeTrue();
     }
   });
 
@@ -80,7 +109,7 @@ describe('createRole', () => {
     const result = createRole(validRole({
       id: '  role-1  ',
       name: '  Administrador  ',
-      createdBy: '  user-1  ',
+      byUserOid: '  user-1  ',
       permissions: [
         { moduleOid: '  module-1  ', permissions: { create: true, update: true, delete: false, view: true } }
       ]
@@ -90,7 +119,7 @@ describe('createRole', () => {
     if (result.ok) {
       expect(result.value.id).toBe('role-1');
       expect(result.value.name).toBe('Administrador');
-      expect(result.value.createdBy).toBe('user-1');
+      expect(result.value.byUserOid).toBe('user-1');
       expect(result.value.permissions[0].moduleOid).toBe('module-1');
     }
   });
@@ -102,7 +131,7 @@ describe('createRole', () => {
       permissions: [],
       createdDate: '2026-01-01',
       updatedDate: '2026-01-02',
-      createdBy: 'user-1'
+      byUserOid: 'user-1'
     });
 
     expect(result.ok).toBeTrue();

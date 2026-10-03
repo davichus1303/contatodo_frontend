@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { NotificationService } from '@core/application/notifications/notification.service';
@@ -13,7 +14,11 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SalesService } from '@core/application/sales/sales.service';
 import { ExpensesService } from '@core/application/expenses/expenses.service';
+import { CompaniesService } from '@core/application/companies/companies.service';
+import { CompanySelectionService } from '@core/application/companies/company-selection.service';
+import { PermissionService } from '@core/application/permissions/permission.service';
 import { Sale } from '@core/domain/models/sale.model';
+import { Company } from '@core/domain/models/company.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { TotalExpensesResponse } from '@core/application/expenses/expenses.service';
 import { I18nService } from '@core/i18n/i18n.service';
@@ -45,6 +50,7 @@ interface HistorySummary {
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule
   ],
@@ -56,6 +62,8 @@ export class SalesHistoryComponent implements OnInit {
   readonly sales = signal<Sale[]>([]);
   readonly filteredSales = signal<Sale[]>([]);
   readonly isLoading = signal<boolean>(false);
+  readonly companies = signal<Company[]>([]);
+  readonly companyOid = signal<string | null>(null);
   readonly summary = signal<HistorySummary>({
     totalSales: 0,
     totalRevenue: 0,
@@ -65,11 +73,24 @@ export class SalesHistoryComponent implements OnInit {
     profitBeforeTaxes: 0
   });
 
+  private readonly permissionService = inject(PermissionService);
+
+  /**
+   * Whether the session may choose the owning company.
+   *
+   * Only a root session sees the selector: it carries no company claim, so the
+   * company has to be picked explicitly. Every other session is already scoped
+   * to its own company by the backend and must not choose another one.
+   */
+  readonly canSelectCompany = this.permissionService.isRoot();
+
   dateRangeForm: FormGroup;
   searchControl: FormGroup;
 
   private salesService = inject(SalesService);
   private expensesService = inject(ExpensesService);
+  private companiesService = inject(CompaniesService);
+  private companySelection = inject(CompanySelectionService);
   private fb = inject(FormBuilder);
   private readonly notifications = inject(NotificationService);
   private router = inject(Router);
@@ -90,9 +111,23 @@ export class SalesHistoryComponent implements OnInit {
 
   /**
    * Initializes the component.
+   *
+   * <p>The history inherits the company picked on the sales page: when one is
+   * available the sales load right away. Without an inherited company a root
+   * session defers the load until a company is chosen in the selector; any
+   * other session relies on the company claim carried by its own token.</p>
    */
   ngOnInit(): void {
-    this.loadSales();
+    this.companyOid.set(this.companySelection.companyOid());
+
+    if (this.canSelectCompany) {
+      this.loadCompanies();
+    }
+
+    if (!this.canSelectCompany || this.companyOid()) {
+      this.loadSales();
+    }
+
     this.searchControl.get('search')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(value => {
@@ -117,6 +152,31 @@ export class SalesHistoryComponent implements OnInit {
   }
 
   /**
+   * Loads the active, non-deleted companies available to a root session.
+   */
+  private loadCompanies(): void {
+    this.companiesService.getActiveCompanies().subscribe({
+      next: (response: ApiResponse<Company[]>) => {
+        this.companies.set(response.data ?? []);
+      },
+      error: () => {
+        this.notifications.error(this.i18nService.translate('sales.errorLoadingCompanies'));
+      }
+    });
+  }
+
+  /**
+   * Handles a company selection and reloads the history for that company.
+   *
+   * @param companyOid Selected company identifier, or an empty value to clear.
+   */
+  onCompanySelected(companyOid: string | null): void {
+    this.companyOid.set(companyOid);
+    this.companySelection.select(companyOid);
+    this.loadSales();
+  }
+
+  /**
    * Loads sales for the selected date range.
    */
   public loadSales(): void {
@@ -131,7 +191,7 @@ export class SalesHistoryComponent implements OnInit {
     const formattedStartDate = this.getFormatedDate(startDate);
     const formattedEndDate = this.getFormatedDate(endDate, SALES_HISTORY_CONSTANTS.DATE.DEFAULT_END_TIME);
 
-    this.salesService.getSalesByDateRange(formattedStartDate, formattedEndDate).subscribe({
+    this.salesService.getSalesByDateRange(formattedStartDate, formattedEndDate, this.companyOid() ?? undefined).subscribe({
       next: (response: ApiResponse<Sale[]>) => {
         this.sales.set(response.data || []);
         this.filteredSales.set([...this.sales()]);
