@@ -151,6 +151,8 @@
   "ACQUISITIONS": {
     "TITLE": "Adquisiciones",
     "SUBTITLE": "Gestiona tus adquisiciones de mercancía",
+    "SELECT_COMPANY": "Selecciona una compañía",
+    "SELECT_COMPANY_PROMPT": "Selecciona una compañía para ver sus adquisiciones",
     "NEW_ACQUISITION": "Nueva Adquisición",
     "BACK": "Volver",
     "START_DATE": "Fecha Inicio",
@@ -197,6 +199,7 @@
     "MESSAGES": {
       "ERROR_LOADING_ACQUISITIONS": "Error cargando adquisiciones",
       "ERROR_LOADING_PRODUCTS": "Error cargando productos",
+      "ERROR_LOADING_COMPANIES": "Error cargando las compañías",
       "ACQUISITION_REGISTERED_SUCCESSFULLY": "Adquisición registrada exitosamente",
       "ERROR_REGISTERING_ACQUISITION": "Error registrando adquisición"
     }
