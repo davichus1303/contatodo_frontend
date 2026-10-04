@@ -35,6 +35,10 @@ export const GENERAL_CONSTANTS = {
     DELETE: 'delete',
     VIEW: 'view'
   } as const,
+  // Persistence keys owned by the application layer
+  STORAGE: {
+    SELECTED_COMPANY_OID: 'selected_company_oid'
+  },
   // Numbers
   NUMBERS: {
     ZERO: 0,
