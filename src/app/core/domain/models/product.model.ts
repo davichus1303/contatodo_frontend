@@ -63,11 +63,15 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     }
   }
 
-  for (const field of ['description', 'code', 'createdDate', 'updatedDate', 'urlPhoto'] as const) {
+  for (const field of ['description', 'code', 'createdDate', 'updatedDate'] as const) {
     const value = raw[field];
     if (value !== undefined && value !== null && typeof value !== 'string') {
       errors.push(domainError(field, `Product ${field} must be a string when present.`));
     }
+  }
+  const urlPhotoValue = raw['urlPhoto'];
+  if (urlPhotoValue !== undefined && urlPhotoValue !== null && typeof urlPhotoValue !== 'string') {
+    errors.push(domainError('urlPhoto', 'Product urlPhoto must be a string when present.'));
   }
   const isActive = raw['isActive'];
   if (isActive !== undefined && isActive !== null && !isBoolean(isActive)) {
