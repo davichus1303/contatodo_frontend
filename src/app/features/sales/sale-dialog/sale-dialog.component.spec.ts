@@ -29,10 +29,7 @@ describe('SaleDialogComponent', () => {
     realCost: 8,
     unitRealCost: 8,
     unitPublicCost: 15,
-    isActive: true,
-    createdDate: '2026-01-01',
-    updatedDate: '2026-01-01'
-  };
+    isActive: true, };
 
   function build(data: SaleDialogData): void {
     TestBed.configureTestingModule({
