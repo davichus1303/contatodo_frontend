@@ -148,13 +148,16 @@ export class SalesComponent implements OnInit {
    */
   public loadProducts(): void {
     this.isLoading.set(true);
+    console.log('[SalesComponent.loadProducts] start', { canSelectCompany: this.canSelectCompany, companyOid: this.companyOid });
     this.productsService.getAvailableProducts(this.companyOid ?? undefined).subscribe({
       next: (response: ApiResponse<Product[]>) => {
-        this.products.set(response.data ?? []);
-        this.filteredProducts.set([...this.products()]);
+        console.log('[SalesComponent.loadProducts] next', { count: response.data?.length, data: response.data });
+        this.products = response.data ?? [];
+        this.filteredProducts.set([...this.products]);
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err) => {
+        console.error('[SalesComponent.loadProducts] error', err);
         this.notifications.error(SALES_CONSTANTS.MESSAGES.ERROR_LOADING_PRODUCTS);
         this.isLoading.set(false);
       }
