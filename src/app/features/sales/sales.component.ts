@@ -47,11 +47,11 @@ import { I18nService } from '@core/i18n/i18n.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SalesComponent implements OnInit {
-  readonly products = signal<Product[]>([]);
+  products: Product[] = [];
   readonly filteredProducts = signal<Product[]>([]);
   readonly isLoading = signal<boolean>(false);
   readonly companies = signal<Company[]>([]);
-  readonly companyOid = signal<string | null>(null);
+  companyOid: string | null = null;
   searchControl: FormGroup;
   readonly i18nService = inject(I18nService);
 
@@ -68,7 +68,12 @@ export class SalesComponent implements OnInit {
    * Products to render. A root session has nothing to show until a company is
    * selected, because the backend rejects an unscoped query.
    */
-  readonly visibleProducts = computed(() => (this.canSelectCompany && !this.companyOid() ? [] : this.filteredProducts()));
+  readonly visibleProducts = computed(() => {
+    if (this.canSelectCompany && !this.companyOid) {
+      return [];
+    }
+    return this.filteredProducts();
+  });
 
   constructor(
     private salesService: SalesService,
@@ -91,11 +96,11 @@ export class SalesComponent implements OnInit {
    * Initializes the component.
    */
   ngOnInit(): void {
-    this.companyOid.set(this.companySelection.companyOid());
+    this.companyOid = this.companySelection.companyOid();
 
     if (this.canSelectCompany) {
       this.loadCompanies();
-      if (this.companyOid()) {
+      if (this.companyOid) {
         this.loadProducts();
       }
     } else {
@@ -129,7 +134,7 @@ export class SalesComponent implements OnInit {
    * @param companyOid Selected company identifier, or an empty value to clear.
    */
   onCompanySelected(companyOid: string | null): void {
-    this.companyOid.set(companyOid);
+    this.companyOid = companyOid;
     this.companySelection.select(companyOid);
     this.searchControl.reset();
     this.loadProducts();
@@ -143,13 +148,13 @@ export class SalesComponent implements OnInit {
    */
   public loadProducts(): void {
     this.isLoading.set(true);
-    this.productsService.getAvailableProducts(this.companyOid() ?? undefined).subscribe({
+    this.productsService.getAvailableProducts(this.companyOid ?? undefined).subscribe({
       next: (response: ApiResponse<Product[]>) => {
-        this.products.set(response.data ?? []);
-        this.filteredProducts.set([...this.products()]);
+        this.products = response.data ?? [];
+        this.filteredProducts.set([...this.products]);
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.notifications.error(SALES_CONSTANTS.MESSAGES.ERROR_LOADING_PRODUCTS);
         this.isLoading.set(false);
       }
@@ -163,12 +168,12 @@ export class SalesComponent implements OnInit {
    */
   filterProducts(searchTerm: string): void {
     if (!searchTerm) {
-      this.filteredProducts.set([...this.products()]);
+      this.filteredProducts.set([...this.products]);
       return;
     }
 
     const term = searchTerm.toLowerCase();
-    this.filteredProducts.set(this.products().filter(product =>
+    this.filteredProducts.set(this.products.filter(product =>
       product.name.toLowerCase().includes(term) ||
       product.code.toLowerCase().includes(term)
     ));
@@ -182,7 +187,7 @@ export class SalesComponent implements OnInit {
   openSaleDialog(product: Product): void {
     const dialogRef = this.dialog.open(SaleDialogComponent, {
       width: '400px',
-      data: { product, companyOid: this.companyOid() }
+      data: { product, companyOid: this.companyOid }
     });
 
     dialogRef.afterClosed()

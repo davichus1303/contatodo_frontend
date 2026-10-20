@@ -26,8 +26,6 @@ export interface Product {
   readonly unitPublicCost: number;
   readonly urlPhoto?: string;
   readonly isActive: boolean;
-  readonly createdDate: string;
-  readonly updatedDate: string;
 }
 
 /**
@@ -58,16 +56,21 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
 
   const numericFields = ['stock', 'realCost', 'unitRealCost', 'unitPublicCost'] as const;
   for (const field of numericFields) {
-    if (!isFiniteNumber(raw[field])) {
+    const v = (raw as any)[field];
+    if (v !== null && v !== undefined && !isFiniteNumber(v)) {
       errors.push(domainError(field, `Product ${field} must be a finite number.`));
     }
   }
 
-  for (const field of ['description', 'code', 'createdDate', 'updatedDate', 'urlPhoto'] as const) {
+  for (const field of ['description', 'code'] as const) {
     const value = raw[field];
     if (value !== undefined && value !== null && typeof value !== 'string') {
       errors.push(domainError(field, `Product ${field} must be a string when present.`));
     }
+  }
+  const urlPhotoValue = raw['urlPhoto'];
+  if (urlPhotoValue !== undefined && urlPhotoValue !== null && typeof urlPhotoValue !== 'string') {
+    errors.push(domainError('urlPhoto', 'Product urlPhoto must be a string when present.'));
   }
   const isActive = raw['isActive'];
   if (isActive !== undefined && isActive !== null && !isBoolean(isActive)) {
@@ -84,12 +87,10 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     description: optionalString(raw['description']) ?? '',
     stock: raw['stock'] as number,
     code: optionalString(raw['code']) ?? '',
-    realCost: raw['realCost'] as number,
-    unitRealCost: raw['unitRealCost'] as number,
-    unitPublicCost: raw['unitPublicCost'] as number,
+    realCost: (raw['realCost'] === null || raw['realCost'] === undefined ? 0 : raw['realCost']) as number,
+    unitRealCost: (raw['unitRealCost'] === null || raw['unitRealCost'] === undefined ? 0 : raw['unitRealCost']) as number,
+    unitPublicCost: (raw['unitPublicCost'] === null || raw['unitPublicCost'] === undefined ? 0 : raw['unitPublicCost']) as number,
     urlPhoto: optionalString(raw['urlPhoto']),
-    isActive: raw['isActive'] === true,
-    createdDate: optionalString(raw['createdDate']) ?? '',
-    updatedDate: optionalString(raw['updatedDate']) ?? ''
+    isActive: raw['isActive'] === true
   });
 }

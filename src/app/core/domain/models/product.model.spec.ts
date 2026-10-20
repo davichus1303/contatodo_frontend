@@ -105,8 +105,6 @@ describe('createProduct', () => {
       expect(result.value.description).toBe('');
       expect(result.value.urlPhoto).toBeUndefined();
       expect(result.value.isActive).toBeFalse();
-      expect(result.value.createdDate).toBe('');
-      expect(result.value.updatedDate).toBe('');
     }
   });
 

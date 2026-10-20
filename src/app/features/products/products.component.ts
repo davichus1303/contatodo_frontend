@@ -163,7 +163,7 @@ export class ProductsComponent {
         this.products.set(response.data ?? []);
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.notifications.error(this.i18nService.translate('PRODUCTS.MESSAGES.ERROR_LOADING_PRODUCTS'));
         this.isLoading.set(false);
       }

@@ -37,10 +37,7 @@ describe('SalesComponent', () => {
       realCost: 8,
       unitRealCost: 8,
       unitPublicCost: 15,
-      isActive: true,
-      createdDate: '2026-01-01',
-      updatedDate: '2026-01-01'
-    }
+      isActive: true, }
   ];
 
   const sampleCompanies: Company[] = [
@@ -181,7 +178,7 @@ describe('SalesComponent', () => {
       TestBed.inject(CompanySelectionService).select('company-1');
       createComponent();
 
-      expect(component.companyOid()).toBe('company-1');
+      expect(component.companyOid).toBe('company-1');
 
       flushCompanies(sampleCompanies);
 

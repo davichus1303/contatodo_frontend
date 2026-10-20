@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { HTTP_PORT } from '../ports/http.port';
 import { ApiResponse } from '../ports/api-response.interface';
 import { createProduct, Product } from '../../domain/models/product.model';
@@ -38,7 +38,11 @@ export class ProductsService {
       .get<ApiResponse<unknown>>(this.apiUrl, {
         params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
       })
-      .pipe(map((response) => this.withMappedData(response, mapProducts(response.data))));
+      .pipe(
+        map((response) => {
+          return this.withMappedData(response, mapProducts(response.data));
+        })
+      );
   }
 
   /**
@@ -63,7 +67,11 @@ export class ProductsService {
         headers: { [GENERAL_CONSTANTS.HTTP.HEADERS.USER_OID]: userOid },
         params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
       })
-      .pipe(map((response) => this.withMappedData(response, mapProducts(response.data))));
+      .pipe(
+        map((response) => {
+          return this.withMappedData(response, mapProducts(response.data));
+        })
+      );
   }
 
   /**
