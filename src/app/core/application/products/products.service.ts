@@ -34,15 +34,12 @@ export class ProductsService {
    * @returns Observable with API response containing all products.
    */
   getAllProducts(companyOid?: string): Observable<ApiResponse<Product[]>> {
-    console.log('[ProductsService.getAllProducts] called', { apiUrl: this.apiUrl, companyOid });
     return this.http
       .get<ApiResponse<unknown>>(this.apiUrl, {
         params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
       })
       .pipe(
-        tap((response) => console.log('[ProductsService.getAllProducts] response', response)),
         map((response) => {
-          console.log('[ProductsService.getAllProducts] mapping', { data: response.data });
           return this.withMappedData(response, mapProducts(response.data));
         })
       );
@@ -64,7 +61,6 @@ export class ProductsService {
    */
   getAvailableProducts(companyOid?: string): Observable<ApiResponse<Product[]>> {
     const userOid: string = this.authService.getUserInfo()?.id ?? '';
-    console.log('[ProductsService.getAvailableProducts] called', { apiUrl: this.apiUrl, companyOid, userOid });
 
     return this.http
       .get<ApiResponse<unknown>>(`${this.apiUrl}/available`, {
@@ -72,9 +68,7 @@ export class ProductsService {
         params: { [GENERAL_CONSTANTS.HTTP.PARAMS.COMPANY_OID]: companyOid }
       })
       .pipe(
-        tap((response) => console.log('[ProductsService.getAvailableProducts] response', response)),
         map((response) => {
-          console.log('[ProductsService.getAvailableProducts] mapping', { data: response.data });
           return this.withMappedData(response, mapProducts(response.data));
         })
       );

@@ -158,15 +158,12 @@ export class ProductsComponent {
     }
 
     this.isLoading.set(true);
-    console.log('[ProductsComponent.loadProducts] start', { canSelectCompany: this.canSelectCompany, companyOid: this.companyOid() });
     this.productsService.getAllProducts(this.companyOid() ?? undefined).subscribe({
       next: (response: ApiResponse<Product[]>) => {
-        console.log('[ProductsComponent.loadProducts] next', { count: response.data?.length, data: response.data });
         this.products.set(response.data ?? []);
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('[ProductsComponent.loadProducts] error', err);
         this.notifications.error(this.i18nService.translate('PRODUCTS.MESSAGES.ERROR_LOADING_PRODUCTS'));
         this.isLoading.set(false);
       }
