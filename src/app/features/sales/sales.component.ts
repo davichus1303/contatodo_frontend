@@ -47,7 +47,7 @@ import { I18nService } from '@core/i18n/i18n.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SalesComponent implements OnInit {
-  readonly products = signal<Product[]>([]);
+  products: Product[] = [];
   readonly filteredProducts = signal<Product[]>([]);
   readonly isLoading = signal<boolean>(false);
   readonly companies = signal<Company[]>([]);
@@ -171,12 +171,12 @@ export class SalesComponent implements OnInit {
    */
   filterProducts(searchTerm: string): void {
     if (!searchTerm) {
-      this.filteredProducts.set([...this.products()]);
+      this.filteredProducts.set([...this.products]);
       return;
     }
 
     const term = searchTerm.toLowerCase();
-    this.filteredProducts.set(this.products().filter(product =>
+    this.filteredProducts.set(this.products.filter(product =>
       product.name.toLowerCase().includes(term) ||
       product.code.toLowerCase().includes(term)
     ));
