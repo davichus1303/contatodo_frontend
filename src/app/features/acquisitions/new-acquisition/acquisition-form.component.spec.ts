@@ -30,10 +30,7 @@ describe('AcquisitionFormComponent', () => {
       unitRealCost: 8,
       unitPublicCost: 15,
       urlPhoto: '',
-      isActive: true,
-      createdDate: '2026-01-01',
-      updatedDate: '2026-01-01'
-    },
+      isActive: true, },
     {
       id: '2',
       name: 'Arroz con pollo',
@@ -44,10 +41,7 @@ describe('AcquisitionFormComponent', () => {
       unitRealCost: 6,
       unitPublicCost: 12,
       urlPhoto: '',
-      isActive: true,
-      createdDate: '2026-01-01',
-      updatedDate: '2026-01-01'
-    }
+      isActive: true, }
   ];
 
   const sampleAcquisitionTypes: AcquisitionType[] = [
