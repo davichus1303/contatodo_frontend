@@ -181,7 +181,7 @@ describe('SalesComponent', () => {
       TestBed.inject(CompanySelectionService).select('company-1');
       createComponent();
 
-      expect(component.companyOid()).toBe('company-1');
+      expect(component.companyOid).toBe('company-1');
 
       flushCompanies(sampleCompanies);
 
