@@ -26,8 +26,6 @@ export interface Product {
   readonly unitPublicCost: number;
   readonly urlPhoto?: string;
   readonly isActive: boolean;
-  readonly createdDate: string;
-  readonly updatedDate: string;
 }
 
 /**
@@ -63,7 +61,7 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     }
   }
 
-  for (const field of ['description', 'code', 'createdDate', 'updatedDate'] as const) {
+  for (const field of ['description', 'code'] as const) {
     const value = raw[field];
     if (value !== undefined && value !== null && typeof value !== 'string') {
       errors.push(domainError(field, `Product ${field} must be a string when present.`));
@@ -92,8 +90,6 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     unitRealCost: raw['unitRealCost'] as number,
     unitPublicCost: raw['unitPublicCost'] as number,
     urlPhoto: optionalString(raw['urlPhoto']),
-    isActive: raw['isActive'] === true,
-    createdDate: optionalString(raw['createdDate']) ?? '',
-    updatedDate: optionalString(raw['updatedDate']) ?? ''
+    isActive: raw['isActive'] === true
   });
 }
