@@ -1,0 +1,73 @@
+<div class="unit-of-measure-catalog-page">
+  <div class="page-header">
+    <div>
+      <h1>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.TITLE') }}</h1>
+      @if (canSelectCompany) {
+        <mat-form-field appearance="outline" class="company-selector">
+          <mat-label>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.SELECT_COMPANY') }}</mat-label>
+          <mat-select [value]="companyOid()" (selectionChange)="onCompanySelected($event.value)">
+            @for (company of companies(); track company.id) {
+              <mat-option [value]="company.id">{{ company.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+      <p *ngIf="!canSelectCompany">{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.SUBTITLE') }}</p>
+    </div>
+    <div class="actions">
+      <button *appPermission="'/unit-of-measure-catalog'; action: 'create'" mat-raised-button color="primary" (click)="openCreateDialog()" [disabled]="isCreateDisabled()">
+        <mat-icon>add</mat-icon>
+        <span>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.NEW_BUTTON') }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.SEARCH.LABEL') }}</mat-label>
+      <input matInput [formControl]="searchControl" [placeholder]="i18nService.translate('UNIT_OF_MEASURE_CATALOG.SEARCH.PLACEHOLDER')" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (filteredUnits().length === 0) {
+    <div class="empty-state">
+      <mat-icon>straighten</mat-icon>
+      <p>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.EMPTY_STATE') }}</p>
+    </div>
+  } @else {
+    <div class="units-grid">
+      @for (unit of filteredUnits(); track unit.id) {
+        <mat-card class="unit-card">
+          <mat-card-content>
+            <div class="card-header">
+              <h3>{{ unit.name }}</h3>
+              <span [class]="getStatusBadgeClass(unit.isActive)" class="status-badge">
+                {{ unit.isActive ? i18nService.translate('UNIT_OF_MEASURE_CATALOG.STATUS.ACTIVE') : i18nService.translate('UNIT_OF_MEASURE_CATALOG.STATUS.INACTIVE') }}
+              </span>
+            </div>
+            <p class="abrev">{{ unit.abrev }}</p>
+            <div class="card-actions">
+              <button *appPermission="'/unit-of-measure-catalog'; action: 'update'" mat-icon-button color="primary" [title]="i18nService.translate('UNIT_OF_MEASURE_CATALOG.ACTIONS.EDIT')" (click)="openEditDialog(unit)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button *appPermission="'/unit-of-measure-catalog'; action: 'delete'" mat-icon-button color="warn" [title]="i18nService.translate('UNIT_OF_MEASURE_CATALOG.ACTIONS.DELETE')" (click)="openDeleteDialog(unit)">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <mat-slide-toggle
+                [checked]="unit.isActive"
+                [disabled]="isUpdating(unit.id)"
+                (change)="onStatusToggle(unit, $event)"
+                [title]="i18nService.translate('UNIT_OF_MEASURE_CATALOG.ACTIONS.TOGGLE_STATUS')"
+              ></mat-slide-toggle>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

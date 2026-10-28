@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DELETE_DIALOG.TITLE') }}</h2>
+
+<mat-dialog-content>
+  <p>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DELETE_DIALOG.MESSAGE') }}</p>
+  <p class="unit-name"><strong>{{ unit.name }} ({{ unit.abrev }})</strong></p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" [disabled]="isDeleting()">{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DELETE_DIALOG.CANCEL') }}</button>
+  <button mat-raised-button color="warn" (click)="confirm()" [disabled]="isDeleting()">
+    @if (isDeleting()) {
+      <mat-spinner diameter="20"></mat-spinner>
+    }
+    <span>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DELETE_DIALOG.DELETE') }}</span>
+  </button>
+</mat-dialog-actions>

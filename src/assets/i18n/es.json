@@ -478,4 +478,70 @@
       "ERROR_LOADING_ROLES": "Error cargando los roles"
     }
   }
+,
+    "UNIT_OF_MEASURE_CATALOG": {
+    "TITLE": "Unidades de medida",
+    "SUBTITLE": "Administración de unidades de medida",
+    "SELECT_COMPANY": "Seleccionar compañía",
+    "NEW": "Nueva unidad de medida",
+    "NEW_BUTTON": "Nueva unidad de medida",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por nombre o abreviatura"
+    },
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "EMPTY": "No hay unidades de medida registradas",
+    "EMPTY_STATE": "No hay unidades de medida registradas",
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Cambiar estado"
+    },
+    "TOOLTIP": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "ACTIVATE": "Activar",
+      "DEACTIVATE": "Desactivar"
+    },
+    "DIALOG": {
+      "CREATE_TITLE": "Nueva unidad de medida",
+      "EDIT_TITLE": "Editar unidad de medida",
+      "NAME": "Nombre",
+      "NAME_PLACEHOLDER": "Ej. Kilogramo",
+      "NAME_REQUIRED": "El nombre es requerido",
+      "ABREV": "Abreviatura",
+      "ABREV_PLACEHOLDER": "Ej. kg",
+      "ABREV_REQUIRED": "La abreviatura es requerida",
+      "CANCEL": "Cancelar",
+      "CREATE": "Crear",
+      "SAVE": "Guardar"
+    },
+    "DELETE_DIALOG": {
+      "TITLE": "Eliminar unidad de medida",
+      "MESSAGE": "¿Está seguro que desea eliminar esta unidad de medida?",
+      "CANCEL": "Cancelar",
+      "DELETE": "Eliminar"
+    },
+    "CONFIRMATION": {
+      "TITLE": "Confirmar cambios",
+      "MESSAGE": "¿Está seguro que desea guardar los cambios?",
+      "CANCEL": "Cancelar",
+      "CONFIRM": "Confirmar"
+    },
+    "MESSAGES": {
+      "CREATED": "Unidad de medida creada correctamente",
+      "UPDATED": "Unidad de medida actualizada correctamente",
+      "DELETED": "Unidad de medida eliminada correctamente",
+      "STATUS_UPDATED": "Estado actualizado correctamente",
+      "ERROR_LOADING": "Error al cargar unidades de medida",
+      "ERROR_LOADING_COMPANIES": "Error al cargar compañías",
+      "ERROR_CREATING": "Error al crear unidad de medida",
+      "ERROR_UPDATING": "Error al actualizar unidad de medida",
+      "ERROR_DELETING": "Error al eliminar unidad de medida",
+      "ERROR_UPDATING_STATUS": "Error al actualizar el estado"
+    }
+  }
 }
