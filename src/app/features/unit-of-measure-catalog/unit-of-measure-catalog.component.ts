@@ -25,8 +25,8 @@ import { addPendingId, removePendingId } from '@shared/utils/pending-ids.utils';
 import { PermissionDirective } from '@shared/directives/permission.directive';
 import { CompanySelectionService } from '@core/application/companies/company-selection.service';
 import { PermissionService } from '@core/application/permissions/permission.service';
-
-export type SortOption = 'nameAsc' | 'nameDesc' | 'activeFirst' | 'inactiveFirst';
+import { CompaniesService } from '@core/application/companies/companies.service';
+import { Company } from '@core/domain/models/company.model';
 
 @Component({
   selector: 'app-unit-of-measure-catalog',
@@ -57,84 +57,78 @@ export class UnitOfMeasureCatalogComponent implements OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly companySelectionService = inject(CompanySelectionService);
   private readonly permissionService = inject(PermissionService);
+  private readonly companiesService = inject(CompaniesService);
 
   readonly searchControl = new FormControl<string>('');
-  readonly sortControl = new FormControl<SortOption>('nameAsc');
   readonly searchTerm = signal<string>('');
-  readonly sortOption = signal<SortOption>('nameAsc');
   readonly units = signal<UnitOfMeasure[]>([]);
   readonly isLoading = signal<boolean>(false);
   readonly updatingIds = signal<Set<string>>(new Set());
+  readonly companies = signal<Company[]>([]);
+  readonly companyOid = signal<string | null>(null);
+
+  readonly canSelectCompany = this.permissionService.isRoot();
 
   readonly filteredUnits = computed(() => {
     const searchTerm = this.searchTerm().toLowerCase();
-    const sortOption = this.sortOption();
-    
     const filtered = this.units().filter(unit =>
       unit.name.toLowerCase().includes(searchTerm) || unit.abrev.toLowerCase().includes(searchTerm)
     );
-
-    switch (sortOption) {
-      case 'nameAsc':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'nameDesc':
-        filtered.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      case 'activeFirst':
-        filtered.sort((a, b) => {
-          if (a.isActive === b.isActive) return a.name.localeCompare(b.name);
-          return a.isActive ? -1 : 1;
-        });
-        break;
-      case 'inactiveFirst':
-        filtered.sort((a, b) => {
-          if (a.isActive === b.isActive) return a.name.localeCompare(b.name);
-          return a.isActive ? 1 : -1;
-        });
-        break;
-    }
-
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
     return filtered;
   });
 
-  readonly sortOptions: Array<{ value: SortOption; labelKey: string }> = [
-    { value: 'nameAsc', labelKey: 'UNIT_OF_MEASURE_CATALOG.SORT.OPTIONS.NAME_ASC' },
-    { value: 'nameDesc', labelKey: 'UNIT_OF_MEASURE_CATALOG.SORT.OPTIONS.NAME_DESC' },
-    { value: 'activeFirst', labelKey: 'UNIT_OF_MEASURE_CATALOG.SORT.OPTIONS.ACTIVE_FIRST' },
-    { value: 'inactiveFirst', labelKey: 'UNIT_OF_MEASURE_CATALOG.SORT.OPTIONS.INACTIVE_FIRST' }
-  ];
-
   constructor() {
     this.searchTerm.set(this.searchControl.value ?? '');
-    this.sortOption.set(this.sortControl.value ?? 'nameAsc');
-
     this.searchControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value: string | null) => {
       this.searchTerm.set(value ?? '');
     });
-
-    this.sortControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value: SortOption | null) => {
-      this.sortOption.set(value ?? 'nameAsc');
-    });
-
-    this.loadUnits();
+    this.init();
   }
 
-  private getCompanyOid(): string | undefined {
-    if (this.permissionService.isRoot()) {
-      const selected = this.companySelectionService.companyOid();
-      return selected && selected.length > 0 ? selected : undefined;
+  private init(): void {
+    this.companyOid.set(this.companySelectionService.companyOid());
+    if (this.canSelectCompany) {
+      this.loadCompanies();
+      if (this.companyOid()) {
+        this.loadUnits();
+      }
+    } else {
+      this.loadUnits();
     }
-    return undefined;
+  }
+
+  private loadCompanies(): void {
+    this.companiesService.getActiveCompanies().subscribe({
+      next: (response: ApiResponse<Company[]>) => {
+        this.companies.set(response.data ?? []);
+      },
+      error: () => {
+        this.notifications.error(this.i18nService.translate('UNIT_OF_MEASURE_CATALOG.MESSAGES.ERROR_LOADING_COMPANIES'));
+      }
+    });
+  }
+
+  onCompanySelected(companyOid: string | null): void {
+    this.companyOid.set(companyOid);
+    this.companySelectionService.select(companyOid);
+    if (companyOid || !this.canSelectCompany) {
+      this.loadUnits();
+    } else {
+      this.units.set([]);
+    }
   }
 
   private loadUnits(): void {
     if (this.isLoading()) {
       return;
     }
+    if (this.canSelectCompany && !this.companyOid()) {
+      return;
+    }
 
     this.isLoading.set(true);
-    const companyOid = this.getCompanyOid();
+    const companyOid = this.canSelectCompany ? this.companyOid() ?? undefined : undefined;
 
     this.unitOfMeasureService.getAllNotDeletedUnitOfMeasures(companyOid).pipe(
       takeUntil(this.destroy$)
@@ -193,12 +187,6 @@ export class UnitOfMeasureCatalogComponent implements OnDestroy {
     return isActive ? 'status-badge active' : 'status-badge inactive';
   }
 
-  getStatusLabel(isActive: boolean): string {
-    return isActive
-      ? this.i18nService.translate('UNIT_OF_MEASURE_CATALOG.STATUS.ACTIVE')
-      : this.i18nService.translate('UNIT_OF_MEASURE_CATALOG.STATUS.INACTIVE');
-  }
-
   onStatusToggle(unit: UnitOfMeasure, event: MatSlideToggleChange): void {
     const previousValue = unit.isActive;
     const newValue = event.checked;
@@ -244,6 +232,10 @@ export class UnitOfMeasureCatalogComponent implements OnDestroy {
 
   isUpdating(unitId: string): boolean {
     return this.updatingIds().has(unitId);
+  }
+
+  isCreateDisabled(): boolean {
+    return this.canSelectCompany && !this.companyOid();
   }
 
   ngOnDestroy(): void {
