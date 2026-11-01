@@ -14,6 +14,7 @@ import { Acquisition } from '@core/domain/models/acquisition.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { CreateAcquisitionRequest } from '@core/application/dto/acquisition-request.dto';
 import { ACQUISITIONS_CONSTANTS } from '@shared/constants/acquisitions.constants';
+import { STORAGE_PORT_STUB_PROVIDER } from '@shared/testing/ports.stub';
 
 const savedAcquisition: Acquisition = {
   id: 'a1',
@@ -93,6 +94,7 @@ describe('NewAcquisitionComponent', () => {
         { provide: NotificationService, useValue: { success: successSpy, error: errorSpy } },
         { provide: I18nService, useValue: { translate: (key: string) => key } },
         { provide: Router, useValue: { navigate: jasmine.createSpy('navigate') } },
+        STORAGE_PORT_STUB_PROVIDER,
         provideAnimationsAsync()
       ]
     });

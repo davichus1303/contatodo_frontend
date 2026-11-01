@@ -8,6 +8,7 @@ import { I18nService } from '@core/i18n/i18n.service';
 import { Role } from '@core/domain/models/role.model';
 import { Module } from '@core/domain/models/module.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
+import { PermissionService } from '@core/application/permissions/permission.service';
 import { UpdateRoleRequest } from '@core/application/dto/role-request.dto';
 import { RoleDialogComponent } from './role-dialog/role-dialog.component';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
@@ -77,6 +78,7 @@ describe('RolesComponent', () => {
         { provide: RolesService, useValue: { getRoles: getRolesSpy, getModules: getModulesSpy, updateRole: updateRoleSpy, deleteRole: deleteRoleSpy } },
         { provide: NotificationService, useValue: { success: successSpy, error: errorSpy } },
         { provide: I18nService, useValue: { translate: translateSpy } },
+        { provide: PermissionService, useValue: { isRoot: () => false, hasAccessByLink: () => of(true) } },
         provideAnimationsAsync()
       ]
     });

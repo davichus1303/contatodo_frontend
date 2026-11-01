@@ -16,6 +16,7 @@ import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { UserRequest } from '@core/application/dto/user-request.dto';
 import { UserFormDialogData } from '@shared/interfaces/user-form-dialog.interfaces';
 import { ConfirmationDialogData } from '@shared/interfaces/confirmation-dialog.interfaces';
+import { STORAGE_PORT_STUB_PROVIDER } from '@shared/testing/ports.stub';
 
 describe('UsersComponent', () => {
   let component: UsersComponent;
@@ -106,6 +107,7 @@ describe('UsersComponent', () => {
         },
         { provide: NotificationService, useValue: { success: successSpy, error: errorSpy } },
         { provide: I18nService, useValue: { translate: translateSpy } },
+        STORAGE_PORT_STUB_PROVIDER,
         provideAnimationsAsync()
       ]
     });
@@ -343,6 +345,7 @@ describe('UsersComponent (root session)', () => {
         },
         { provide: NotificationService, useValue: { success: jasmine.createSpy('success'), error: errorSpy } },
         { provide: I18nService, useValue: { translate: (key: string) => key } },
+        STORAGE_PORT_STUB_PROVIDER,
         provideAnimationsAsync()
       ]
     });
