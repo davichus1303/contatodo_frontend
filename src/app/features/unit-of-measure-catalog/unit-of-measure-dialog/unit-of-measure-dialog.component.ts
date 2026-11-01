@@ -157,7 +157,7 @@ export class UnitOfMeasureDialogComponent {
       abrev
     };
 
-    this.unitOfMeasureService.updateUnitOfMeasure(unitId, payload).subscribe({
+    this.unitOfMeasureService.updateUnitOfMeasure(unitId, payload, this.getCompanyOid()).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.notifications.success(this.i18nService.translate('UNIT_OF_MEASURE_CATALOG.MESSAGES.UPDATED'));

@@ -477,9 +477,8 @@
       "DELETE_ERROR": "Error eliminando el usuario",
       "ERROR_LOADING_ROLES": "Error cargando los roles"
     }
-  }
-,
-    "UNIT_OF_MEASURE_CATALOG": {
+  },
+  "UNIT_OF_MEASURE_CATALOG": {
     "TITLE": "Unidades de medida",
     "SUBTITLE": "Administración de unidades de medida",
     "SELECT_COMPANY": "Seleccionar compañía",
@@ -498,7 +497,10 @@
     "ACTIONS": {
       "EDIT": "Editar",
       "DELETE": "Eliminar",
-      "TOGGLE_STATUS": "Cambiar estado"
+      "TOGGLE_STATUS": "Cambiar estado",
+      "ACTIVATE": "Activar",
+      "DEACTIVATE": "Desactivar",
+      "CANCEL": "Cancelar"
     },
     "TOOLTIP": {
       "EDIT": "Editar",
@@ -542,6 +544,10 @@
       "ERROR_UPDATING": "Error al actualizar unidad de medida",
       "ERROR_DELETING": "Error al eliminar unidad de medida",
       "ERROR_UPDATING_STATUS": "Error al actualizar el estado"
-    }
+    },
+    "CONFIRM_ACTIVATE_TITLE": "Activar unidad de medida",
+    "CONFIRM_DEACTIVATE_TITLE": "Desactivar unidad de medida",
+    "CONFIRM_ACTIVATE_MESSAGE": "Se activará la unidad de medida seleccionada y podrá usarse en el sistema. ¿Deseas continuar?",
+    "CONFIRM_DEACTIVATE_MESSAGE": "Se desactivará la unidad de medida seleccionada y no podrá usarse en el sistema. ¿Deseas continuar?"
   }
 }

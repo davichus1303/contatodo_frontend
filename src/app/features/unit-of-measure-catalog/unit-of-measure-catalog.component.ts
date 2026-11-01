@@ -27,6 +27,7 @@ import { CompanySelectionService } from '@core/application/companies/company-sel
 import { PermissionService } from '@core/application/permissions/permission.service';
 import { CompaniesService } from '@core/application/companies/companies.service';
 import { Company } from '@core/domain/models/company.model';
+import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 
 @Component({
   selector: 'app-unit-of-measure-catalog',
@@ -173,7 +174,7 @@ export class UnitOfMeasureCatalogComponent implements OnDestroy {
   openDeleteDialog(unit: UnitOfMeasure): void {
     const dialogRef = this.dialog.open(UnitOfMeasureDeleteDialogComponent, {
       width: '360px',
-      data: { unit }
+      data: { unit, companyOid: this.companyOid() }
     });
 
     dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((deleted: boolean | undefined) => {
@@ -196,37 +197,59 @@ export class UnitOfMeasureCatalogComponent implements OnDestroy {
       return;
     }
 
-    this.updatingIds.update((set) => {
-      const nextSet = new Set(set);
-      nextSet.add(unit.id);
-      return nextSet;
-    });
+    event.source.checked = previousValue;
 
-    const payload: UpdateUnitOfMeasureRequest = { isActive: newValue };
-
-    this.unitOfMeasureService.updateUnitOfMeasure(unit.id, payload).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: () => {
-        this.units.update((units) => units.map((current) =>
-          current.id === unit.id ? { ...current, isActive: newValue } : current
-        ));
-        this.updatingIds.update((set) => {
-          const nextSet = new Set(set);
-          nextSet.delete(unit.id);
-          return nextSet;
-        });
-        this.notifications.success(this.i18nService.translate('UNIT_OF_MEASURE_CATALOG.MESSAGES.STATUS_UPDATED'));
+    const dialogRef = openConfirmationDialog(
+      this.dialog,
+      {
+        titleKey: newValue ? 'UNIT_OF_MEASURE_CATALOG.CONFIRM_ACTIVATE_TITLE' : 'UNIT_OF_MEASURE_CATALOG.CONFIRM_DEACTIVATE_TITLE',
+        messageKey: newValue ? 'UNIT_OF_MEASURE_CATALOG.CONFIRM_ACTIVATE_MESSAGE' : 'UNIT_OF_MEASURE_CATALOG.CONFIRM_DEACTIVATE_MESSAGE',
+        cancelKey: 'UNIT_OF_MEASURE_CATALOG.ACTIONS.CANCEL',
+        confirmKey: newValue ? 'UNIT_OF_MEASURE_CATALOG.ACTIONS.ACTIVATE' : 'UNIT_OF_MEASURE_CATALOG.ACTIONS.DEACTIVATE'
       },
-      error: (error) => {
+      '420px'
+    );
+
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((confirmed?: boolean) => {
+      if (!confirmed) {
         event.source.checked = previousValue;
-        this.updatingIds.update((set) => {
-          const nextSet = new Set(set);
-          nextSet.delete(unit.id);
-          return nextSet;
-        });
-        this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('UNIT_OF_MEASURE_CATALOG.MESSAGES.ERROR_UPDATING_STATUS')));
+        return;
       }
+
+      event.source.checked = newValue;
+
+      this.updatingIds.update((set) => {
+        const nextSet = new Set(set);
+        nextSet.add(unit.id);
+        return nextSet;
+      });
+
+      const payload: UpdateUnitOfMeasureRequest = { isActive: newValue };
+
+      this.unitOfMeasureService.updateUnitOfMeasure(unit.id, payload, this.companyOid() ?? undefined).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.units.update((units) => units.map((current) =>
+            current.id === unit.id ? { ...current, isActive: newValue } : current
+          ));
+          this.updatingIds.update((set) => {
+            const nextSet = new Set(set);
+            nextSet.delete(unit.id);
+            return nextSet;
+          });
+          this.notifications.success(this.i18nService.translate('UNIT_OF_MEASURE_CATALOG.MESSAGES.STATUS_UPDATED'));
+        },
+        error: (error) => {
+          event.source.checked = previousValue;
+          this.updatingIds.update((set) => {
+            const nextSet = new Set(set);
+            nextSet.delete(unit.id);
+            return nextSet;
+          });
+          this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('UNIT_OF_MEASURE_CATALOG.MESSAGES.ERROR_UPDATING_STATUS')));
+        }
+      });
     });
   }
 

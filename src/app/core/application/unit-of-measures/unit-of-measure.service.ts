@@ -52,8 +52,9 @@ export class UnitOfMeasureService {
   /**
    * Updates an existing unit of measure.
    */
-  updateUnitOfMeasure(id: string, payload: UpdateUnitOfMeasureRequest): Observable<ApiResponse<UnitOfMeasure>> {
-    return this.http.put<ApiResponse<unknown>>(`${this.apiUrl}/${id}`, payload).pipe(
+  updateUnitOfMeasure(id: string, payload: UpdateUnitOfMeasureRequest, companyOid?: string): Observable<ApiResponse<UnitOfMeasure>> {
+    const options = companyOid ? { params: { companyOid } } : {};
+    return this.http.put<ApiResponse<unknown>>(`${this.apiUrl}/${id}`, payload, options).pipe(
       map((response) => this.withMappedData(response, createUnitOfMeasure(response.data)))
     );
   }
@@ -61,10 +62,9 @@ export class UnitOfMeasureService {
   /**
    * Soft-deletes a unit of measure.
    */
-  deleteUnitOfMeasure(id: string): Observable<ApiResponse<UnitOfMeasure>> {
-    return this.http.delete<ApiResponse<unknown>>(`${this.apiUrl}/${id}`).pipe(
-      map((response) => this.withMappedData(response, createUnitOfMeasure(response.data)))
-    );
+  deleteUnitOfMeasure(id: string, companyOid?: string): Observable<ApiResponse<unknown>> {
+    const options = companyOid ? { params: { companyOid } } : {};
+    return this.http.delete<ApiResponse<unknown>>(`${this.apiUrl}/${id}`, options);
   }
 
   private withMappedData<T>(

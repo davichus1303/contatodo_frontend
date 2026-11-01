@@ -11,6 +11,7 @@ import { I18nService } from '@core/i18n/i18n.service';
 
 export interface UnitOfMeasureDeleteDialogData {
   unit: UnitOfMeasure;
+  companyOid?: string | null;
 }
 
 @Component({
@@ -34,6 +35,7 @@ export class UnitOfMeasureDeleteDialogComponent {
   readonly i18nService = inject(I18nService);
 
   readonly unit = this.data.unit;
+  readonly companyOid = this.data.companyOid ?? null;
   readonly isDeleting = signal<boolean>(false);
 
   cancel(): void {
@@ -47,7 +49,7 @@ export class UnitOfMeasureDeleteDialogComponent {
 
     this.isDeleting.set(true);
 
-    this.unitOfMeasureService.deleteUnitOfMeasure(this.unit.id).subscribe({
+    this.unitOfMeasureService.deleteUnitOfMeasure(this.unit.id, this.companyOid ?? undefined).subscribe({
       next: () => {
         this.isDeleting.set(false);
         this.notifications.success(this.i18nService.translate('UNIT_OF_MEASURE_CATALOG.MESSAGES.DELETED'));
