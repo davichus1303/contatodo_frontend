@@ -1,0 +1,33 @@
+<h2 mat-dialog-title>
+  {{ mode === 'create' ? i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.CREATE_TITLE') : i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.EDIT_TITLE') }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="unit-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.NAME') }}</mat-label>
+      <input matInput formControlName="name" [placeholder]="i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.NAME_PLACEHOLDER')" />
+      @if (form.controls.name.hasError('required') || form.controls.name.hasError('nonBlank')) {
+        <mat-error>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.NAME_REQUIRED') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.ABREV') }}</mat-label>
+      <input matInput formControlName="abrev" [placeholder]="i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.ABREV_PLACEHOLDER')" />
+      @if (form.controls.abrev.hasError('required') || form.controls.abrev.hasError('nonBlank')) {
+        <mat-error>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.ABREV_REQUIRED') }}</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" [disabled]="isSaving()">{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.CANCEL') }}</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="isSubmitDisabled">
+    @if (isSaving()) {
+      <mat-spinner diameter="20"></mat-spinner>
+    }
+    <span>{{ mode === 'create' ? i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.CREATE') : i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.SAVE') }}</span>
+  </button>
+</mat-dialog-actions>

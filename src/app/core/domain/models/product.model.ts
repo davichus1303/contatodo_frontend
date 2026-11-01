@@ -57,7 +57,9 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
   const numericFields = ['stock', 'realCost', 'unitRealCost', 'unitPublicCost'] as const;
   for (const field of numericFields) {
     const v = (raw as any)[field];
-    if (v !== null && v !== undefined && !isFiniteNumber(v)) {
+    const isRequired = field === 'stock';
+    const isMissing = v === null || v === undefined;
+    if ((isRequired && isMissing) || (!isMissing && !isFiniteNumber(v))) {
       errors.push(domainError(field, `Product ${field} must be a finite number.`));
     }
   }

@@ -6,6 +6,7 @@ import { ProductsComponent } from './features/products/products.component';
 import { AcquisitionsComponent } from './features/acquisitions/acquisitions.component';
 import { NewAcquisitionComponent } from './features/acquisitions/new-acquisition/new-acquisition.component';
 import { AcquisitionTypeCatalogComponent } from './features/acquisition-type-catalog/acquisition-type-catalog.component';
+import { UnitOfMeasureCatalogComponent } from './features/unit-of-measure-catalog/unit-of-measure-catalog.component';
 import { RolesComponent } from './features/roles/roles.component';
 import { UsersComponent } from './features/users/users.component';
 import { CompanyCatalogComponent } from './features/company-catalog/company-catalog.component';
@@ -55,6 +56,12 @@ export const routes: Routes = [
     component: AcquisitionTypeCatalogComponent,
     canActivate: [AuthGuard, PermissionGuard],
     data: { permission: { moduleLink: '/acquisition-type-catalog' } }
+  },
+  {
+    path: 'unit-of-measure-catalog',
+    component: UnitOfMeasureCatalogComponent,
+    canActivate: [AuthGuard, PermissionGuard],
+    data: { permission: { moduleLink: '/unit-of-measure-catalog' } }
   },
   {
     path: 'roles',
