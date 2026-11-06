@@ -6,6 +6,7 @@ import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angu
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -28,6 +29,7 @@ export interface UnitOfMeasureDialogData {
 type UnitOfMeasureFormModel = {
   name: FormControl<string>;
   abrev: FormControl<string>;
+  isDivisible: FormControl<boolean>;
 };
 
 @Component({
@@ -40,7 +42,8 @@ type UnitOfMeasureFormModel = {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSlideToggleModule
   ],
   templateUrl: './unit-of-measure-dialog.component.html',
   styleUrls: ['./unit-of-measure-dialog.component.scss'],
@@ -70,7 +73,8 @@ export class UnitOfMeasureDialogComponent {
       }),
       abrev: this.formBuilder.control(this.data.unit?.abrev ?? '', {
         validators: [Validators.required, nonBlank()]
-      })
+      }),
+      isDivisible: this.formBuilder.control(this.data.unit?.isDivisible ?? false)
     });
   }
 
@@ -129,12 +133,14 @@ export class UnitOfMeasureDialogComponent {
     this.isSaving.set(true);
     const name = this.form.controls.name.value.trim();
     const abrev = this.form.controls.abrev.value.trim();
+    const isDivisible = this.form.controls.isDivisible.value;
 
     if (this.mode === 'create') {
       const payload: CreateUnitOfMeasureRequest = {
         name,
         abrev,
-        companyOid: this.getCompanyOid()
+        companyOid: this.getCompanyOid(),
+        isDivisible
       };
 
       this.unitOfMeasureService.createUnitOfMeasure(payload).subscribe({
@@ -154,7 +160,8 @@ export class UnitOfMeasureDialogComponent {
     const unitId = this.data.unit?.id ?? '';
     const payload: UpdateUnitOfMeasureRequest = {
       name,
-      abrev
+      abrev,
+      isDivisible
     };
 
     this.unitOfMeasureService.updateUnitOfMeasure(unitId, payload, this.getCompanyOid()).subscribe({
