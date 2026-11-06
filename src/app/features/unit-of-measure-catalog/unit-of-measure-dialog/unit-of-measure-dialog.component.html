@@ -19,6 +19,10 @@
         <mat-error>{{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.ABREV_REQUIRED') }}</mat-error>
       }
     </mat-form-field>
+
+    <mat-slide-toggle formControlName="isDivisible">
+      {{ i18nService.translate('UNIT_OF_MEASURE_CATALOG.DIALOG.DIVISIBLE') }}
+    </mat-slide-toggle>
   </form>
 </mat-dialog-content>
 

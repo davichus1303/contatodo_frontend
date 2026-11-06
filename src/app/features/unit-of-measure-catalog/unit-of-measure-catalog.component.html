@@ -51,6 +51,9 @@
               </span>
             </div>
             <p class="abrev">{{ unit.abrev }}</p>
+            <p class="divisibility" [class.divisible]="unit.isDivisible">
+              {{ unit.isDivisible ? i18nService.translate('UNIT_OF_MEASURE_CATALOG.STATUS.DIVISIBLE') : i18nService.translate('UNIT_OF_MEASURE_CATALOG.STATUS.NOT_DIVISIBLE') }}
+            </p>
             <div class="card-actions">
               <button *appPermission="'/unit-of-measure-catalog'; action: 'update'" mat-icon-button color="primary" [title]="i18nService.translate('UNIT_OF_MEASURE_CATALOG.ACTIONS.EDIT')" (click)="openEditDialog(unit)">
                 <mat-icon>edit</mat-icon>

@@ -22,6 +22,7 @@ describe('UnitOfMeasureDialogComponent', () => {
     abrev: 'kg',
     isActive: true,
     isDeleted: false,
+    isDivisible: true,
     companyOid: 'company-1'
   };
 
@@ -66,7 +67,7 @@ describe('UnitOfMeasureDialogComponent', () => {
       component.submit();
 
       expect(unitOfMeasureServiceSpy.updateUnitOfMeasure)
-        .toHaveBeenCalledWith('u1', { name: 'Kilogram', abrev: 'kg' }, 'company-1');
+        .toHaveBeenCalledWith('u1', { name: 'Kilogram', abrev: 'kg', isDivisible: true }, 'company-1');
     });
 
     it('should omit the company when the session already carries it', () => {
@@ -77,7 +78,42 @@ describe('UnitOfMeasureDialogComponent', () => {
       component.submit();
 
       expect(unitOfMeasureServiceSpy.updateUnitOfMeasure)
-        .toHaveBeenCalledWith('u1', { name: 'Kilogram', abrev: 'kg' }, undefined);
+        .toHaveBeenCalledWith('u1', { name: 'Kilogram', abrev: 'kg', isDivisible: true }, undefined);
+    });
+  });
+
+  describe('in create mode', () => {
+    it('should send the divisible flag together with the selected company', () => {
+      configure({ mode: 'create' }, true, 'company-1');
+      component.form.controls.name.setValue('  Kilogram  ');
+      component.form.controls.abrev.setValue('  kg  ');
+      component.form.controls.isDivisible.setValue(true);
+
+      component.submit();
+
+      expect(unitOfMeasureServiceSpy.createUnitOfMeasure)
+        .toHaveBeenCalledWith({
+          name: 'Kilogram',
+          abrev: 'kg',
+          companyOid: 'company-1',
+          isDivisible: true
+        });
+    });
+
+    it('should default the divisible flag to false', () => {
+      configure({ mode: 'create' }, false, null);
+      component.form.controls.name.setValue('Kilogram');
+      component.form.controls.abrev.setValue('kg');
+
+      component.submit();
+
+      expect(unitOfMeasureServiceSpy.createUnitOfMeasure)
+        .toHaveBeenCalledWith({
+          name: 'Kilogram',
+          abrev: 'kg',
+          companyOid: undefined,
+          isDivisible: false
+        });
     });
   });
 });

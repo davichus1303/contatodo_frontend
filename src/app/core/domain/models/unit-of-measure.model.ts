@@ -11,6 +11,7 @@ export interface UnitOfMeasure {
   readonly abrev: string;
   readonly isActive: boolean;
   readonly isDeleted: boolean;
+  readonly isDivisible: boolean;
   readonly companyOid?: string;
   readonly createdDate?: string;
   readonly updatedDate?: string;
@@ -35,7 +36,7 @@ export function createUnitOfMeasure(raw: unknown): Result<UnitOfMeasure, readonl
   if (!isNonEmptyString(raw['abrev'])) {
     errors.push(domainError('abrev', 'Unit of measure abrev must be a non-empty string.'));
   }
-  for (const field of ['isActive', 'isDeleted'] as const) {
+  for (const field of ['isActive', 'isDeleted', 'isDivisible'] as const) {
     const value = raw[field];
     if (value !== undefined && value !== null && !isBoolean(value)) {
       errors.push(domainError(field, `Unit of measure ${field} must be a boolean when present.`));
@@ -52,6 +53,7 @@ export function createUnitOfMeasure(raw: unknown): Result<UnitOfMeasure, readonl
     abrev: (raw['abrev'] as string).trim(),
     isActive: raw['isActive'] === true,
     isDeleted: raw['isDeleted'] === true,
+    isDivisible: raw['isDivisible'] === true,
     companyOid: optionalString(raw['companyOid']),
     createdDate: optionalString(raw['createdDate']),
     updatedDate: optionalString(raw['updatedDate'])
