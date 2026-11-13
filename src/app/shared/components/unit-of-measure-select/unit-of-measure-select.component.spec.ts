@@ -14,8 +14,8 @@ describe('UnitOfMeasureSelectComponent', () => {
   };
 
   const units: UnitOfMeasure[] = [
-    { id: 'uom-lt', name: 'Litro', abrev: 'lt', isActive: true, isDeleted: false, isDivisible: true },
-    { id: 'uom-kg', name: 'Kilogramo', abrev: 'kg', isActive: true, isDeleted: false, isDivisible: true }
+    { id: 'uom-lt', name: 'Litro', abrev: 'lt', isActive: true, isDeleted: false, isDivisible: true, isPack: false },
+    { id: 'uom-kg', name: 'Kilogramo', abrev: 'kg', isActive: true, isDeleted: false, isDivisible: true, isPack: false }
   ];
 
   beforeEach(async () => {
@@ -102,7 +102,7 @@ describe('UnitOfMeasureSelectComponent', () => {
     const sorted = component.sortedUnits;
 
     expect(sorted.map((unit) => unit.name)).toEqual(['Kilogramo', 'Litro']);
-    expect(units.map((unit) => unit.name)).toEqual(['Kilogramo', 'Litro']);
+    expect(units.map((unit) => unit.name)).toEqual(['Litro', 'Kilogramo']);
   });
 
   it('renders the localized fallback label and the empty hint', () => {

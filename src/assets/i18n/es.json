@@ -500,7 +500,9 @@
       "ACTIVE": "Activo",
       "INACTIVE": "Inactivo",
       "DIVISIBLE": "Divisible",
-      "NOT_DIVISIBLE": "No divisible"
+      "NOT_DIVISIBLE": "No divisible",
+      "PACK": "Paquete",
+      "BASE_UNIT": "Unidad base"
     },
     "EMPTY": "No hay unidades de medida registradas",
     "EMPTY_STATE": "No hay unidades de medida registradas",
@@ -528,6 +530,7 @@
       "ABREV_PLACEHOLDER": "Ej. kg",
       "ABREV_REQUIRED": "La abreviatura es requerida",
       "DIVISIBLE": "Permite venta por fracciones",
+      "IS_PACK": "Es paquete o presentación",
       "CANCEL": "Cancelar",
       "CREATE": "Crear",
       "SAVE": "Guardar"

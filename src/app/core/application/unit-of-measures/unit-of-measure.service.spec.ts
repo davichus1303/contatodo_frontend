@@ -21,7 +21,8 @@ describe('UnitOfMeasureService', () => {
     companyOid: 'company-1',
     isActive: true,
     isDeleted: false,
-    isDivisible: true
+    isDivisible: true,
+    isPack: true
   };
 
   const catalogResponse = {
@@ -47,8 +48,12 @@ describe('UnitOfMeasureService', () => {
 
     let firstName = '';
     let secondName = '';
+    let mappedAsPack = false;
 
-    service.getUnitOfMeasures('company-1').subscribe((response) => (firstName = response.data[0].name));
+    service.getUnitOfMeasures('company-1').subscribe((response) => {
+      firstName = response.data[0].name;
+      mappedAsPack = response.data[0].isPack;
+    });
     service.getUnitOfMeasures('company-1').subscribe((response) => (secondName = response.data[0].name));
 
     expect(httpMock.get).toHaveBeenCalledTimes(1);
@@ -57,6 +62,7 @@ describe('UnitOfMeasureService', () => {
     });
     expect(firstName).toBe('Litro');
     expect(secondName).toBe('Litro');
+    expect(mappedAsPack).toBeTrue();
   });
 
   it('caches different companies independently', () => {

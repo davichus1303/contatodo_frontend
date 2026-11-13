@@ -23,6 +23,7 @@ describe('UnitOfMeasureDialogComponent', () => {
     isActive: true,
     isDeleted: false,
     isDivisible: true,
+    isPack: true,
     companyOid: 'company-1'
   };
 
@@ -67,7 +68,7 @@ describe('UnitOfMeasureDialogComponent', () => {
       component.submit();
 
       expect(unitOfMeasureServiceSpy.updateUnitOfMeasure)
-        .toHaveBeenCalledWith('u1', { name: 'Kilogram', abrev: 'kg', isDivisible: true }, 'company-1');
+        .toHaveBeenCalledWith('u1', { name: 'Kilogram', abrev: 'kg', isDivisible: true, isPack: true }, 'company-1');
     });
 
     it('should omit the company when the session already carries it', () => {
@@ -78,16 +79,17 @@ describe('UnitOfMeasureDialogComponent', () => {
       component.submit();
 
       expect(unitOfMeasureServiceSpy.updateUnitOfMeasure)
-        .toHaveBeenCalledWith('u1', { name: 'Kilogram', abrev: 'kg', isDivisible: true }, undefined);
+        .toHaveBeenCalledWith('u1', { name: 'Kilogram', abrev: 'kg', isDivisible: true, isPack: true }, undefined);
     });
   });
 
   describe('in create mode', () => {
-    it('should send the divisible flag together with the selected company', () => {
+    it('should send the divisible and pack flags together with the selected company', () => {
       configure({ mode: 'create' }, true, 'company-1');
       component.form.controls.name.setValue('  Kilogram  ');
       component.form.controls.abrev.setValue('  kg  ');
       component.form.controls.isDivisible.setValue(true);
+      component.form.controls.isPack.setValue(true);
 
       component.submit();
 
@@ -96,11 +98,12 @@ describe('UnitOfMeasureDialogComponent', () => {
           name: 'Kilogram',
           abrev: 'kg',
           companyOid: 'company-1',
-          isDivisible: true
+          isDivisible: true,
+          isPack: true
         });
     });
 
-    it('should default the divisible flag to false', () => {
+    it('should default the divisible and pack flags to false', () => {
       configure({ mode: 'create' }, false, null);
       component.form.controls.name.setValue('Kilogram');
       component.form.controls.abrev.setValue('kg');
@@ -112,7 +115,8 @@ describe('UnitOfMeasureDialogComponent', () => {
           name: 'Kilogram',
           abrev: 'kg',
           companyOid: undefined,
-          isDivisible: false
+          isDivisible: false,
+          isPack: false
         });
     });
   });
