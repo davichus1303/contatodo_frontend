@@ -41,6 +41,17 @@
         [required]="!isEdit"
         [label]="i18nService.translate('PRODUCTS.FORM.UNITS')"
       ></app-unit-of-measure-select>
+
+      @if (hasPackUnitSelected()) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ i18nService.translate('PRODUCTS.FORM.PACK_SIZE') }}</mat-label>
+          <input matInput type="number" min="1" step="1" formControlName="packSize" />
+          <mat-hint>{{ i18nService.translate('PRODUCTS.FORM.PACK_SIZE_HINT') }}</mat-hint>
+          @if (formGroup?.get('packSize')?.invalid && formGroup?.get('packSize')?.touched) {
+            <mat-error>{{ i18nService.translate('PRODUCTS.FORM.PACK_SIZE_INVALID') }}</mat-error>
+          }
+        </mat-form-field>
+      }
     </div>
   </mat-dialog-content>
 

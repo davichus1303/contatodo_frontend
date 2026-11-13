@@ -24,6 +24,7 @@ describe('ProductsService', () => {
     name: ' Ceviche ',
     description: 'Fish dish',
     unitOfMeasures: ['uom-lt'],
+    packSize: 12,
     stock: 10,
     code: 'P001',
     realCost: 8,
@@ -61,6 +62,7 @@ describe('ProductsService', () => {
     expect(products[0].id).toBe('p1');
     expect(products[0].name).toBe('Ceviche');
     expect(products[0].unitOfMeasures).toEqual(['uom-lt']);
+    expect(products[0].packSize).toBe(12);
   });
 
   it('should send the companyOid param when a company is provided', () => {

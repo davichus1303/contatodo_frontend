@@ -76,6 +76,35 @@ describe('createProduct', () => {
     }
   });
 
+  it('should map a positive pack size', () => {
+    const result = createProduct({ ...validProduct, packSize: 12 });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.packSize).toBe(12);
+    }
+  });
+
+  it('should leave the pack size undefined when absent', () => {
+    const result = createProduct(validProduct);
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.packSize).toBeUndefined();
+    }
+  });
+
+  it('should reject pack sizes that are not positive integers', () => {
+    for (const packSize of [0, -1, 1.5, '12']) {
+      const result = createProduct({ ...validProduct, packSize });
+
+      expect(result.ok).toBeFalse();
+      if (!result.ok) {
+        expect(result.error.map((currentError) => currentError.field)).toContain('packSize');
+      }
+    }
+  });
+
   it('should reject malformed unit details', () => {
     const result = createProduct({
       ...validProduct,

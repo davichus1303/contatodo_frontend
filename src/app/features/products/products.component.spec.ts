@@ -37,6 +37,7 @@ describe('ProductsComponent', () => {
       name: 'Ceviche',
       description: 'Fish dish',
       unitOfMeasures: ['uom-lt'],
+      packSize: 12,
       stock: 10,
       code: 'P001',
       realCost: 8,
@@ -152,6 +153,13 @@ describe('ProductsComponent', () => {
 
       const visibleNames = component.filteredProducts().map((product: Product) => product.name);
       expect(visibleNames).toEqual(['Ceviche']);
+    });
+
+    it('should render the pack size when the product declares one', () => {
+      createComponent();
+      flushProducts(sampleProducts);
+
+      expect(fixture.nativeElement.textContent).toContain('PRODUCTS.CARDS.PACK_SIZE');
     });
 
     it('should sort products by price ascending and toggle to descending', () => {
