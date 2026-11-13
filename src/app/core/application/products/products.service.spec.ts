@@ -23,6 +23,7 @@ describe('ProductsService', () => {
     id: ' p1 ',
     name: ' Ceviche ',
     description: 'Fish dish',
+    unitOfMeasures: ['uom-lt'],
     stock: 10,
     code: 'P001',
     realCost: 8,
@@ -59,6 +60,7 @@ describe('ProductsService', () => {
     });
     expect(products[0].id).toBe('p1');
     expect(products[0].name).toBe('Ceviche');
+    expect(products[0].unitOfMeasures).toEqual(['uom-lt']);
   });
 
   it('should send the companyOid param when a company is provided', () => {
@@ -106,6 +108,7 @@ describe('ProductsService', () => {
     const payload: ProductCreatePayload = {
       name: 'Ceviche',
       description: 'Fish dish',
+      unitOfMeasures: ['uom-lt'],
       stock: 10,
       realCost: 8,
       unitRealCost: 8,
@@ -122,6 +125,7 @@ describe('ProductsService', () => {
     const payload: ProductUpdatePayload = {
       name: 'Ceviche v2',
       description: 'Fish dish',
+      unitOfMeasures: ['uom-lt'],
       stock: 5,
       realCost: 8,
       unitRealCost: 8,

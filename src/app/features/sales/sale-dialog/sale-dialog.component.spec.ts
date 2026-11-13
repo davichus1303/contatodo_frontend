@@ -24,6 +24,7 @@ describe('SaleDialogComponent', () => {
     id: 'product-1',
     name: 'Ceviche',
     description: 'Fish dish',
+    unitOfMeasures: ['uom-lt'],
     stock: 10,
     code: 'P001',
     realCost: 8,
