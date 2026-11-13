@@ -13,6 +13,7 @@ import { NotificationService } from '@core/application/notifications/notificatio
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { Router } from '@angular/router';
 import { ProductsService } from '@core/application/products/products.service';
+import { UnitOfMeasureCatalogService } from '@core/application/unit-of-measures/unit-of-measure-catalog.service';
 import { CompaniesService } from '@core/application/companies/companies.service';
 import { CompanySelectionService } from '@core/application/companies/company-selection.service';
 import { PermissionService } from '@core/application/permissions/permission.service';
@@ -48,6 +49,7 @@ import { openConfirmationDialog } from '@shared/utils/dialog.utils';
 })
 export class ProductsComponent {
   private readonly productsService = inject(ProductsService);
+  private readonly unitOfMeasureCatalog = inject(UnitOfMeasureCatalogService);
   private readonly companiesService = inject(CompaniesService);
   private readonly companySelection = inject(CompanySelectionService);
   private readonly permissionService = inject(PermissionService);
@@ -58,6 +60,7 @@ export class ProductsComponent {
 
   readonly searchControl = new FormControl<string>('');
   readonly products = signal<Product[]>([]);
+  readonly unitNames = signal<ReadonlyMap<string, string>>(new Map());
   readonly searchTerm = signal<string>('');
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
@@ -160,7 +163,9 @@ export class ProductsComponent {
     this.isLoading.set(true);
     this.productsService.getAllProducts(this.companyOid() ?? undefined).subscribe({
       next: (response: ApiResponse<Product[]>) => {
-        this.products.set(response.data ?? []);
+        const products = response.data ?? [];
+        this.products.set(products);
+        this.resolveUnitNames(products);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -170,10 +175,47 @@ export class ProductsComponent {
     });
   }
 
+  /**
+   * Resolves the unit of measure names displayed on the product cards.
+   *
+   * <p>Historical units are used so a product keeps its labels after a unit
+   * is deactivated. Units removed from the catalog are simply omitted.</p>
+   *
+   * @param products Products whose units must be resolved.
+   */
+  private resolveUnitNames(products: readonly Product[]): void {
+    const oids = products.flatMap((product) => product.unitOfMeasures);
+
+    this.unitOfMeasureCatalog.resolveNames(oids, this.companyOid() ?? undefined, true).subscribe({
+      next: (names) => this.unitNames.set(names),
+      error: () => this.unitNames.set(new Map())
+    });
+  }
+
+  /**
+   * Returns the display names of the units accepted by a product.
+   *
+   * <p>Prefers the resolved details of the payload when present and falls
+   * back to the name map built from the catalog.</p>
+   *
+   * @param product Product whose units must be displayed.
+   * @returns Resolved unit names.
+   */
+  getUnitNames(product: Product): string[] {
+    if (product.unitOfMeasureDetails && product.unitOfMeasureDetails.length > 0) {
+      return product.unitOfMeasureDetails.map((detail) => detail.name);
+    }
+
+    const names = this.unitNames();
+    return product.unitOfMeasures
+      .map((oid) => names.get(oid))
+      .filter((name): name is string => name !== undefined);
+  }
+
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(ProductFormComponent, {
       width: 'min(90vw, 720px)',
-      data: { isEdit: false }
+      data: { isEdit: false, companyOid: this.companyOid() ?? undefined }
     });
 
     dialogRef.componentInstance.formSubmit.subscribe((payload: ProductFormPayload) => {
@@ -184,7 +226,7 @@ export class ProductsComponent {
   openEditDialog(product: Product): void {
     const dialogRef = this.dialog.open(ProductFormComponent, {
       width: 'min(90vw, 720px)',
-      data: { isEdit: true, product }
+      data: { isEdit: true, product, companyOid: this.companyOid() ?? undefined }
     });
 
     dialogRef.componentInstance.formSubmit.subscribe((payload: ProductFormPayload) => {

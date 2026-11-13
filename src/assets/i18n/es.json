@@ -115,7 +115,8 @@
       "STOCK": "Stock",
       "CODE": "Código",
       "REAL_COST": "Costo real",
-      "UNIT_PUBLIC_COST": "Precio público"
+      "UNIT_PUBLIC_COST": "Precio público",
+      "UNITS": "Unidades de medida"
     },
     "MODAL": {
       "CREATE_TITLE": "Crear nuevo producto",
@@ -128,6 +129,7 @@
       "REAL_COST": "Costo real",
       "UNIT_REAL_COST": "Costo unitario",
       "UNIT_PUBLIC_COST": "Precio público unitario",
+      "UNITS": "Unidades de medida",
       "ACTIVE": "Activo",
       "CANCEL": "Cancelar",
       "CREATE": "Crear",

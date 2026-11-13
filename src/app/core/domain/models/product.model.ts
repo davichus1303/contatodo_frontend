@@ -13,12 +13,25 @@ export const PRODUCT_NAME_MAX_LENGTH = 100;
 export const PRODUCT_DESCRIPTION_MAX_LENGTH = 500;
 
 /**
+ * Resolved unit of measure attached to a product.
+ *
+ * <p>Only the available-products endpoint includes this detail, and it is
+ * built as an inner join against the active units of the company.</p>
+ */
+export interface ProductUnitOfMeasureDetail {
+  readonly oid: string;
+  readonly name: string;
+}
+
+/**
  * Product entity of the catalog domain.
  */
 export interface Product {
   readonly id: string;
   readonly name: string;
   readonly description: string;
+  readonly unitOfMeasures: readonly string[];
+  readonly unitOfMeasureDetails?: readonly ProductUnitOfMeasureDetail[];
   readonly stock: number;
   readonly code: string;
   readonly realCost: number;
@@ -79,6 +92,9 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     errors.push(domainError('isActive', 'Product isActive must be a boolean when present.'));
   }
 
+  const unitOfMeasures = normalizeUnitOfMeasures(raw['unitOfMeasures'], errors);
+  const unitOfMeasureDetails = normalizeUnitOfMeasureDetails(raw['unitOfMeasureDetails'], errors);
+
   if (errors.length > 0) {
     return err(errors);
   }
@@ -87,6 +103,8 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     id: (raw['id'] as string).trim(),
     name: (raw['name'] as string).trim(),
     description: optionalString(raw['description']) ?? '',
+    unitOfMeasures,
+    unitOfMeasureDetails,
     stock: raw['stock'] as number,
     code: optionalString(raw['code']) ?? '',
     realCost: (raw['realCost'] === null || raw['realCost'] === undefined ? 0 : raw['realCost']) as number,
@@ -95,4 +113,86 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     urlPhoto: optionalString(raw['urlPhoto']),
     isActive: raw['isActive'] === true
   });
+}
+
+/**
+ * Normalizes the product unit identifiers.
+ *
+ * <p>The field is optional for backward compatibility with historical
+ * documents, but when present it must be an array of strings. Entries are
+ * trimmed and collapsed to unique, non-empty identifiers.</p>
+ *
+ * @param raw Raw `unitOfMeasures` value.
+ * @param errors Collection where validation violations are recorded.
+ * @returns Normalized unit identifiers.
+ */
+function normalizeUnitOfMeasures(raw: unknown, errors: DomainError[]): readonly string[] {
+  if (raw === undefined || raw === null) {
+    return [];
+  }
+
+  if (!Array.isArray(raw)) {
+    errors.push(domainError('unitOfMeasures', 'Product unitOfMeasures must be an array when present.'));
+    return [];
+  }
+
+  const units: string[] = [];
+
+  for (const value of raw) {
+    if (typeof value !== 'string') {
+      errors.push(domainError('unitOfMeasures', 'Product unitOfMeasures must contain strings.'));
+      continue;
+    }
+
+    const trimmed = value.trim();
+    if (trimmed.length > 0 && !units.includes(trimmed)) {
+      units.push(trimmed);
+    }
+  }
+
+  return units;
+}
+
+/**
+ * Normalizes the resolved unit details of a product.
+ *
+ * @param raw Raw `unitOfMeasureDetails` value.
+ * @param errors Collection where validation violations are recorded.
+ * @returns Resolved details, or undefined when the field is absent.
+ */
+function normalizeUnitOfMeasureDetails(
+  raw: unknown,
+  errors: DomainError[]
+): readonly ProductUnitOfMeasureDetail[] | undefined {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+
+  if (!Array.isArray(raw)) {
+    errors.push(
+      domainError('unitOfMeasureDetails', 'Product unitOfMeasureDetails must be an array when present.')
+    );
+    return undefined;
+  }
+
+  const details: ProductUnitOfMeasureDetail[] = [];
+
+  for (const value of raw) {
+    if (!isRecord(value) || !isNonEmptyString(value['oid']) || !isNonEmptyString(value['name'])) {
+      errors.push(
+        domainError(
+          'unitOfMeasureDetails',
+          'Product unitOfMeasureDetails must contain oid and name strings.'
+        )
+      );
+      continue;
+    }
+
+    details.push({
+      oid: (value['oid'] as string).trim(),
+      name: (value['name'] as string).trim()
+    });
+  }
+
+  return details;
 }

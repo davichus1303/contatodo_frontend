@@ -32,6 +32,15 @@
         <mat-label>{{ i18nService.translate('PRODUCTS.FORM.DESCRIPTION') }}</mat-label>
         <textarea matInput formControlName="description"></textarea>
       </mat-form-field>
+
+      <app-unit-of-measure-select
+        class="full-width"
+        formControlName="unitOfMeasures"
+        [units]="units()"
+        [multiple]="true"
+        [required]="!isEdit"
+        [label]="i18nService.translate('PRODUCTS.FORM.UNITS')"
+      ></app-unit-of-measure-select>
     </div>
   </mat-dialog-content>
 

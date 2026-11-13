@@ -36,6 +36,7 @@ describe('ProductsComponent', () => {
       id: '1',
       name: 'Ceviche',
       description: 'Fish dish',
+      unitOfMeasures: ['uom-lt'],
       stock: 10,
       code: 'P001',
       realCost: 8,
@@ -47,6 +48,7 @@ describe('ProductsComponent', () => {
       id: '2',
       name: 'Arroz con pollo',
       description: 'Rice with chicken',
+      unitOfMeasures: ['uom-kg'],
       stock: 0,
       code: 'P002',
       realCost: 6,
@@ -269,6 +271,7 @@ describe('ProductsComponent', () => {
       formSubmit.emit({
         name: 'Empanada',
         description: 'Baked pastry',
+        unitOfMeasures: ['uom-lt'],
         stock: 5,
         realCost: 2,
         unitRealCost: 2,
@@ -298,6 +301,7 @@ describe('ProductsComponent', () => {
       formSubmit.emit({
         name: 'Ceviche',
         description: 'Fish dish',
+        unitOfMeasures: ['uom-lt'],
         stock: 9,
         realCost: 8,
         unitRealCost: 8,

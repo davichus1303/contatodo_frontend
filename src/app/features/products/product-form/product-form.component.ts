@@ -8,7 +8,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { Product } from '@core/domain/models/product.model';
 import { PRODUCT_DESCRIPTION_MAX_LENGTH, PRODUCT_NAME_MAX_LENGTH } from '@core/domain/models/product.model';
+import { UnitOfMeasure } from '@core/domain/models/unit-of-measure.model';
 import { ProductFormPayload } from '@core/application/dto/product-request.dto';
+import { UnitOfMeasureCatalogService } from '@core/application/unit-of-measures/unit-of-measure-catalog.service';
+import { UnitOfMeasureSelectComponent } from '@shared/components/unit-of-measure-select/unit-of-measure-select.component';
 import { I18nService } from '@core/i18n/i18n.service';
 
 @Component({
@@ -21,7 +24,8 @@ import { I18nService } from '@core/i18n/i18n.service';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIconModule
+    MatIconModule,
+    UnitOfMeasureSelectComponent
   ],
   templateUrl: './product-form.component.html',
   styleUrls: ['./product-form.component.scss'],
@@ -30,13 +34,20 @@ import { I18nService } from '@core/i18n/i18n.service';
 export class ProductFormComponent implements OnInit, OnChanges {
   @Input() product: Product | null = null;
   @Input() isEdit = false;
+  @Input() companyOid?: string;
   @Output() formSubmit = new EventEmitter<ProductFormPayload>();
 
   readonly form = signal<FormGroup | null>(null);
   readonly isEditMode = signal<boolean>(false);
+  readonly units = signal<readonly UnitOfMeasure[]>([]);
 
   private readonly dialogRef = inject(MatDialogRef<ProductFormComponent>);
-  private readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true }) as { product?: Product | null; isEdit?: boolean } | null;
+  private readonly unitOfMeasureCatalog = inject(UnitOfMeasureCatalogService);
+  private readonly dialogData = inject(MAT_DIALOG_DATA, { optional: true }) as {
+    product?: Product | null;
+    isEdit?: boolean;
+    companyOid?: string;
+  } | null;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -46,6 +57,7 @@ export class ProductFormComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this.syncInputsFromDialogData();
     this.buildForm();
+    this.loadUnits();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -61,18 +73,31 @@ export class ProductFormComponent implements OnInit, OnChanges {
 
     this.product = this.dialogData.product ?? this.product;
     this.isEdit = this.dialogData.isEdit ?? this.isEdit;
+    this.companyOid = this.dialogData.companyOid ?? this.companyOid;
   }
 
   private buildForm(): void {
     this.isEditMode.set(this.isEdit);
+    const unitValidators = this.isEdit ? [] : [Validators.required];
     this.form.set(this.formBuilder.group({
       name: [this.product?.name ?? '', [Validators.required, Validators.maxLength(PRODUCT_NAME_MAX_LENGTH)]],
       description: [this.product?.description ?? '', [Validators.required, Validators.maxLength(PRODUCT_DESCRIPTION_MAX_LENGTH)]],
+      unitOfMeasures: [this.product?.unitOfMeasures ?? [], unitValidators],
       stock: [this.product?.stock ?? 0, [Validators.required, Validators.min(0)]],
       realCost: [this.product?.realCost ?? 0, [Validators.required, Validators.min(0)]],
       unitRealCost: [this.product?.unitRealCost ?? 0, [Validators.required, Validators.min(0)]],
       unitPublicCost: [this.product?.unitPublicCost ?? 0, [Validators.required, Validators.min(0)]],
     }));
+  }
+
+  /**
+   * Loads the active units of measure offered by the selector.
+   */
+  private loadUnits(): void {
+    this.unitOfMeasureCatalog.getActiveUnits(this.companyOid).subscribe({
+      next: (units) => this.units.set(units),
+      error: () => this.units.set([])
+    });
   }
 
   submit(): void {
@@ -85,6 +110,7 @@ export class ProductFormComponent implements OnInit, OnChanges {
     const payload: ProductFormPayload = {
       name: form.value.name,
       description: form.value.description,
+      unitOfMeasures: [...(form.value.unitOfMeasures ?? [])],
       stock: Number(form.value.stock),
       realCost: Number(form.value.realCost),
       unitRealCost: Number(form.value.unitRealCost),
