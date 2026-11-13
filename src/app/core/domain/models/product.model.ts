@@ -1,6 +1,13 @@
 import { DomainError, domainError } from '../errors/domain-error';
 import { err, ok, Result } from '../result';
-import { isBoolean, isFiniteNumber, isNonEmptyString, isRecord, optionalString } from '../validation/primitive.rules';
+import {
+  isBoolean,
+  isFiniteNumber,
+  isNonEmptyString,
+  isRecord,
+  optionalNumber,
+  optionalString
+} from '../validation/primitive.rules';
 
 /**
  * Maximum accepted length for a product name (mirrors backend constraint).
@@ -32,6 +39,7 @@ export interface Product {
   readonly description: string;
   readonly unitOfMeasures: readonly string[];
   readonly unitOfMeasureDetails?: readonly ProductUnitOfMeasureDetail[];
+  readonly packSize?: number;
   readonly stock: number;
   readonly code: string;
   readonly realCost: number;
@@ -48,7 +56,7 @@ export interface Product {
  * and `name` must be non-empty strings and the monetary/stock fields must be
  * finite numbers. Text fields are normalized (trimmed) and the status flag is
  * coerced to a boolean; the optional `urlPhoto` collapses to `undefined` when
- * absent.
+ * absent and the optional `packSize` must be a positive integer when present.
  *
  * @param raw Raw payload, typically an API list item.
  * @returns Successful result with the product, or every violation found.
@@ -87,6 +95,14 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
   if (urlPhotoValue !== undefined && urlPhotoValue !== null && typeof urlPhotoValue !== 'string') {
     errors.push(domainError('urlPhoto', 'Product urlPhoto must be a string when present.'));
   }
+  const packSize = raw['packSize'];
+  if (
+    packSize !== undefined &&
+    packSize !== null &&
+    (!isFiniteNumber(packSize) || !Number.isInteger(packSize) || packSize <= 0)
+  ) {
+    errors.push(domainError('packSize', 'Product packSize must be a positive integer when present.'));
+  }
   const isActive = raw['isActive'];
   if (isActive !== undefined && isActive !== null && !isBoolean(isActive)) {
     errors.push(domainError('isActive', 'Product isActive must be a boolean when present.'));
@@ -105,6 +121,7 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     description: optionalString(raw['description']) ?? '',
     unitOfMeasures,
     unitOfMeasureDetails,
+    packSize: optionalNumber(raw['packSize']),
     stock: raw['stock'] as number,
     code: optionalString(raw['code']) ?? '',
     realCost: (raw['realCost'] === null || raw['realCost'] === undefined ? 0 : raw['realCost']) as number,

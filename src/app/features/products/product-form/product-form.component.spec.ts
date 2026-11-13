@@ -6,6 +6,7 @@ import { ProductFormComponent } from './product-form.component';
 import { UnitOfMeasureCatalogService } from '@core/application/unit-of-measures/unit-of-measure-catalog.service';
 import { I18nService } from '@core/i18n/i18n.service';
 import { Product } from '@core/domain/models/product.model';
+import { ProductFormPayload } from '@core/application/dto/product-request.dto';
 import { UnitOfMeasure } from '@core/domain/models/unit-of-measure.model';
 
 describe('ProductFormComponent', () => {
@@ -16,6 +17,16 @@ describe('ProductFormComponent', () => {
     { id: 'uom-lt', name: 'Litro', abrev: 'lt', isActive: true, isDeleted: false, isDivisible: true, isPack: false },
     { id: 'uom-kg', name: 'Kilogramo', abrev: 'kg', isActive: true, isDeleted: false, isDivisible: true, isPack: false }
   ];
+
+  const packUnit: UnitOfMeasure = {
+    id: 'uom-doc',
+    name: 'Docena',
+    abrev: 'doc',
+    isActive: true,
+    isDeleted: false,
+    isDivisible: false,
+    isPack: true
+  };
 
   const product: Product = {
     id: 'p1',
@@ -122,5 +133,78 @@ describe('ProductFormComponent', () => {
 
     expect(component.formSubmit.emit).not.toHaveBeenCalled();
     expect(form?.controls['unitOfMeasures'].invalid).toBeTrue();
+  });
+
+  it('should require the pack size when a pack unit is selected', () => {
+    catalogMock.getActiveUnits.and.returnValue(of([...units, packUnit]));
+    createForm(null, false);
+    const form = component.form();
+    form?.patchValue({
+      name: 'Empanada',
+      description: 'Baked pastry',
+      unitOfMeasures: ['uom-doc'],
+      stock: 5,
+      realCost: 2,
+      unitRealCost: 2,
+      unitPublicCost: 6
+    });
+
+    expect(component.hasPackUnitSelected()).toBeTrue();
+    expect(form?.controls['packSize'].invalid).toBeTrue();
+
+    form?.patchValue({ packSize: 12 });
+
+    expect(form?.controls['packSize'].valid).toBeTrue();
+  });
+
+  it('should emit the pack size when a pack unit is selected', () => {
+    catalogMock.getActiveUnits.and.returnValue(of([...units, packUnit]));
+    createForm(null, false);
+    const form = component.form();
+    form?.patchValue({
+      name: 'Empanada',
+      description: 'Baked pastry',
+      unitOfMeasures: ['uom-doc'],
+      packSize: 12,
+      stock: 5,
+      realCost: 2,
+      unitRealCost: 2,
+      unitPublicCost: 6
+    });
+
+    let emitted: ProductFormPayload | undefined;
+    component.formSubmit.subscribe((payload) => (emitted = payload));
+    component.submit();
+
+    expect(emitted?.packSize).toBe(12);
+  });
+
+  it('should omit the pack size when no pack unit is selected', () => {
+    createForm(null, false);
+    const form = component.form();
+    form?.patchValue({
+      name: 'Empanada',
+      description: 'Baked pastry',
+      unitOfMeasures: ['uom-lt'],
+      packSize: 12,
+      stock: 5,
+      realCost: 2,
+      unitRealCost: 2,
+      unitPublicCost: 6
+    });
+
+    let emitted: ProductFormPayload | undefined;
+    component.formSubmit.subscribe((payload) => (emitted = payload));
+    component.submit();
+
+    expect(emitted?.packSize).toBeUndefined();
+  });
+
+  it('should initialize the pack size from the edited product', () => {
+    catalogMock.getActiveUnits.and.returnValue(of([...units, packUnit]));
+    createForm({ ...product, unitOfMeasures: ['uom-doc'], packSize: 12 }, true);
+
+    expect(component.form()?.value.packSize).toBe(12);
+    expect(component.hasPackUnitSelected()).toBeTrue();
   });
 });

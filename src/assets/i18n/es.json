@@ -113,6 +113,7 @@
     },
     "CARDS": {
       "STOCK": "Stock",
+      "PACK_SIZE": "Unidades por paquete",
       "CODE": "Código",
       "REAL_COST": "Costo real",
       "UNIT_PUBLIC_COST": "Precio público",
@@ -130,6 +131,9 @@
       "UNIT_REAL_COST": "Costo unitario",
       "UNIT_PUBLIC_COST": "Precio público unitario",
       "UNITS": "Unidades de medida",
+      "PACK_SIZE": "Unidades base por paquete",
+      "PACK_SIZE_HINT": "Cantidad de unidades base que contiene un paquete",
+      "PACK_SIZE_INVALID": "El tamaño del paquete debe ser un entero mayor que cero",
       "ACTIVE": "Activo",
       "CANCEL": "Cancelar",
       "CREATE": "Crear",
