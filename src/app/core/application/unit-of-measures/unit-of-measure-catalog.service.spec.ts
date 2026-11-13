@@ -16,8 +16,8 @@ describe('UnitOfMeasureCatalogService', () => {
     status: 200,
     message: 'OK',
     data: [
-      { id: 'uom-1', name: 'Litro', abrev: 'lt', isActive: true, isDeleted: false, isDivisible: true },
-      { id: 'uom-2', name: 'Kilogramo', abrev: 'kg', isActive: true, isDeleted: false, isDivisible: true }
+      { id: 'uom-1', name: 'Litro', abrev: 'lt', isActive: true, isDeleted: false, isDivisible: true, isPack: false },
+      { id: 'uom-2', name: 'Kilogramo', abrev: 'kg', isActive: true, isDeleted: false, isDivisible: true, isPack: false }
     ]
   };
 

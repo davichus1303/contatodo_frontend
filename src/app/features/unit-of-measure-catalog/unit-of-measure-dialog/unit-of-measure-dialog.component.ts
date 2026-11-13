@@ -30,6 +30,7 @@ type UnitOfMeasureFormModel = {
   name: FormControl<string>;
   abrev: FormControl<string>;
   isDivisible: FormControl<boolean>;
+  isPack: FormControl<boolean>;
 };
 
 @Component({
@@ -74,7 +75,8 @@ export class UnitOfMeasureDialogComponent {
       abrev: this.formBuilder.control(this.data.unit?.abrev ?? '', {
         validators: [Validators.required, nonBlank()]
       }),
-      isDivisible: this.formBuilder.control(this.data.unit?.isDivisible ?? false)
+      isDivisible: this.formBuilder.control(this.data.unit?.isDivisible ?? false),
+      isPack: this.formBuilder.control(this.data.unit?.isPack ?? false)
     });
   }
 
@@ -134,13 +136,15 @@ export class UnitOfMeasureDialogComponent {
     const name = this.form.controls.name.value.trim();
     const abrev = this.form.controls.abrev.value.trim();
     const isDivisible = this.form.controls.isDivisible.value;
+    const isPack = this.form.controls.isPack.value;
 
     if (this.mode === 'create') {
       const payload: CreateUnitOfMeasureRequest = {
         name,
         abrev,
         companyOid: this.getCompanyOid(),
-        isDivisible
+        isDivisible,
+        isPack
       };
 
       this.unitOfMeasureService.createUnitOfMeasure(payload).subscribe({
@@ -161,7 +165,8 @@ export class UnitOfMeasureDialogComponent {
     const payload: UpdateUnitOfMeasureRequest = {
       name,
       abrev,
-      isDivisible
+      isDivisible,
+      isPack
     };
 
     this.unitOfMeasureService.updateUnitOfMeasure(unitId, payload, this.getCompanyOid()).subscribe({

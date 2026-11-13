@@ -3,6 +3,7 @@ export interface CreateUnitOfMeasureRequest {
   abrev: string;
   companyOid?: string;
   isDivisible?: boolean;
+  isPack?: boolean;
 }
 
 export interface UpdateUnitOfMeasureRequest {
@@ -11,4 +12,5 @@ export interface UpdateUnitOfMeasureRequest {
   isActive?: boolean;
   isDeleted?: boolean;
   isDivisible?: boolean;
+  isPack?: boolean;
 }
