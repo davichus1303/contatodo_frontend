@@ -484,6 +484,12 @@
     "SELECT_COMPANY": "Seleccionar compañía",
     "NEW": "Nueva unidad de medida",
     "NEW_BUTTON": "Nueva unidad de medida",
+    "SELECTOR": {
+      "LABEL": "Unidad de medida",
+      "PLACEHOLDER": "Seleccione una unidad de medida",
+      "REQUIRED": "La unidad de medida es requerida",
+      "EMPTY": "No hay unidades de medida activas"
+    },
     "SEARCH": {
       "LABEL": "Buscar",
       "PLACEHOLDER": "Buscar por nombre o abreviatura"
