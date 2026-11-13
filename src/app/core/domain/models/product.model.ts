@@ -30,9 +30,7 @@ export interface Product {
   readonly id: string;
   readonly name: string;
   readonly description: string;
-  /** Identifiers of the units of measure accepted by the product. */
   readonly unitOfMeasures: readonly string[];
-  /** Resolved unit names, present only in the available-products read. */
   readonly unitOfMeasureDetails?: readonly ProductUnitOfMeasureDetail[];
   readonly stock: number;
   readonly code: string;
