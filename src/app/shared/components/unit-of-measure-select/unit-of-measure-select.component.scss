@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+.unit-of-measure-select {
+  width: 100%;
+}
+
+.unit-of-measure-select__error {
+  margin: -0.75rem 0 0;
+  padding: 0 1rem;
+  color: #ba1a1a;
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
