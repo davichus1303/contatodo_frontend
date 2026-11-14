@@ -57,6 +57,26 @@
         <input matInput type="number" formControlName="newProductStock" />
       </mat-form-field>
 
+      <app-unit-of-measure-select
+        class="full-width"
+        formControlName="unitOfMeasures"
+        [units]="units()"
+        [multiple]="true"
+        [required]="true"
+        [label]="i18nService.translate('ACQUISITIONS.FORM.PRODUCT_UNITS')"
+      ></app-unit-of-measure-select>
+
+      @if (hasPackUnitSelected()) {
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>{{ i18nService.translate('ACQUISITIONS.FORM.PACK_SIZE') }}</mat-label>
+          <input matInput type="number" min="1" step="1" formControlName="packSize" />
+          <mat-hint>{{ i18nService.translate('ACQUISITIONS.FORM.PACK_SIZE_HINT') }}</mat-hint>
+          @if (acquisitionForm.get('packSize')?.invalid && acquisitionForm.get('packSize')?.touched) {
+            <mat-error>{{ i18nService.translate('ACQUISITIONS.FORM.PACK_SIZE_INVALID') }}</mat-error>
+          }
+        </mat-form-field>
+      }
+
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ i18nService.translate('ACQUISITIONS.FORM.PHOTO_URL') }}</mat-label>
         <input matInput formControlName="newProductUrlPhoto" />
@@ -73,8 +93,28 @@
         <span><strong>{{ i18nService.translate('ACQUISITIONS.FORM.CURRENT_REAL_COST') }}:</strong> {{ selectedProduct()!.realCost }}</span>
         <span><strong>{{ i18nService.translate('ACQUISITIONS.FORM.CURRENT_UNIT_REAL_COST') }}:</strong> {{ selectedProduct()!.unitRealCost }}</span>
         <span><strong>{{ i18nService.translate('ACQUISITIONS.FORM.CURRENT_UNIT_PUBLIC_COST') }}:</strong> {{ selectedProduct()!.unitPublicCost }}</span>
+        @if (selectedProduct()!.packSize !== undefined) {
+          <span><strong>{{ i18nService.translate('ACQUISITIONS.FORM.CURRENT_PACK_SIZE') }}:</strong> {{ selectedProduct()!.packSize }}</span>
+        }
       </div>
     </div>
+  }
+
+  <!-- Acquisition Unit -->
+  @if (!affectsInventory() || selectedProduct() || isNewProduct()) {
+    <app-unit-of-measure-select
+      class="full-width"
+      formControlName="unitOfMeasure"
+      [units]="availableAcquisitionUnits()"
+      [required]="true"
+      [label]="i18nService.translate('ACQUISITIONS.FORM.ACQUISITION_UNIT')"
+    ></app-unit-of-measure-select>
+
+    @if (selectedProduct() && !isNewProduct() && selectedAcquisitionUnitIsPack() && selectedProduct()!.packSize !== undefined) {
+      <p class="unit-of-measure-hint">
+        {{ i18nService.translate('ACQUISITIONS.FORM.EXISTING_PACK_SIZE_HINT') }} {{ selectedProduct()!.packSize }}
+      </p>
+    }
   }
 
   <!-- Quantity -->

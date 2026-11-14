@@ -4,10 +4,12 @@ import { AcquisitionFormModel } from '../../../features/acquisitions/new-acquisi
 /**
  * Maps the acquisition form view model to the transport request.
  *
- * Conditional fields replicate the legacy contract exactly: optional text
- * fields are only included when truthy, quantity falls back to 1 for brand
- * new products, and inventory-only fields are omitted when the selected type
- * does not affect inventory.
+ * The acquisition unit is always sent because the backend requires it for
+ * inventory and expense flows. Conditional fields replicate the legacy
+ * contract exactly: optional text fields are only included when truthy,
+ * quantity falls back to 1 for brand new products, inventory-only fields are
+ * omitted when the selected type does not affect inventory, and the product
+ * attributes (unit list and pack size) only travel for brand-new products.
  *
  * @param model Form view model emitted by the acquisition form component.
  * @param companyOid Company selected in the list page, inherited by the form.
@@ -26,6 +28,11 @@ export function toCreateAcquisitionRequest(
     request.companyOid = companyOid;
   }
 
+  if (model.unitOfMeasure) {
+    request.unitOfMeasure = model.unitOfMeasure;
+    request.unitOfMeasureOid = model.unitOfMeasure;
+  }
+
   if (model.affectsInventory) {
     const raw = model.productSearchRaw;
     // Legacy branches were identical; kept as a single assignment.
@@ -39,8 +46,16 @@ export function toCreateAcquisitionRequest(
     if (model.unitPublicCost) {
       request.unitPublicCost = model.unitPublicCost;
     }
-    if (model.isNewProduct && model.newProductDescription) {
-      request.description = model.newProductDescription;
+    if (model.isNewProduct) {
+      if (model.newProductDescription) {
+        request.description = model.newProductDescription;
+      }
+      if (model.unitOfMeasures.length > 0) {
+        request.unitOfMeasures = [...model.unitOfMeasures];
+      }
+      if (model.packSize != null) {
+        request.packSize = model.packSize;
+      }
     }
   } else {
     if (model.productSearchRaw && typeof model.productSearchRaw === 'string') {

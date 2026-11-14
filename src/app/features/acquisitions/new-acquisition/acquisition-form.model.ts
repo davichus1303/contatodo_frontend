@@ -15,6 +15,12 @@ export interface AcquisitionFormModel {
   readonly isNewProduct: boolean;
   /** True when the selected acquisition type affects inventory. */
   readonly affectsInventory: boolean;
+  /** Units declared by a brand-new product; empty for existing products. */
+  readonly unitOfMeasures: readonly string[];
+  /** Unit used to register the acquisition. */
+  readonly unitOfMeasure: string | null;
+  /** Base units contained in one pack, only for brand-new products acquired by pack. */
+  readonly packSize: number | null;
   readonly quantity: number | null;
   readonly realCost: number | null;
   readonly unitPublicCost: number | null;

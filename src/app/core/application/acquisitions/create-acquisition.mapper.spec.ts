@@ -9,6 +9,9 @@ describe('toCreateAcquisitionRequest', () => {
       productSearchRaw: 'Cemento',
       isNewProduct: false,
       affectsInventory: true,
+      unitOfMeasures: [],
+      unitOfMeasure: 'uom-kg',
+      packSize: null,
       quantity: 5,
       realCost: 100,
       unitPublicCost: null,
@@ -26,6 +29,20 @@ describe('toCreateAcquisitionRequest', () => {
 
     expect(request.acquisitionTypeOid).toBe('type-1');
     expect(request.realCost).toBe(100);
+  });
+
+  it('should send the acquisition unit in both identifier fields', () => {
+    const request = toCreateAcquisitionRequest(baseModel({ unitOfMeasure: 'uom-kg' }));
+
+    expect(request.unitOfMeasure).toBe('uom-kg');
+    expect(request.unitOfMeasureOid).toBe('uom-kg');
+  });
+
+  it('should omit the acquisition unit when the model carries none', () => {
+    const request = toCreateAcquisitionRequest(baseModel({ unitOfMeasure: null }));
+
+    expect(request.unitOfMeasure).toBeUndefined();
+    expect(request.unitOfMeasureOid).toBeUndefined();
   });
 
   describe('when the type affects inventory', () => {
@@ -48,6 +65,17 @@ describe('toCreateAcquisitionRequest', () => {
       const request = toCreateAcquisitionRequest(baseModel({ productSearchRaw: null }));
 
       expect(request.productName).toBe('');
+    });
+
+    it('should omit the product attribute units and pack size for existing products', () => {
+      const request = toCreateAcquisitionRequest(baseModel({
+        isNewProduct: false,
+        unitOfMeasures: ['uom-kg'],
+        packSize: 12
+      }));
+
+      expect(request.unitOfMeasures).toBeUndefined();
+      expect(request.packSize).toBeUndefined();
     });
   });
 
@@ -72,6 +100,39 @@ describe('toCreateAcquisitionRequest', () => {
         newProductDescription: 'ignorado'
       }));
       expect(withoutNewFlag.description).toBeUndefined();
+    });
+
+    it('should send the product attribute units and pack size', () => {
+      const request = toCreateAcquisitionRequest(baseModel({
+        isNewProduct: true,
+        unitOfMeasures: ['uom-kg', 'uom-doc'],
+        unitOfMeasure: 'uom-doc',
+        packSize: 12
+      }));
+
+      expect(request.unitOfMeasures).toEqual(['uom-kg', 'uom-doc']);
+      expect(request.unitOfMeasure).toBe('uom-doc');
+      expect(request.packSize).toBe(12);
+    });
+
+    it('should omit the pack size when the product is not acquired by pack', () => {
+      const request = toCreateAcquisitionRequest(baseModel({
+        isNewProduct: true,
+        unitOfMeasures: ['uom-kg'],
+        packSize: null
+      }));
+
+      expect(request.unitOfMeasures).toEqual(['uom-kg']);
+      expect(request.packSize).toBeUndefined();
+    });
+
+    it('should omit the attribute units when the model carries none', () => {
+      const request = toCreateAcquisitionRequest(baseModel({
+        isNewProduct: true,
+        unitOfMeasures: []
+      }));
+
+      expect(request.unitOfMeasures).toBeUndefined();
     });
   });
 
@@ -101,6 +162,19 @@ describe('toCreateAcquisitionRequest', () => {
       }));
 
       expect(request.quantity).toBeNull();
+    });
+
+    it('should send the acquisition unit without product attributes', () => {
+      const request = toCreateAcquisitionRequest(baseModel({
+        affectsInventory: false,
+        unitOfMeasure: 'uom-kg',
+        unitOfMeasures: ['uom-kg'],
+        packSize: 12
+      }));
+
+      expect(request.unitOfMeasure).toBe('uom-kg');
+      expect(request.unitOfMeasures).toBeUndefined();
+      expect(request.packSize).toBeUndefined();
     });
   });
 
