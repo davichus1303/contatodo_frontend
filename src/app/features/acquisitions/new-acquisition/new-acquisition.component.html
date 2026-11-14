@@ -12,6 +12,7 @@
       <app-acquisition-form
         [acquisitionTypes]="acquisitionTypes()"
         [products]="products()"
+        [units]="units()"
         [isSaving]="isSaving()"
         (save)="onFormSave($event)"
         (cancel)="goBack()"

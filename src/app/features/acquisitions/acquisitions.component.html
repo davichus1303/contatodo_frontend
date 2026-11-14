@@ -71,7 +71,13 @@
             <h3>{{ acquisition.productName }}</h3>
             <div class="acquisition-details">
               <span><strong>{{ i18nService.translate('ACQUISITIONS.TYPE') }}:</strong> {{ acquisition.acquisitionType }}</span>
+              @if (getUnitName(acquisition)) {
+                <span><strong>{{ i18nService.translate('ACQUISITIONS.UNIT_OF_MEASURE') }}:</strong> {{ getUnitName(acquisition) }}</span>
+              }
               <span><strong>{{ i18nService.translate('ACQUISITIONS.QUANTITY') }}:</strong> {{ acquisition.quantity }}</span>
+              @if (acquisition.packSize !== undefined) {
+                <span><strong>{{ i18nService.translate('ACQUISITIONS.PACK_SIZE') }}:</strong> {{ acquisition.packSize }}</span>
+              }
               <span><strong>{{ i18nService.translate('ACQUISITIONS.REAL_COST') }}:</strong> {{ formatCurrency(acquisition.realCost) }}</span>
               @if (acquisition.unitRealCost) {
                 <span><strong>{{ i18nService.translate('ACQUISITIONS.UNIT_REAL_COST') }}:</strong> {{ formatCurrency(acquisition.unitRealCost) }}</span>

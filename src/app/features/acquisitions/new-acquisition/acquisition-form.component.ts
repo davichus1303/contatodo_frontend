@@ -11,7 +11,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Product } from '@core/domain/models/product.model';
 import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
+import { UnitOfMeasure } from '@core/domain/models/unit-of-measure.model';
 import { ACQUISITIONS_CONSTANTS } from '@shared/constants/acquisitions.constants';
+import { UnitOfMeasureSelectComponent } from '@shared/components/unit-of-measure-select/unit-of-measure-select.component';
 import { I18nService } from '@core/i18n/i18n.service';
 import { AcquisitionFormModel } from './acquisition-form.model';
 
@@ -34,7 +36,8 @@ import { AcquisitionFormModel } from './acquisition-form.model';
     MatFormFieldModule,
     MatSelectModule,
     MatAutocompleteModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    UnitOfMeasureSelectComponent
   ],
   templateUrl: './acquisition-form.component.html',
   styleUrls: ['./acquisition-form.component.scss'],
@@ -49,6 +52,8 @@ export class AcquisitionFormComponent {
   readonly acquisitionTypes = input<AcquisitionType[]>([]);
   /** Known products used to detect brand-new products in the search field. */
   readonly products = input<Product[]>([]);
+  /** Active units of measure of the company, used by the unit selectors. */
+  readonly units = input<UnitOfMeasure[]>([]);
   /** True while the container is submitting the acquisition. */
   readonly isSaving = input<boolean>(false);
 
@@ -60,6 +65,8 @@ export class AcquisitionFormComponent {
   readonly acquisitionForm: FormGroup;
   readonly selectedProduct = signal<Product | null>(null);
   readonly productSearchValue = signal<string | Product | null>(null);
+  readonly selectedNewProductUnitOids = signal<readonly string[]>([]);
+  readonly selectedAcquisitionUnitOid = signal<string | null>(null);
 
   // Mirrored control values driving computed costs/validity.
   readonly realCost = signal(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
@@ -76,6 +83,68 @@ export class AcquisitionFormComponent {
   readonly affectsInventory = computed(() => {
     const type = this.selectedAcquisitionType();
     return type?.affectsInventory ?? false;
+  });
+
+  /** Active units indexed by identifier. */
+  private readonly unitsById = computed(
+    () => new Map(this.units().map(unit => [unit.id, unit] as const))
+  );
+
+  /**
+   * Units offered as the acquisition unit.
+   *
+   * <p>An existing product only offers the units declared in its attributes;
+   * a brand-new product offers the units selected as its attributes; a
+   * non-inventory acquisition offers every active unit because it has no
+   * product catalog entry to constrain the choice.</p>
+   */
+  readonly availableAcquisitionUnits = computed<readonly UnitOfMeasure[]>(() => {
+    if (!this.affectsInventory()) {
+      return this.sortedActiveUnits();
+    }
+
+    const product = this.selectedProduct();
+    if (product && !this.isNewProduct()) {
+      const declared = product.unitOfMeasures ?? [];
+      if (declared.length === 0) {
+        return this.sortedActiveUnits();
+      }
+
+      return declared
+        .map(oid => this.unitsById().get(oid))
+        .filter((unit): unit is UnitOfMeasure => unit !== undefined);
+    }
+
+    return this.selectedNewProductUnitOids()
+      .map(oid => this.unitsById().get(oid))
+      .filter((unit): unit is UnitOfMeasure => unit !== undefined);
+  });
+
+  /** Unit currently selected to register the acquisition. */
+  readonly selectedAcquisitionUnit = computed(() => {
+    const oid = this.selectedAcquisitionUnitOid();
+    return oid ? this.unitsById().get(oid) ?? null : null;
+  });
+
+  /** True when the acquisition is registered in a pack unit. */
+  readonly selectedAcquisitionUnitIsPack = computed(
+    () => this.selectedAcquisitionUnit()?.isPack === true
+  );
+
+  /**
+   * Whether the selected new-product attributes include a pack unit.
+   *
+   * <p>Pack size is only offered for brand-new products, so an existing
+   * product always resolves to false even if its acquisition unit is a pack.</p>
+   */
+  readonly hasPackUnitSelected = computed(() => {
+    if (!this.affectsInventory() || !this.isNewProduct()) {
+      return false;
+    }
+
+    return this.selectedNewProductUnitOids().some(
+      oid => this.unitsById().get(oid)?.isPack === true
+    );
   });
 
   /**
@@ -111,6 +180,11 @@ export class AcquisitionFormComponent {
       supplierName: [''],
       invoiceNumber: [''],
       observations: [''],
+      // Product attribute fields (brand-new products only)
+      unitOfMeasures: [[]],
+      // Acquisition unit shared by every flow
+      unitOfMeasure: [null, Validators.required],
+      packSize: [null],
       // New product fields
       newProductDescription: [''],
       newProductStock: [0],
@@ -136,7 +210,118 @@ export class AcquisitionFormComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(value => {
         this.productSearchValue.set(value);
+        this.clearStaleSelectedProduct(value);
+        this.syncModeState();
       });
+    this.acquisitionForm.get('unitOfMeasures')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(value => {
+        this.selectedNewProductUnitOids.set(Array.isArray(value) ? value : []);
+        this.syncAcquisitionUnitSelection();
+        this.syncPackSizeState();
+      });
+    this.acquisitionForm.get('unitOfMeasure')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(value => {
+        this.selectedAcquisitionUnitOid.set(
+          typeof value === 'string' && value.length > 0 ? value : null
+        );
+      });
+  }
+
+  /**
+   * Active units sorted by name for a stable presentation.
+   *
+   * @returns Sorted copy of the active units.
+   */
+  private sortedActiveUnits(): readonly UnitOfMeasure[] {
+    return [...this.units()].sort((first, second) => first.name.localeCompare(second.name));
+  }
+
+  /**
+   * Drops a previously selected product once the operator edits its name.
+   *
+   * <p>Without this the stale product would keep constraining the acquisition
+   * unit options while the form already treats the typed text as a brand-new
+   * product.</p>
+   *
+   * @param value Current product search value.
+   */
+  private clearStaleSelectedProduct(value: unknown): void {
+    const product = this.selectedProduct();
+    if (!product || typeof value !== 'string') {
+      return;
+    }
+
+    if (value.trim().toLowerCase() !== product.name.trim().toLowerCase()) {
+      this.selectedProduct.set(null);
+    }
+  }
+
+  /**
+   * Synchronizes the validators and derived state with the current mode.
+   *
+   * <p>Product units and pack size only apply to brand-new products that
+   * affect inventory; the acquisition unit is always required.</p>
+   */
+  private syncModeState(): void {
+    const unitOfMeasuresControl = this.acquisitionForm.get('unitOfMeasures');
+    if (this.affectsInventory() && this.isNewProduct()) {
+      unitOfMeasuresControl?.setValidators([Validators.required]);
+    } else {
+      unitOfMeasuresControl?.clearValidators();
+    }
+    unitOfMeasuresControl?.updateValueAndValidity({ emitEvent: false });
+
+    const selected = unitOfMeasuresControl?.value;
+    this.selectedNewProductUnitOids.set(Array.isArray(selected) ? selected : []);
+    this.syncAcquisitionUnitSelection();
+    this.syncPackSizeState();
+  }
+
+  /**
+   * Keeps the acquisition unit within the units offered by the current mode.
+   *
+   * <p>When the operator has exactly one option it is selected automatically;
+   * otherwise a unit that is no longer offered is cleared so the payload never
+   * carries an invalid identifier.</p>
+   */
+  private syncAcquisitionUnitSelection(): void {
+    const available = this.availableAcquisitionUnits();
+    const control = this.acquisitionForm.get('unitOfMeasure');
+    const current = control?.value;
+
+    if (typeof current === 'string' && available.some(unit => unit.id === current)) {
+      return;
+    }
+
+    if (available.length === 1) {
+      control?.setValue(available[0].id);
+      return;
+    }
+
+    if (current !== null && current !== undefined && current !== '') {
+      control?.setValue(null);
+    }
+  }
+
+  /**
+   * Applies the pack-size rules of brand-new products.
+   *
+   * <p>The field is required and must be a positive integer while a selected
+   * attribute is a pack; otherwise it is cleared because the backend must use
+   * the product's stored pack size.</p>
+   */
+  private syncPackSizeState(): void {
+    const control = this.acquisitionForm.get('packSize');
+
+    if (this.hasPackUnitSelected()) {
+      control?.setValidators([Validators.required, Validators.min(1), Validators.pattern(/^\d+$/)]);
+    } else {
+      control?.clearValidators();
+      control?.setValue(null, { emitEvent: false });
+    }
+    control?.updateValueAndValidity({ emitEvent: false });
   }
 
   /**
@@ -175,25 +360,66 @@ export class AcquisitionFormComponent {
     const realCostValid = realCostValue !== null
       && realCostValue !== undefined
       && realCostValue > 0;
+    const unitOfMeasureValid = this.hasValidAcquisitionUnit();
 
     if (this.affectsInventory()) {
-      const hasProduct = this.selectedProduct() !== null || this.isNewProduct();
-      const quantityValid = this.isNewProduct()
+      const isNewProduct = this.isNewProduct();
+      const hasProduct = this.selectedProduct() !== null || isNewProduct;
+      const quantityValid = isNewProduct
         ? (this.acquisitionForm.get('newProductStock')?.value > 0)
         : (this.acquisitionForm.get('quantity')?.valid ?? false);
       const unitPublicCostValid = this.acquisitionForm.get('unitPublicCost')?.valid ?? false;
+      const newProductUnitsValid = !isNewProduct || this.hasValidNewProductUnits();
+      const packSizeValid = !isNewProduct || !this.hasPackUnitSelected() || this.isPackSizeValid();
+
       return hasProduct &&
              acquisitionTypeValid &&
              quantityValid &&
              realCostValid &&
              unitPublicCostValid &&
-             (!this.isNewProduct() || this.productFieldsValid());
+             unitOfMeasureValid &&
+             newProductUnitsValid &&
+             packSizeValid &&
+             (!isNewProduct || this.productFieldsValid());
     }
 
     const productSearchValue = this.productSearchValue();
     const hasProductName = productSearchValue != null &&
       (typeof productSearchValue === 'string' ? productSearchValue.trim() !== '' : true);
-    return hasProductName && acquisitionTypeValid && realCostValid;
+    return hasProductName && acquisitionTypeValid && realCostValid && unitOfMeasureValid;
+  }
+
+  /**
+   * Whether the selected acquisition unit belongs to the units offered by the
+   * current product or, for non-inventory acquisitions, to the active catalog.
+   *
+   * @returns True when the acquisition unit is valid.
+   */
+  private hasValidAcquisitionUnit(): boolean {
+    const current = this.acquisitionForm.get('unitOfMeasure')?.value;
+    return typeof current === 'string' &&
+      current.length > 0 &&
+      this.availableAcquisitionUnits().some(unit => unit.id === current);
+  }
+
+  /**
+   * Whether a brand-new product declares at least one known active unit.
+   *
+   * @returns True when the attribute units are valid.
+   */
+  private hasValidNewProductUnits(): boolean {
+    const selected = this.selectedNewProductUnitOids();
+    return selected.length > 0 && selected.every(oid => this.unitsById().has(oid));
+  }
+
+  /**
+   * Whether the pack size is a positive integer.
+   *
+   * @returns True when the pack size is valid.
+   */
+  private isPackSizeValid(): boolean {
+    const value = Number(this.acquisitionForm.get('packSize')?.value);
+    return Number.isInteger(value) && value > 0;
   }
 
   readonly unitRealCost = computed(() => {
@@ -228,6 +454,9 @@ export class AcquisitionFormComponent {
     const newProductStockControl = this.acquisitionForm.get('newProductStock');
     const newProductUrlPhotoControl = this.acquisitionForm.get('newProductUrlPhoto');
     const productSearchControl = this.acquisitionForm.get('productSearch');
+    const unitOfMeasuresControl = this.acquisitionForm.get('unitOfMeasures');
+    const unitOfMeasureControl = this.acquisitionForm.get('unitOfMeasure');
+    const packSizeControl = this.acquisitionForm.get('packSize');
 
     const selectedId = this.acquisitionForm.get('acquisitionTypeOid')?.value;
     const selectedType = this.acquisitionTypes().find(type => type.id === selectedId);
@@ -243,6 +472,9 @@ export class AcquisitionFormComponent {
     newProductDescriptionControl?.setValue(ACQUISITIONS_CONSTANTS.STRINGS.EMPTY);
     newProductStockControl?.setValue(ACQUISITIONS_CONSTANTS.NUMBERS.ZERO);
     newProductUrlPhotoControl?.setValue(ACQUISITIONS_CONSTANTS.STRINGS.EMPTY);
+    unitOfMeasuresControl?.setValue([]);
+    unitOfMeasureControl?.setValue(null);
+    packSizeControl?.setValue(null, { emitEvent: false });
     this.selectedProduct.set(null);
 
     if (affectsInv) {
@@ -265,6 +497,11 @@ export class AcquisitionFormComponent {
     newProductDescriptionControl?.updateValueAndValidity();
     newProductStockControl?.updateValueAndValidity();
     newProductUrlPhotoControl?.updateValueAndValidity();
+    unitOfMeasuresControl?.updateValueAndValidity({ emitEvent: false });
+    unitOfMeasureControl?.updateValueAndValidity();
+    packSizeControl?.updateValueAndValidity({ emitEvent: false });
+
+    this.syncModeState();
   }
 
   /**
@@ -277,8 +514,11 @@ export class AcquisitionFormComponent {
     this.acquisitionForm.patchValue({
       productSearch: product,
       realCost: product.realCost,
-      unitPublicCost: product.unitPublicCost
+      unitPublicCost: product.unitPublicCost,
+      unitOfMeasures: [],
+      packSize: null
     });
+    this.syncModeState();
   }
 
   /**
@@ -288,8 +528,12 @@ export class AcquisitionFormComponent {
     this.selectedProduct.set(null);
     this.acquisitionForm.patchValue({
       realCost: 0,
-      unitPublicCost: 0
+      unitPublicCost: 0,
+      unitOfMeasures: [],
+      unitOfMeasure: null,
+      packSize: null
     });
+    this.syncModeState();
   }
 
   /**
@@ -331,11 +575,20 @@ export class AcquisitionFormComponent {
    */
   private buildFormModel(): AcquisitionFormModel {
     const value = (name: string) => this.acquisitionForm.get(name)?.value;
+    const isNewProduct = this.isNewProduct();
+    const packSize = value('packSize');
     return {
       acquisitionTypeOid: value('acquisitionTypeOid'),
       productSearchRaw: value('productSearch'),
-      isNewProduct: this.isNewProduct(),
+      isNewProduct,
       affectsInventory: this.affectsInventory(),
+      unitOfMeasures: isNewProduct && this.affectsInventory()
+        ? [...this.selectedNewProductUnitOids()]
+        : [],
+      unitOfMeasure: value('unitOfMeasure') ?? null,
+      packSize: isNewProduct && this.hasPackUnitSelected() && packSize != null
+        ? Number(packSize)
+        : null,
       quantity: value('quantity'),
       realCost: value('realCost'),
       unitPublicCost: value('unitPublicCost'),
@@ -360,11 +613,17 @@ export class AcquisitionFormComponent {
       supplierName: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY,
       invoiceNumber: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY,
       observations: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY,
+      unitOfMeasures: [],
+      unitOfMeasure: null,
+      packSize: null,
       newProductDescription: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY,
       newProductStock: ACQUISITIONS_CONSTANTS.NUMBERS.ZERO,
       newProductUrlPhoto: ACQUISITIONS_CONSTANTS.STRINGS.EMPTY
     });
     this.selectedProduct.set(null);
+    this.selectedNewProductUnitOids.set([]);
+    this.selectedAcquisitionUnitOid.set(null);
+    this.syncModeState();
   }
 
   /**

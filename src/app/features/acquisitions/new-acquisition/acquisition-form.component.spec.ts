@@ -4,8 +4,10 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ADAPTER_PROVIDERS } from '@core/adapters/adapters.providers';
 import { AcquisitionFormComponent } from './acquisition-form.component';
+import { AcquisitionFormModel } from './acquisition-form.model';
 import { Product } from '@core/domain/models/product.model';
 import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
+import { UnitOfMeasure } from '@core/domain/models/unit-of-measure.model';
 
 /**
  * Regression coverage for the product autocomplete in the acquisition form.
@@ -43,7 +45,26 @@ describe('AcquisitionFormComponent', () => {
       unitRealCost: 6,
       unitPublicCost: 12,
       urlPhoto: '',
+      isActive: true, },
+    {
+      id: '3',
+      name: 'Docena de empanadas',
+      description: 'Pack of empanadas',
+      unitOfMeasures: ['uom-doc'],
+      packSize: 12,
+      stock: 4,
+      code: 'P003',
+      realCost: 24,
+      unitRealCost: 2,
+      unitPublicCost: 3,
+      urlPhoto: '',
       isActive: true, }
+  ];
+
+  const sampleUnits: UnitOfMeasure[] = [
+    { id: 'uom-kg', name: 'Kilogramo', abrev: 'kg', isActive: true, isDeleted: false, isDivisible: true, isPack: false },
+    { id: 'uom-lt', name: 'Litro', abrev: 'lt', isActive: true, isDeleted: false, isDivisible: true, isPack: false },
+    { id: 'uom-doc', name: 'Docena', abrev: 'doc', isActive: true, isDeleted: false, isDivisible: false, isPack: true }
   ];
 
   const sampleAcquisitionTypes: AcquisitionType[] = [
@@ -79,6 +100,7 @@ describe('AcquisitionFormComponent', () => {
     component = fixture.componentInstance;
     fixture.componentRef.setInput('acquisitionTypes', sampleAcquisitionTypes);
     fixture.componentRef.setInput('products', sampleProducts);
+    fixture.componentRef.setInput('units', sampleUnits);
     fixture.detectChanges();
   });
 
@@ -87,14 +109,25 @@ describe('AcquisitionFormComponent', () => {
     httpTesting.verify();
   });
 
+  /**
+   * Selects an inventory-affecting acquisition type.
+   */
+  function selectInventoryType(): void {
+    component.acquisitionForm.get('acquisitionTypeOid')?.setValue('mercancia');
+    component.onAcquisitionTypeChange();
+    fixture.detectChanges();
+  }
+
   it('should expose the existing products to the autocomplete', () => {
     expect(component.filteredProducts().map((p: Product) => p.name)).toEqual([
       'Ceviche',
-      'Arroz con pollo'
+      'Arroz con pollo',
+      'Docena de empanadas'
     ]);
     expect(component.filteredOptions().map((p: Product) => p.name)).toEqual([
       'Ceviche',
-      'Arroz con pollo'
+      'Arroz con pollo',
+      'Docena de empanadas'
     ]);
   });
 
@@ -113,7 +146,8 @@ describe('AcquisitionFormComponent', () => {
 
     expect(component.filteredOptions().map((p: Product) => p.name)).toEqual([
       'Ceviche',
-      'Arroz con pollo'
+      'Arroz con pollo',
+      'Docena de empanadas'
     ]);
   });
 
@@ -173,5 +207,120 @@ describe('AcquisitionFormComponent', () => {
     expect(component.acquisitionForm.get('realCost')?.value).toBe(0);
     expect(component.acquisitionForm.get('unitPublicCost')?.value).toBe(0);
     expect(component.acquisitionForm.get('quantity')?.value).toBe(1);
+  });
+
+  it('should offer only the units declared by the selected existing product', () => {
+    selectInventoryType();
+    component.selectProduct(sampleProducts[0]);
+    fixture.detectChanges();
+
+    expect(component.availableAcquisitionUnits().map(unit => unit.id)).toEqual(['uom-lt']);
+    expect(component.acquisitionForm.get('unitOfMeasure')?.value).toBe('uom-lt');
+  });
+
+  it('should not expose the pack size for an existing product', () => {
+    selectInventoryType();
+    component.selectProduct(sampleProducts[2]);
+    fixture.detectChanges();
+
+    expect(component.availableAcquisitionUnits().map(unit => unit.id)).toEqual(['uom-doc']);
+    expect(component.hasPackUnitSelected()).toBeFalse();
+    expect(component.acquisitionForm.get('packSize')?.value).toBeNull();
+  });
+
+  it('should emit only the acquisition unit for an existing product', () => {
+    selectInventoryType();
+    component.selectProduct(sampleProducts[0]);
+    fixture.detectChanges();
+
+    let emitted: AcquisitionFormModel | undefined;
+    component.save.subscribe(model => (emitted = model));
+    component.onSave();
+
+    expect(emitted?.unitOfMeasures).toEqual([]);
+    expect(emitted?.unitOfMeasure).toBe('uom-lt');
+    expect(emitted?.packSize).toBeNull();
+  });
+
+  it('should offer the selected new-product units as acquisition units', () => {
+    selectInventoryType();
+    component.acquisitionForm.get('productSearch')?.setValue('Empanada nueva');
+    fixture.detectChanges();
+
+    expect(component.isNewProduct()).toBeTrue();
+    expect(component.availableAcquisitionUnits()).toEqual([]);
+
+    component.acquisitionForm.get('unitOfMeasures')?.setValue(['uom-kg', 'uom-doc']);
+    fixture.detectChanges();
+
+    expect(component.availableAcquisitionUnits().map(unit => unit.id)).toEqual(['uom-kg', 'uom-doc']);
+    expect(component.hasPackUnitSelected()).toBeTrue();
+    expect(component.acquisitionForm.get('packSize')?.invalid).toBeTrue();
+
+    component.acquisitionForm.get('packSize')?.setValue(12);
+    expect(component.acquisitionForm.get('packSize')?.valid).toBeTrue();
+  });
+
+  it('should emit the new-product units and pack size', () => {
+    selectInventoryType();
+    component.acquisitionForm.patchValue({
+      productSearch: 'Empanada nueva',
+      newProductStock: 10,
+      realCost: 120,
+      unitPublicCost: 5,
+      unitOfMeasures: ['uom-doc'],
+      unitOfMeasure: 'uom-doc',
+      packSize: 12
+    });
+    fixture.detectChanges();
+
+    let emitted: AcquisitionFormModel | undefined;
+    component.save.subscribe(model => (emitted = model));
+    component.onSave();
+
+    expect(emitted?.isNewProduct).toBeTrue();
+    expect(emitted?.unitOfMeasures).toEqual(['uom-doc']);
+    expect(emitted?.unitOfMeasure).toBe('uom-doc');
+    expect(emitted?.packSize).toBe(12);
+  });
+
+  it('should clear the pack size when no selected unit is a pack', () => {
+    selectInventoryType();
+    component.acquisitionForm.patchValue({
+      productSearch: 'Empanada nueva',
+      unitOfMeasures: ['uom-doc'],
+      packSize: 12
+    });
+
+    component.acquisitionForm.get('unitOfMeasures')?.setValue(['uom-kg']);
+
+    expect(component.hasPackUnitSelected()).toBeFalse();
+    expect(component.acquisitionForm.get('packSize')?.value).toBeNull();
+  });
+
+  it('should offer the full active catalog for non-inventory acquisitions', () => {
+    component.acquisitionForm.get('acquisitionTypeOid')?.setValue('gasto');
+    component.onAcquisitionTypeChange();
+    fixture.detectChanges();
+
+    expect(component.availableAcquisitionUnits().map(unit => unit.id)).toEqual([
+      'uom-doc',
+      'uom-kg',
+      'uom-lt'
+    ]);
+    expect(component.acquisitionForm.get('unitOfMeasure')?.invalid).toBeTrue();
+  });
+
+  it('should require the acquisition unit for non-inventory acquisitions', () => {
+    component.acquisitionForm.get('acquisitionTypeOid')?.setValue('gasto');
+    component.onAcquisitionTypeChange();
+    component.acquisitionForm.patchValue({ productSearch: 'Renta', realCost: 100 });
+    fixture.detectChanges();
+
+    expect(component.canSaveAcquisition()).toBeFalse();
+
+    component.acquisitionForm.get('unitOfMeasure')?.setValue('uom-kg');
+
+    expect(component.canSaveAcquisition()).toBeTrue();
   });
 });

@@ -17,6 +17,9 @@ describe('AcquisitionsService', () => {
     id: ' a1 ',
     productName: ' Arroz ',
     acquisitionType: 'Mercancia',
+    unitOfMeasure: 'uom-kg',
+    unitOfMeasureOid: 'uom-kg',
+    packSize: 12,
     quantity: 5,
     realCost: 50,
     unitRealCost: 10,
@@ -46,6 +49,9 @@ describe('AcquisitionsService', () => {
     expect(httpMock.get).toHaveBeenCalledWith(ACQUISITIONS_URL, { params: { companyOid: undefined } });
     expect(acquisitions[0].id).toBe('a1');
     expect(acquisitions[0].productName).toBe('Arroz');
+    expect(acquisitions[0].unitOfMeasure).toBe('uom-kg');
+    expect(acquisitions[0].unitOfMeasureOid).toBe('uom-kg');
+    expect(acquisitions[0].packSize).toBe(12);
   });
 
   it('should send the ISO date range as params when both bounds are given', () => {

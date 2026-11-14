@@ -16,6 +16,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AcquisitionsService } from '@core/application/acquisitions/acquisitions.service';
 import { Acquisition } from '@core/domain/models/acquisition.model';
+import { UnitOfMeasureCatalogService } from '@core/application/unit-of-measures/unit-of-measure-catalog.service';
 import { CompaniesService } from '@core/application/companies/companies.service';
 import { CompanySelectionService } from '@core/application/companies/company-selection.service';
 import { Company } from '@core/domain/models/company.model';
@@ -51,6 +52,7 @@ import { PermissionDirective } from '@shared/directives/permission.directive';
 })
 export class AcquisitionsComponent implements OnDestroy {
   private readonly acquisitionsService = inject(AcquisitionsService);
+  private readonly unitOfMeasureCatalog = inject(UnitOfMeasureCatalogService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
   readonly i18nService = inject(I18nService);
@@ -65,6 +67,8 @@ export class AcquisitionsComponent implements OnDestroy {
   readonly isLoading = signal<boolean>(false);
   readonly companies = signal<Company[]>([]);
   readonly companyOid = signal<string | null>(null);
+  /** Unit names resolved from the historical catalog, keyed by identifier. */
+  readonly unitNames = signal<ReadonlyMap<string, string>>(new Map());
 
   /** True when the session can pick the company that scopes the acquisitions. */
   readonly canSelectCompany = this.permissionService.isRoot();
@@ -105,11 +109,45 @@ export class AcquisitionsComponent implements OnDestroy {
       this.disableDateRange();
       if (this.companyOid()) {
         this.enableDateRange();
+        this.loadUnitNames();
         this.loadAcquisitions();
       }
     } else {
+      this.loadUnitNames();
       this.loadAcquisitions();
     }
+  }
+
+  /**
+   * Loads the non-deleted units of measure so historical acquisitions keep
+   * their unit name even after a unit is deactivated.
+   */
+  private loadUnitNames(): void {
+    this.unitOfMeasureCatalog.getHistoricalUnits(this.companyOid() ?? undefined)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (units) => {
+          this.unitNames.set(new Map(units.map(unit => [unit.id, unit.name] as const)));
+        },
+        error: () => {
+          this.unitNames.set(new Map());
+        }
+      });
+  }
+
+  /**
+   * Resolves the unit name of an acquisition.
+   *
+   * @param acquisition Acquisition whose unit must be resolved.
+   * @returns Unit name, the raw identifier as a fallback, or an empty string.
+   */
+  getUnitName(acquisition: Acquisition): string {
+    const oid = acquisition.unitOfMeasureOid ?? acquisition.unitOfMeasure;
+    if (!oid) {
+      return '';
+    }
+
+    return this.unitNames().get(oid) ?? oid;
   }
 
   /**
@@ -139,10 +177,12 @@ export class AcquisitionsComponent implements OnDestroy {
 
     if (companyOid) {
       this.enableDateRange();
+      this.loadUnitNames();
       this.loadAcquisitions();
     } else {
       this.disableDateRange();
       this.acquisitions.set([]);
+      this.unitNames.set(new Map());
     }
   }
 

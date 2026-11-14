@@ -8,6 +8,7 @@ import { AcquisitionsService } from '@core/application/acquisitions/acquisitions
 import { ProductsService } from '@core/application/products/products.service';
 import { AcquisitionTypeService } from '@core/application/acquisition-types/acquisition-type.service';
 import { CompanySelectionService } from '@core/application/companies/company-selection.service';
+import { UnitOfMeasureCatalogService } from '@core/application/unit-of-measures/unit-of-measure-catalog.service';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { I18nService } from '@core/i18n/i18n.service';
 import { Acquisition } from '@core/domain/models/acquisition.model';
@@ -32,6 +33,9 @@ const formModel = {
   productSearchRaw: 'Cemento',
   isNewProduct: false,
   affectsInventory: true,
+  unitOfMeasures: [],
+  unitOfMeasure: 'uom-kg',
+  packSize: null,
   quantity: 5,
   realCost: 100,
   unitPublicCost: 25,
@@ -91,6 +95,14 @@ describe('NewAcquisitionComponent', () => {
               .and.returnValue(of({ status: 200, message: 'OK', data: [] }))
           }
         },
+        {
+          provide: UnitOfMeasureCatalogService,
+          useValue: {
+            getActiveUnits: jasmine
+              .createSpy('getActiveUnits')
+              .and.returnValue(of([]))
+          }
+        },
         { provide: NotificationService, useValue: { success: successSpy, error: errorSpy } },
         { provide: I18nService, useValue: { translate: (key: string) => key } },
         { provide: Router, useValue: { navigate: jasmine.createSpy('navigate') } },
@@ -139,6 +151,8 @@ describe('NewAcquisitionComponent', () => {
     const request = createAcquisitionSpy.calls.mostRecent().args[0] as CreateAcquisitionRequest;
     expect(request.companyOid).toBe('company-1');
     expect(request.acquisitionTypeOid).toBe('type-1');
+    expect(request.unitOfMeasure).toBe('uom-kg');
+    expect(request.unitOfMeasureOid).toBe('uom-kg');
     expect(successSpy).toHaveBeenCalledWith(ACQUISITIONS_CONSTANTS.MESSAGES.ACQUISITION_REGISTERED_SUCCESSFULLY);
   });
 
