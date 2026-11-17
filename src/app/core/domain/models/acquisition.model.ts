@@ -15,6 +15,12 @@ export interface Acquisition {
   readonly id: string;
   readonly productName: string;
   readonly acquisitionType: string;
+  /** Unit used to register the acquisition (stored as an identifier). */
+  readonly unitOfMeasure?: string;
+  /** Explicit acquisition unit identifier. */
+  readonly unitOfMeasureOid?: string;
+  /** Base units contained in one pack when the acquisition used a pack. */
+  readonly packSize?: number;
   readonly quantity?: number;
   readonly realCost: number;
   readonly unitRealCost: number;
@@ -34,6 +40,8 @@ export interface Acquisition {
  * numeric/text fields collapse to `undefined` when absent, `null` or blank,
  * which mirrors the backend contract (non-inventory acquisitions carry no
  * quantity/unit public cost and supplier/invoice/observations are nullable).
+ * The acquisition unit identifiers are kept as optional text and the pack size
+ * must be a positive integer when present.
  *
  * @param raw Raw payload, typically an API list item.
  * @returns Successful result with the acquisition, or every violation found.
@@ -64,6 +72,22 @@ export function createAcquisition(raw: unknown): Result<Acquisition, readonly Do
     }
   }
 
+  for (const field of ['unitOfMeasure', 'unitOfMeasureOid'] as const) {
+    const value = raw[field];
+    if (value !== undefined && value !== null && typeof value !== 'string') {
+      errors.push(domainError(field, `Acquisition ${field} must be a string when present.`));
+    }
+  }
+
+  const packSize = raw['packSize'];
+  if (
+    packSize !== undefined &&
+    packSize !== null &&
+    (!isFiniteNumber(packSize) || !Number.isInteger(packSize) || packSize <= 0)
+  ) {
+    errors.push(domainError('packSize', 'Acquisition packSize must be a positive integer when present.'));
+  }
+
   if (errors.length > 0) {
     return err(errors);
   }
@@ -72,6 +96,9 @@ export function createAcquisition(raw: unknown): Result<Acquisition, readonly Do
     id: (raw['id'] as string).trim(),
     productName: (raw['productName'] as string).trim(),
     acquisitionType: (raw['acquisitionType'] as string).trim(),
+    unitOfMeasure: optionalString(raw['unitOfMeasure']),
+    unitOfMeasureOid: optionalString(raw['unitOfMeasureOid']),
+    packSize: optionalNumber(raw['packSize']),
     quantity: optionalNumber(raw['quantity']),
     realCost: raw['realCost'] as number,
     unitRealCost: raw['unitRealCost'] as number,
