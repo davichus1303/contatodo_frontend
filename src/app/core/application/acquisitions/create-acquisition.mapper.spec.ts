@@ -67,15 +67,24 @@ describe('toCreateAcquisitionRequest', () => {
       expect(request.productName).toBe('');
     });
 
-    it('should omit the product attribute units and pack size for existing products', () => {
+    it('should send the backfilled unit and omit the pack size for existing products', () => {
       const request = toCreateAcquisitionRequest(baseModel({
         isNewProduct: false,
         unitOfMeasures: ['uom-kg'],
         packSize: 12
       }));
 
-      expect(request.unitOfMeasures).toBeUndefined();
+      expect(request.unitOfMeasures).toEqual(['uom-kg']);
       expect(request.packSize).toBeUndefined();
+    });
+
+    it('should omit the units when an existing product already declares them', () => {
+      const request = toCreateAcquisitionRequest(baseModel({
+        isNewProduct: false,
+        unitOfMeasures: []
+      }));
+
+      expect(request.unitOfMeasures).toBeUndefined();
     });
   });
 

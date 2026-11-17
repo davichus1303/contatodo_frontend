@@ -5,7 +5,7 @@ export interface CreateAcquisitionRequest {
   acquisitionTypeOid: string;
   productName?: string;
   description?: string;
-  /** Units declared by a brand-new product. Omitted for existing products. */
+  /** Units declared by a brand-new product or backfilled into an existing product that declares none. */
   unitOfMeasures?: string[];
   /** Unit used to register the acquisition. Required by the backend. */
   unitOfMeasure?: string;

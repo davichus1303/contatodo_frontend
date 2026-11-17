@@ -576,16 +576,16 @@ export class AcquisitionFormComponent {
   private buildFormModel(): AcquisitionFormModel {
     const value = (name: string) => this.acquisitionForm.get(name)?.value;
     const isNewProduct = this.isNewProduct();
+    const affectsInventory = this.affectsInventory();
+    const unitOfMeasure: string | null = value('unitOfMeasure') ?? null;
     const packSize = value('packSize');
     return {
       acquisitionTypeOid: value('acquisitionTypeOid'),
       productSearchRaw: value('productSearch'),
       isNewProduct,
-      affectsInventory: this.affectsInventory(),
-      unitOfMeasures: isNewProduct && this.affectsInventory()
-        ? [...this.selectedNewProductUnitOids()]
-        : [],
-      unitOfMeasure: value('unitOfMeasure') ?? null,
+      affectsInventory,
+      unitOfMeasures: this.resolveProductUnitOids(isNewProduct, affectsInventory, unitOfMeasure),
+      unitOfMeasure,
       packSize: isNewProduct && this.hasPackUnitSelected() && packSize != null
         ? Number(packSize)
         : null,
@@ -598,6 +598,38 @@ export class AcquisitionFormComponent {
       newProductDescription: value('newProductDescription'),
       newProductStock: value('newProductStock')
     };
+  }
+
+  /**
+   * Resolves the product units carried by the request.
+   *
+   * <p>A brand-new product sends the units selected as attributes. An existing
+   * product that declares none sends the acquisition unit so the backend can
+   * backfill the association while leaving the rest of the product untouched.
+   * Existing products with units send nothing because their attributes are
+   * read-only.</p>
+   *
+   * @param isNewProduct Whether the acquisition creates a product.
+   * @param affectsInventory Whether the type affects inventory.
+   * @param unitOfMeasure Selected acquisition unit.
+   * @returns Unit identifiers to associate with the product.
+   */
+  private resolveProductUnitOids(
+    isNewProduct: boolean,
+    affectsInventory: boolean,
+    unitOfMeasure: string | null
+  ): string[] {
+    if (!affectsInventory) {
+      return [];
+    }
+
+    if (isNewProduct) {
+      return [...this.selectedNewProductUnitOids()];
+    }
+
+    const product = this.selectedProduct();
+    const declaresUnits = (product?.unitOfMeasures?.length ?? 0) > 0;
+    return product && !declaresUnits && unitOfMeasure ? [unitOfMeasure] : [];
   }
 
   /**

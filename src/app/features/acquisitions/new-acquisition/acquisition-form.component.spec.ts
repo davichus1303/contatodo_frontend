@@ -58,6 +58,18 @@ describe('AcquisitionFormComponent', () => {
       unitRealCost: 2,
       unitPublicCost: 3,
       urlPhoto: '',
+      isActive: true, },
+    {
+      id: '4',
+      name: 'Agua',
+      description: 'Bottled water',
+      unitOfMeasures: [],
+      stock: 20,
+      code: 'P004',
+      realCost: 10,
+      unitRealCost: 10,
+      unitPublicCost: 15,
+      urlPhoto: '',
       isActive: true, }
   ];
 
@@ -122,12 +134,14 @@ describe('AcquisitionFormComponent', () => {
     expect(component.filteredProducts().map((p: Product) => p.name)).toEqual([
       'Ceviche',
       'Arroz con pollo',
-      'Docena de empanadas'
+      'Docena de empanadas',
+      'Agua'
     ]);
     expect(component.filteredOptions().map((p: Product) => p.name)).toEqual([
       'Ceviche',
       'Arroz con pollo',
-      'Docena de empanadas'
+      'Docena de empanadas',
+      'Agua'
     ]);
   });
 
@@ -147,7 +161,8 @@ describe('AcquisitionFormComponent', () => {
     expect(component.filteredOptions().map((p: Product) => p.name)).toEqual([
       'Ceviche',
       'Arroz con pollo',
-      'Docena de empanadas'
+      'Docena de empanadas',
+      'Agua'
     ]);
   });
 
@@ -239,6 +254,29 @@ describe('AcquisitionFormComponent', () => {
 
     expect(emitted?.unitOfMeasures).toEqual([]);
     expect(emitted?.unitOfMeasure).toBe('uom-lt');
+    expect(emitted?.packSize).toBeNull();
+  });
+
+  it('should backfill the selected unit for an existing product without units', () => {
+    selectInventoryType();
+    component.selectProduct(sampleProducts[3]);
+    fixture.detectChanges();
+
+    expect(component.availableAcquisitionUnits().map(unit => unit.id)).toEqual([
+      'uom-doc',
+      'uom-kg',
+      'uom-lt'
+    ]);
+
+    component.acquisitionForm.get('unitOfMeasure')?.setValue('uom-kg');
+    fixture.detectChanges();
+
+    let emitted: AcquisitionFormModel | undefined;
+    component.save.subscribe(model => (emitted = model));
+    component.onSave();
+
+    expect(emitted?.unitOfMeasures).toEqual(['uom-kg']);
+    expect(emitted?.unitOfMeasure).toBe('uom-kg');
     expect(emitted?.packSize).toBeNull();
   });
 
