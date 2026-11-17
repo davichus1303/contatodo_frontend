@@ -6,7 +6,8 @@ export const SALES_CONSTANTS = {
     SALE_CREATED_SUCCESSFULLY: 'Sale created successfully',
     ERROR_CREATING_SALE: 'Error creating sale',
     ERROR_LOADING_PRODUCTS: 'Error loading products',
-    ERROR_LOADING_COMPANIES: 'Error loading companies'
+    ERROR_LOADING_COMPANIES: 'Error loading companies',
+    ERROR_LOADING_UNITS: 'Error loading units of measure'
   },
   // Sale domain model invariants backed by the transport payload contract.
   // The backend reports the owning user under `byUserOid`, tolerating the

@@ -22,17 +22,37 @@
       <span class="label">{{ i18nService.translate('sales.realCost') }}:</span>
       <span class="value">{{ formatCurrency(data.product.unitRealCost) }}</span>
     </div>
+    <ng-container *ngIf="isPackSelected() && effectivePackSize() !== null">
+      <div class="info-row">
+        <span class="label">{{ i18nService.translate('sales.unitsPerPack') }}:</span>
+        <span class="value">{{ effectivePackSize() }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">{{ i18nService.translate('sales.availablePacks') }}:</span>
+        <span class="value">{{ maxQuantity() }}</span>
+      </div>
+    </ng-container>
   </div>
 
   <form [formGroup]="saleForm" class="sale-form">
+    <app-unit-of-measure-select
+      formControlName="unitOfMeasureOid"
+      [units]="availableUnits()"
+      [required]="true"
+      [label]="i18nService.translate('sales.unitOfMeasure')"
+    ></app-unit-of-measure-select>
+
     <mat-form-field appearance="outline">
       <mat-label>{{ i18nService.translate('sales.quantity') }}</mat-label>
-      <input matInput type="number" formControlName="quantity" min="1" max="{{ data.product.stock }}">
+      <input matInput type="number" formControlName="quantity" min="1" [attr.max]="maxQuantity()">
       <mat-error *ngIf="saleForm.get('quantity')?.hasError('required')">
         {{ i18nService.translate('sales.quantityRequired') }}
       </mat-error>
       <mat-error *ngIf="saleForm.get('quantity')?.hasError('min')">
         {{ i18nService.translate('sales.quantityMin') }}
+      </mat-error>
+      <mat-error *ngIf="saleForm.get('quantity')?.hasError('insufficientStock')">
+        {{ i18nService.translate('sales.insufficientStock') }}
       </mat-error>
     </mat-form-field>
 
