@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -165,63 +166,134 @@ export class DealDialogComponent {
       return;
     }
 
-    const quantity = Number(this.form.controls.quantity.value);
-    const price = Number(this.form.controls.price.value);
-
-    if (!Number.isFinite(quantity) || !Number.isFinite(price)) {
+    const values = this.getNumericDealValues();
+    if (!values) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.isSaving.set(true);
-
     if (this.mode === 'create') {
-      const companyOid = this.getCompanyOid();
-      const productOid = this.form.controls.productOid.value;
-      const unitOfMeasureOid = this.form.controls.unitOfMeasureOid.value;
-
-      if (!companyOid || !productOid || !unitOfMeasureOid) {
-        this.isSaving.set(false);
-        this.form.markAllAsTouched();
-        return;
-      }
-
-      const payload: CreateDealRequest = {
-        companyOid,
-        productOid,
-        unitOfMeasureOid,
-        quantity,
-        price
-      };
-
-      this.dealsService.createDeal(payload).subscribe({
-        next: () => {
-          this.isSaving.set(false);
-          this.notifications.success(this.i18nService.translate('DEALS_CATALOG.MESSAGES.CREATED'));
-          this.dialogRef.close(true);
-        },
-        error: (error) => {
-          this.isSaving.set(false);
-          this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('DEALS_CATALOG.MESSAGES.ERROR_CREATING')));
-        }
-      });
+      this.createDeal(values.quantity, values.price);
       return;
     }
 
+    this.updateDeal(values.quantity, values.price);
+  }
+
+  /**
+   * Extracts and validates numeric deal values from the form.
+   *
+   * @returns Parsed quantity and price, or null when invalid.
+   */
+  private getNumericDealValues(): { quantity: number; price: number } | null {
+    const quantity = Number(this.form.controls.quantity.value);
+    const price = Number(this.form.controls.price.value);
+
+    if (!Number.isFinite(quantity) || !Number.isFinite(price)) {
+      return null;
+    }
+
+    return { quantity, price };
+  }
+
+  /**
+   * Creates a new deal using the current form values.
+   *
+   * @param quantity Deal quantity.
+   * @param price Deal price.
+   */
+  private createDeal(quantity: number, price: number): void {
+    const payload = this.buildCreatePayload(quantity, price);
+    if (!payload) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.executeSave(
+      this.dealsService.createDeal(payload),
+      'DEALS_CATALOG.MESSAGES.CREATED',
+      'DEALS_CATALOG.MESSAGES.ERROR_CREATING'
+    );
+  }
+
+  /**
+   * Builds the payload required to create a deal.
+   *
+   * @param quantity Deal quantity.
+   * @param price Deal price.
+   * @returns Create request payload, or null when required fields are missing.
+   */
+  private buildCreatePayload(quantity: number, price: number): CreateDealRequest | null {
+    const companyOid = this.getCompanyOid();
+    const productOid = this.form.controls.productOid.value;
+    const unitOfMeasureOid = this.form.controls.unitOfMeasureOid.value;
+
+    if (!companyOid || !productOid || !unitOfMeasureOid) {
+      return null;
+    }
+
+    return {
+      companyOid,
+      productOid,
+      unitOfMeasureOid,
+      quantity,
+      price
+    };
+  }
+
+  /**
+   * Updates the current deal using the provided numeric values.
+   *
+   * @param quantity Deal quantity.
+   * @param price Deal price.
+   */
+  private updateDeal(quantity: number, price: number): void {
     const dealId = this.deal?.id ?? '';
     const payload: UpdateDealRequest = { quantity, price };
 
-    this.dealsService.updateDeal(dealId, payload).subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        this.notifications.success(this.i18nService.translate('DEALS_CATALOG.MESSAGES.UPDATED'));
-        this.dialogRef.close(true);
-      },
-      error: (error) => {
-        this.isSaving.set(false);
-        this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate('DEALS_CATALOG.MESSAGES.ERROR_UPDATING')));
-      }
+    this.executeSave(
+      this.dealsService.updateDeal(dealId, payload),
+      'DEALS_CATALOG.MESSAGES.UPDATED',
+      'DEALS_CATALOG.MESSAGES.ERROR_UPDATING'
+    );
+  }
+
+  /**
+   * Executes a save request and handles its result.
+   *
+   * @param request$ Save request observable.
+   * @param successMessageKey I18n key for the success notification.
+   * @param errorMessageKey I18n key for the fallback error notification.
+   */
+  private executeSave(request$: Observable<unknown>, successMessageKey: string, errorMessageKey: string): void {
+    this.isSaving.set(true);
+
+    request$.subscribe({
+      next: () => this.handleSaveSuccess(successMessageKey),
+      error: (error) => this.handleSaveError(error, errorMessageKey)
     });
+  }
+
+  /**
+   * Handles a successful save operation.
+   *
+   * @param messageKey I18n key for the success notification.
+   */
+  private handleSaveSuccess(messageKey: string): void {
+    this.isSaving.set(false);
+    this.notifications.success(this.i18nService.translate(messageKey));
+    this.dialogRef.close(true);
+  }
+
+  /**
+   * Handles a failed save operation.
+   *
+   * @param error Error returned by the save request.
+   * @param fallbackMessageKey I18n key for the fallback error notification.
+   */
+  private handleSaveError(error: unknown, fallbackMessageKey: string): void {
+    this.isSaving.set(false);
+    this.notifications.error(extractApiErrorMessage(error, this.i18nService.translate(fallbackMessageKey)));
   }
 
   /**
