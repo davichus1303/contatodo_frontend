@@ -7,16 +7,20 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SalesService } from '@core/application/sales/sales.service';
+import { DealsService } from '@core/application/deals/deals.service';
 import { UnitOfMeasureCatalogService } from '@core/application/unit-of-measures/unit-of-measure-catalog.service';
 import { Product, ProductUnitOfMeasureDetail } from '@core/domain/models/product.model';
 import { UnitOfMeasure } from '@core/domain/models/unit-of-measure.model';
+import { Deal } from '@core/domain/models/deal.model';
 import { CreateSaleRequest } from '@core/application/dto/create-sale-request.dto';
 import { UnitOfMeasureSelectComponent } from '@shared/components/unit-of-measure-select/unit-of-measure-select.component';
 import { SALES_CONSTANTS } from '@shared/constants/sales.constants';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 import { formatCurrency as formatCurrencyUtil } from '@shared/utils/format.utils';
 import { calculateProfit as calculateProfitUtil } from '../sales.utils';
 import { I18nService } from '@core/i18n/i18n.service';
@@ -160,6 +164,7 @@ export interface SaleDialogData {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatSlideToggleModule,
     UnitOfMeasureSelectComponent
   ],
   templateUrl: './sale-dialog.component.html',
@@ -171,8 +176,10 @@ export class SaleDialogComponent {
   readonly isLoading = signal<boolean>(false);
   readonly units = signal<readonly UnitOfMeasure[]>([]);
   readonly selectedUnitOid = signal<string | null>(null);
-  readonly quantityValue = signal<number>(1);
+  readonly quantityValue = signal<number>(GENERAL_CONSTANTS.NUMBERS.ONE);
   readonly totalSalePriceValue = signal<number>(0);
+  readonly offer = signal<Deal | null>(null);
+  readonly offerEnabled = signal<boolean>(false);
   readonly i18nService = inject(I18nService);
 
   /** Active units indexed by identifier. */
@@ -219,11 +226,22 @@ export class SaleDialogComponent {
    * Units offered by the selector.
    *
    * <p>The units associated with the product are offered; the full active
-   * catalog is offered only when the product has no associated units.</p>
+   * catalog is offered only when the product has no associated units. When a
+   * product offer exists, its unit of measure is included so the offer can be
+   * applied even if it is not part of the product's declared units.</p>
    */
-  readonly availableUnits = computed<readonly UnitOfMeasure[]>(
-    () => (this.hasProductUnits() ? this.productUnits() : this.sortedActiveUnits())
-  );
+  readonly availableUnits = computed<readonly UnitOfMeasure[]>(() => {
+    const base = this.hasProductUnits() ? this.productUnits() : this.sortedActiveUnits();
+    const offer = this.offer();
+    if (!offer?.unitOfMeasureOid) {
+      return base;
+    }
+    if (base.some(unit => unit.id === offer.unitOfMeasureOid)) {
+      return base;
+    }
+    const offerUnit = this.resolveUnitByOid(offer.unitOfMeasureOid);
+    return offerUnit ? this.sortUnits([...base, offerUnit]) : base;
+  });
 
   /**
    * Units indexed by identifier.
@@ -282,15 +300,17 @@ export class SaleDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: SaleDialogData,
     private fb: FormBuilder,
     private salesService: SalesService,
+    private dealsService: DealsService,
     private unitOfMeasureCatalog: UnitOfMeasureCatalogService,
     private notifications: NotificationService,
     private destroyRef: DestroyRef
   ) {
     this.saleForm = this.fb.group({
       unitOfMeasureOid: [null, [Validators.required]],
-      quantity: [1, [Validators.required, Validators.min(1)]],
-      totalSalePrice: ['', [Validators.required, Validators.min(0)]],
-      notes: ['']
+      offerCount: [GENERAL_CONSTANTS.NUMBERS.ONE, [Validators.required, Validators.min(GENERAL_CONSTANTS.NUMBERS.ONE)]],
+      quantity: [GENERAL_CONSTANTS.NUMBERS.ONE, [Validators.required, Validators.min(GENERAL_CONSTANTS.NUMBERS.ONE)]],
+      totalSalePrice: [GENERAL_CONSTANTS.EMPTY, [Validators.required, Validators.min(0)]],
+      notes: [GENERAL_CONSTANTS.EMPTY]
     });
 
     this.saleForm.setValidators([
@@ -315,7 +335,147 @@ export class SaleDialogComponent {
         quantityControl?.updateValueAndValidity({ emitEvent: false });
       });
 
+    this.saleForm.get('offerCount')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.offerEnabled() && this.offer()) {
+          this.updateOfferDerivedValues();
+        }
+      });
+
+    this.saleForm.get('offerCount')?.disable({ emitEvent: false });
+
     this.loadUnits();
+    this.loadOffer();
+  }
+
+  /**
+   * Loads the active offer for the selected product, if any.
+   */
+  private loadOffer(): void {
+    this.dealsService.getOfferByProduct(this.data.product.id, this.data.companyOid ?? undefined)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.offer.set(response.data ?? null);
+        },
+        error: () => {
+          this.offer.set(null);
+        }
+      });
+  }
+
+  /**
+   * Handles toggling the offer mode on or off.
+   *
+   * @param enabled Whether the offer should be applied.
+   */
+  onOfferToggle(enabled: boolean): void {
+    const offer = this.offer();
+    if (enabled && offer) {
+      this.offerEnabled.set(true);
+      this.applyOffer(offer);
+      return;
+    }
+
+    this.offerEnabled.set(false);
+    this.clearOffer();
+  }
+
+  /**
+   * Applies the active offer values and locks quantity and price.
+   *
+   * @param offer Active offer to apply.
+   */
+  private applyOffer(offer: Deal): void {
+    this.saleForm.patchValue({
+      unitOfMeasureOid: offer.unitOfMeasureOid,
+      offerCount: GENERAL_CONSTANTS.NUMBERS.ONE
+    }, { emitEvent: false });
+    this.saleForm.get('unitOfMeasureOid')?.disable({ emitEvent: false });
+    this.saleForm.get('quantity')?.disable({ emitEvent: false });
+    this.saleForm.get('totalSalePrice')?.disable({ emitEvent: false });
+    this.saleForm.get('offerCount')?.enable({ emitEvent: false });
+    this.selectedUnitOid.set(offer.unitOfMeasureOid);
+    this.updateOfferDerivedValues();
+  }
+
+  /**
+   * Updates quantity and total price from the active offer and offer count.
+   */
+  private updateOfferDerivedValues(): void {
+    const offer = this.offer();
+    if (!offer) {
+      return;
+    }
+
+    const rawCount = Number(this.saleForm.get('offerCount')?.value ?? GENERAL_CONSTANTS.NUMBERS.ONE);
+    const count = Number.isFinite(rawCount) && rawCount > 0 ? rawCount : GENERAL_CONSTANTS.NUMBERS.ONE;
+    const quantity = offer.quantity * count;
+    const totalSalePrice = offer.price * count;
+
+    this.saleForm.patchValue({ quantity, totalSalePrice }, { emitEvent: false });
+    this.quantityValue.set(Number(quantity ?? 0));
+    this.totalSalePriceValue.set(Number(totalSalePrice ?? 0));
+    this.saleForm.get('quantity')?.updateValueAndValidity({ emitEvent: false });
+    this.saleForm.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /**
+   * Restores the form to its initial state after deactivating the offer.
+   */
+  private clearOffer(): void {
+    this.saleForm.get('unitOfMeasureOid')?.enable({ emitEvent: false });
+    this.saleForm.get('quantity')?.enable({ emitEvent: false });
+    this.saleForm.get('totalSalePrice')?.enable({ emitEvent: false });
+    this.saleForm.get('offerCount')?.disable({ emitEvent: false });
+
+    const initialUnitOid = this.getInitialUnitOid();
+    this.saleForm.patchValue({
+      unitOfMeasureOid: initialUnitOid,
+      quantity: GENERAL_CONSTANTS.NUMBERS.ONE,
+      totalSalePrice: GENERAL_CONSTANTS.EMPTY,
+      offerCount: GENERAL_CONSTANTS.NUMBERS.ONE
+    }, { emitEvent: false });
+
+    this.selectedUnitOid.set(initialUnitOid);
+    this.quantityValue.set(GENERAL_CONSTANTS.NUMBERS.ONE);
+    this.totalSalePriceValue.set(0);
+
+    this.saleForm.get('quantity')?.updateValueAndValidity({ emitEvent: false });
+    this.saleForm.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /**
+   * Resolves the initial unit of measure selected when opening the dialog.
+   *
+   * @returns Preferred unit identifier, or null when none is preselected.
+   */
+  private getInitialUnitOid(): string | null {
+    if (!this.hasProductUnits()) {
+      return null;
+    }
+
+    const available = this.availableUnits();
+    const preferred = available.find(unit => !unit.isPack) ?? available[0] ?? null;
+    return preferred?.id ?? null;
+  }
+
+  /**
+   * Resolves a unit of measure by identifier from the active catalog or the
+   * product's declared details.
+   *
+   * @param oid Unit identifier.
+   * @returns Matching unit, or undefined when it cannot be resolved.
+   */
+  private resolveUnitByOid(oid: string): UnitOfMeasure | undefined {
+    const catalogUnit = this.catalogUnitsById().get(oid);
+    if (catalogUnit) {
+      return catalogUnit;
+    }
+
+    const detail = (this.data.product.unitOfMeasureDetails ?? []).find((item) => item.oid === oid);
+    return detail ? this.unitFromDetail(detail) : undefined;
   }
 
   /**
@@ -347,6 +507,10 @@ export class SaleDialogComponent {
    * catalog.</p>
    */
   private applyDefaultUnit(): void {
+    if (this.offerEnabled()) {
+      return;
+    }
+
     const control = this.saleForm.get('unitOfMeasureOid');
 
     if (!this.hasProductUnits()) {

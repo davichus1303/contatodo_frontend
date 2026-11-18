@@ -30,6 +30,7 @@ export const MODULES = getEnvValue('MODULES', 'modules');
 export const USERS = getEnvValue('USERS', 'users');
 export const COMPANIES = getEnvValue('COMPANIES', 'companies');
 export const UNIT_OF_MEASURES = getEnvValue('UNIT_OF_MEASURES', 'units-of-measure');
+export const DEALS = getEnvValue('DEALS', 'deals');
 
 export const PRODUCTS_URL = `${BASE_URL}${SLASH}${PRODUCTS}`;
 export const SALES_URL = `${BASE_URL}${SLASH}${SALES}`;
@@ -41,3 +42,4 @@ export const MODULES_URL = `${BASE_URL}${SLASH}${MODULES}`;
 export const USERS_URL = `${BASE_URL}${SLASH}${USERS}`;
 export const COMPANIES_URL = `${BASE_URL}${SLASH}${COMPANIES}`;
 export const UNIT_OF_MEASURES_URL = `${BASE_URL}${SLASH}${UNIT_OF_MEASURES}`;
+export const DEALS_URL = `${BASE_URL}${SLASH}${DEALS}`;
