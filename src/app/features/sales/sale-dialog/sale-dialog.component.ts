@@ -145,11 +145,12 @@ export interface SaleDialogData {
 /**
  * Dialog component for creating a sale.
  *
- * <p>The unit of measure is preselected from the units joined into the
- * product, so the selector only offers units the product actually declares.
- * The full active catalog is offered only when the product declares none.
- * When several units are available the first non-pack unit is selected by
- * default, matching how the backend stores stock in base units.</p>
+ * <p>The unit of measure is preselected from the units associated with the
+ * selected product, so the selector only offers units the product actually
+ * declares. The full active catalog is offered only when the product has no
+ * associated units, in which case no unit is preselected. When several units
+ * are available the first non-pack unit is selected by default, matching how
+ * the backend stores stock in base units.</p>
  */
 @Component({
   selector: 'app-sale-dialog',
@@ -184,31 +185,49 @@ export class SaleDialogComponent {
   );
 
   /**
-   * Units offered by the selector.
+   * Units associated with the selected product.
    *
-   * <p>The units joined into the product are authoritative, so the selector
-   * only offers the units the product actually declares. The full active
-   * catalog is offered only when the product declares no units at all.</p>
+   * <p>The product identifiers are the source of truth; the details joined
+   * into the product provide the name and pack flag, and the active catalog
+   * fills any field the details do not carry.</p>
    */
-  readonly availableUnits = computed<readonly UnitOfMeasure[]>(() => {
+  readonly productUnits = computed<readonly UnitOfMeasure[]>(() => {
     const details = this.data.product.unitOfMeasureDetails ?? [];
-
-    if (details.length > 0) {
-      return this.sortUnits(details.map(detail => this.unitFromDetail(detail)));
-    }
-
     const declared = this.data.product.unitOfMeasures ?? [];
+    const oids = declared.length > 0 ? declared : details.map(detail => detail.oid);
 
-    if (declared.length === 0) {
-      return this.sortedActiveUnits();
+    if (oids.length === 0) {
+      return [];
     }
 
-    const resolved = declared
-      .map(oid => this.catalogUnitsById().get(oid))
+    const detailsById = new Map(details.map(detail => [detail.oid, detail] as const));
+    const units = oids
+      .map(oid => {
+        const detail = detailsById.get(oid);
+
+        if (detail) {
+          return this.unitFromDetail(detail);
+        }
+
+        return this.catalogUnitsById().get(oid);
+      })
       .filter((unit): unit is UnitOfMeasure => unit !== undefined);
 
-    return this.sortUnits(resolved);
+    return this.sortUnits(units);
   });
+
+  /** Whether the selected product has associated units of measure. */
+  readonly hasProductUnits = computed(() => this.productUnits().length > 0);
+
+  /**
+   * Units offered by the selector.
+   *
+   * <p>The units associated with the product are offered; the full active
+   * catalog is offered only when the product has no associated units.</p>
+   */
+  readonly availableUnits = computed<readonly UnitOfMeasure[]>(
+    () => (this.hasProductUnits() ? this.productUnits() : this.sortedActiveUnits())
+  );
 
   /**
    * Units indexed by identifier.
@@ -325,13 +344,20 @@ export class SaleDialogComponent {
   /**
    * Preselects the unit of measure used by the sale.
    *
-   * <p>The first non-pack unit of the product is preferred because stock is
-   * stored in base units; when every option is a pack, the first one is
-   * selected. A selection that is no longer offered is replaced.</p>
+   * <p>The first non-pack unit associated with the product is preferred because
+   * stock is stored in base units; when every associated unit is a pack, the
+   * first one is selected. No unit is preselected when the product has no
+   * associated units, so the operator must choose one from the active
+   * catalog.</p>
    */
   private applyDefaultUnit(): void {
-    const available = this.availableUnits();
     const control = this.saleForm.get('unitOfMeasureOid');
+
+    if (!this.hasProductUnits()) {
+      return;
+    }
+
+    const available = this.availableUnits();
     const current = control?.value;
 
     if (typeof current === 'string' && available.some(unit => unit.id === current)) {

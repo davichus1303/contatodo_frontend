@@ -130,6 +130,32 @@ describe('SaleDialogComponent', () => {
     isActive: true
   };
 
+  const declaredOnlyProduct: Product = {
+    id: 'product-7',
+    name: 'Azúcar',
+    description: 'Sugar',
+    unitOfMeasures: ['uom-doc', 'uom-kg'],
+    stock: 24,
+    code: 'P007',
+    realCost: 24,
+    unitRealCost: 2,
+    unitPublicCost: 3,
+    isActive: true
+  };
+
+  const unresolvedUnitsProduct: Product = {
+    id: 'product-8',
+    name: 'Sal',
+    description: 'Salt',
+    unitOfMeasures: ['uom-missing'],
+    stock: 20,
+    code: 'P008',
+    realCost: 10,
+    unitRealCost: 10,
+    unitPublicCost: 15,
+    isActive: true
+  };
+
   function build(data: SaleDialogData, units: UnitOfMeasure[] = sampleUnits): void {
     TestBed.configureTestingModule({
       imports: [SaleDialogComponent],
@@ -169,12 +195,20 @@ describe('SaleDialogComponent', () => {
     expect(component.saleForm.get('unitOfMeasureOid')?.value).toBe('uom-kg');
   });
 
-  it('should offer only the units joined into the product', () => {
+  it('should offer only the units associated with the product', () => {
     build({ product: detailsOnlyProduct, companyOid: 'company-9' });
 
     expect(component.availableUnits().map(unit => unit.id)).toEqual(['uom-bolsa', 'uom-lb']);
+    expect(component.availableUnits().find(unit => unit.id === 'uom-bolsa')?.isPack).toBeTrue();
     expect(component.saleForm.get('unitOfMeasureOid')?.value).toBe('uom-lb');
     expect(component.isPackSelected()).toBeFalse();
+  });
+
+  it('should resolve the product units from its identifiers when details are absent', () => {
+    build({ product: declaredOnlyProduct, companyOid: 'company-9' });
+
+    expect(component.availableUnits().map(unit => unit.id)).toEqual(['uom-doc', 'uom-kg']);
+    expect(component.saleForm.get('unitOfMeasureOid')?.value).toBe('uom-kg');
   });
 
   it('should submit a sale with an active catalog unit when the product declares none', () => {
@@ -205,7 +239,7 @@ describe('SaleDialogComponent', () => {
     expect(component.isPackSelected()).toBeTrue();
   });
 
-  it('should fall back to the full active catalog when the product declares no units', () => {
+  it('should offer the full active catalog without a default when the product has no units', () => {
     build({ product: noUnitsProduct, companyOid: 'company-9' });
 
     expect(component.availableUnits().map(unit => unit.id)).toEqual([
@@ -213,7 +247,18 @@ describe('SaleDialogComponent', () => {
       'uom-kg',
       'uom-lt'
     ]);
-    expect(component.saleForm.get('unitOfMeasureOid')?.value).toBe('uom-kg');
+    expect(component.saleForm.get('unitOfMeasureOid')?.value).toBeNull();
+  });
+
+  it('should not preselect a unit when the product units cannot be resolved', () => {
+    build({ product: unresolvedUnitsProduct, companyOid: 'company-9' });
+
+    expect(component.availableUnits().map(unit => unit.id)).toEqual([
+      'uom-doc',
+      'uom-kg',
+      'uom-lt'
+    ]);
+    expect(component.saleForm.get('unitOfMeasureOid')?.value).toBeNull();
   });
 
   it('should send the selected unit and pack flag in the request body', () => {
