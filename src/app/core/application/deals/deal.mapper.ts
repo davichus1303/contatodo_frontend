@@ -1,41 +1,43 @@
+import { DomainError, domainError } from '@core/domain/errors/domain-error';
 import { createDeal, Deal } from '@core/domain/models/deal.model';
-import { DomainError } from '@core/domain/errors/domain-error';
-import { Result } from '@core/domain/result';
+import { err, ok, Result } from '@core/domain/result';
+import { DEALS_CONSTANTS } from '@shared/constants/deals.constants';
 
 /**
- * Maps a raw transport payload to a list of validated deals.
+ * Maps a raw deals collection payload to validated domain deals.
  *
- * @param raw Raw transport payload.
+ * <p>The payload must be an array; every element goes through
+ * {@link createDeal}. If any element violates the domain contract, none of
+ * them is delivered and every violation is returned with its collection index
+ * for context.</p>
+ *
+ * @param raw Raw `data` payload, typically the API response body.
  * @returns Successful result with the deals, or every violation found.
  */
 export function mapDeals(raw: unknown): Result<Deal[], readonly DomainError[]> {
   if (!Array.isArray(raw)) {
-    return {
-      ok: false,
-      error: [
-        {
-          field: 'deals',
-          message: 'Deals payload must be an array.'
-        }
-      ] as readonly DomainError[]
-    };
+    return err([domainError('deals', DEALS_CONSTANTS.MODEL.ERRORS.PAYLOAD_MUST_BE_ARRAY)]);
   }
 
-  const errors: DomainError[] = [];
   const deals: Deal[] = [];
+  const errors: DomainError[] = [];
 
-  for (const item of raw) {
-    const result = createDeal(item);
-    if (!result.ok) {
-      errors.push(...result.error);
-      continue;
+  raw.forEach((item, index) => {
+    const mapped = createDeal(item);
+
+    if (mapped.ok) {
+      deals.push(mapped.value);
+      return;
     }
-    deals.push(result.value);
-  }
+
+    errors.push(
+      ...mapped.error.map((error) => domainError(`deals[${index}].${error.field}`, error.message))
+    );
+  });
 
   if (errors.length > 0) {
-    return { ok: false, error: errors };
+    return err(errors);
   }
 
-  return { ok: true, value: deals };
+  return ok(deals);
 }

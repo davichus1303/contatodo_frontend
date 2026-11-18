@@ -38,10 +38,16 @@ export class DealDeleteDialogComponent {
   readonly productName = this.data.productName ?? '';
   readonly isDeleting = signal<boolean>(false);
 
+  /**
+   * Closes the dialog without deleting the deal.
+   */
   cancel(): void {
     this.dialogRef.close(false);
   }
 
+  /**
+   * Confirms and performs the deal deletion.
+   */
   confirm(): void {
     if (this.isDeleting()) {
       return;

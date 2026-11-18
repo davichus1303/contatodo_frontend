@@ -97,6 +97,9 @@ export class DealsCatalogComponent {
     this.init();
   }
 
+  /**
+   * Initializes the catalog state and loads required data.
+   */
   private init(): void {
     this.companyOid.set(this.companySelectionService.companyOid());
     if (this.canSelectCompany) {
@@ -109,6 +112,9 @@ export class DealsCatalogComponent {
     }
   }
 
+  /**
+   * Loads active companies available for root company selection.
+   */
   private loadCompanies(): void {
     this.companiesService.getActiveCompanies().subscribe({
       next: (response) => {
@@ -120,6 +126,11 @@ export class DealsCatalogComponent {
     });
   }
 
+  /**
+   * Handles company selection changes and reloads catalog data accordingly.
+   *
+   * @param companyOid Selected company identifier, or null to clear selection.
+   */
   onCompanySelected(companyOid: string | null): void {
     this.companyOid.set(companyOid);
     this.companySelectionService.select(companyOid);
@@ -132,6 +143,9 @@ export class DealsCatalogComponent {
     }
   }
 
+  /**
+   * Loads deals, products, and units for the active company context.
+   */
   private loadData(): void {
     if (this.isLoading()) {
       return;
@@ -161,6 +175,9 @@ export class DealsCatalogComponent {
     });
   }
 
+  /**
+   * Opens the dialog to create a new deal.
+   */
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(DealDialogComponent, {
       width: '480px',
@@ -179,6 +196,11 @@ export class DealsCatalogComponent {
     });
   }
 
+  /**
+   * Opens the dialog to edit an existing deal.
+   *
+   * @param deal Deal to edit.
+   */
   openEditDialog(deal: Deal): void {
     const dialogRef = this.dialog.open(DealDialogComponent, {
       width: '480px',
@@ -198,6 +220,11 @@ export class DealsCatalogComponent {
     });
   }
 
+  /**
+   * Opens the dialog to delete a deal.
+   *
+   * @param deal Deal to delete.
+   */
   openDeleteDialog(deal: Deal): void {
     const dialogRef = this.dialog.open(DealDeleteDialogComponent, {
       width: '360px',
@@ -211,6 +238,12 @@ export class DealsCatalogComponent {
     });
   }
 
+  /**
+   * Handles activation/deactivation toggle requests for a deal.
+   *
+   * @param deal Deal being updated.
+   * @param event Toggle change event.
+   */
   onStatusToggle(deal: Deal, event: MatSlideToggleChange): void {
     const previousValue = deal.isActive;
     const newValue = event.checked;
@@ -273,23 +306,52 @@ export class DealsCatalogComponent {
     });
   }
 
+  /**
+   * Returns the CSS class for a deal status badge.
+   *
+   * @param isActive Whether the deal is active.
+   * @returns Badge class name.
+   */
   getStatusBadgeClass(isActive: boolean): string {
     return isActive ? 'status-badge active' : 'status-badge inactive';
   }
 
+  /**
+   * Resolves a product name for display.
+   *
+   * @param productOid Product identifier.
+   * @returns Product name, or the identifier when unavailable.
+   */
   getProductName(productOid: string): string {
     return this.products().find((product) => product.id === productOid)?.name ?? productOid;
   }
 
+  /**
+   * Resolves a unit of measure label for display.
+   *
+   * @param unitOfMeasureOid Unit of measure identifier.
+   * @returns Unit label, or the identifier when unavailable.
+   */
   getUnitName(unitOfMeasureOid: string): string {
     const unit = this.units().find((current) => current.id === unitOfMeasureOid);
     return unit ? `${unit.name} (${unit.abrev})` : unitOfMeasureOid;
   }
 
+  /**
+   * Checks whether a deal status update is in progress.
+   *
+   * @param dealId Deal identifier.
+   * @returns `true` when the deal is currently being updated.
+   */
   isUpdating(dealId: string): boolean {
     return this.updatingIds().has(dealId);
   }
 
+  /**
+   * Indicates whether deal creation should be disabled.
+   *
+   * @returns `true` when a root user has not selected a company.
+   */
   isCreateDisabled(): boolean {
     return this.canSelectCompany && !this.companyOid();
   }

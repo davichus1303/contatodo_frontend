@@ -99,10 +99,16 @@ export class DealDialogComponent {
     }
   }
 
+  /**
+   * Closes the dialog without saving changes.
+   */
   cancel(): void {
     this.dialogRef.close();
   }
 
+  /**
+   * Validates and submits the form, requesting confirmation before saving edits.
+   */
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -138,6 +144,11 @@ export class DealDialogComponent {
     this.save();
   }
 
+  /**
+   * Resolves the company identifier to use when creating a deal.
+   *
+   * @returns Selected company identifier for root users, otherwise undefined.
+   */
   private getCompanyOid(): string | undefined {
     if (this.permissionService.isRoot()) {
       const selected = this.data.companyOid ?? this.companySelectionService.companyOid();
@@ -146,6 +157,9 @@ export class DealDialogComponent {
     return undefined;
   }
 
+  /**
+   * Persists the deal by creating or updating it according to the dialog mode.
+   */
   private save(): void {
     if (this.isSaving()) {
       return;
@@ -210,6 +224,11 @@ export class DealDialogComponent {
     });
   }
 
+  /**
+   * Indicates whether the submit action should be disabled.
+   *
+   * @returns `true` when saving is in progress or the form cannot be submitted.
+   */
   get isSubmitDisabled(): boolean {
     if (this.isSaving()) {
       return true;

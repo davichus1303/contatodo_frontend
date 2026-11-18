@@ -1,6 +1,7 @@
 import { DomainError, domainError } from '../errors/domain-error';
 import { err, ok, Result } from '../result';
 import { isBoolean, isFiniteNumber, isNonEmptyString, isRecord, optionalString } from '../validation/primitive.rules';
+import { DEALS_CONSTANTS } from '@shared/constants/deals.constants';
 
 /**
  * Deal entity representing a product offer for a company.
@@ -26,35 +27,38 @@ export interface Deal {
  */
 export function createDeal(raw: unknown): Result<Deal, readonly DomainError[]> {
   if (!isRecord(raw)) {
-    return err([domainError('deal', 'Deal payload must be an object.')]);
+    return err([domainError('deal', DEALS_CONSTANTS.MODEL.ERRORS.PAYLOAD_MUST_BE_OBJECT)]);
   }
 
   const errors: DomainError[] = [];
 
   if (!isNonEmptyString(raw['id'])) {
-    errors.push(domainError('id', 'Deal id must be a non-empty string.'));
+    errors.push(domainError('id', DEALS_CONSTANTS.MODEL.ERRORS.ID_REQUIRED));
   }
   if (!isNonEmptyString(raw['productOid'])) {
-    errors.push(domainError('productOid', 'Deal productOid must be a non-empty string.'));
+    errors.push(domainError('productOid', DEALS_CONSTANTS.MODEL.ERRORS.PRODUCT_OID_REQUIRED));
   }
   if (!isNonEmptyString(raw['unitOfMeasureOid'])) {
-    errors.push(domainError('unitOfMeasureOid', 'Deal unitOfMeasureOid must be a non-empty string.'));
+    errors.push(domainError('unitOfMeasureOid', DEALS_CONSTANTS.MODEL.ERRORS.UNIT_OF_MEASURE_OID_REQUIRED));
   }
   if (!isNonEmptyString(raw['companyOid'])) {
-    errors.push(domainError('companyOid', 'Deal companyOid must be a non-empty string.'));
+    errors.push(domainError('companyOid', DEALS_CONSTANTS.MODEL.ERRORS.COMPANY_OID_REQUIRED));
   }
 
-  for (const field of ['quantity', 'price'] as const) {
-    const value = raw[field];
-    if (!isFiniteNumber(value)) {
-      errors.push(domainError(field, `Deal ${field} must be a finite number.`));
-    }
+  if (!isFiniteNumber(raw['quantity'])) {
+    errors.push(domainError('quantity', DEALS_CONSTANTS.MODEL.ERRORS.QUANTITY_MUST_BE_FINITE_NUMBER));
+  }
+  if (!isFiniteNumber(raw['price'])) {
+    errors.push(domainError('price', DEALS_CONSTANTS.MODEL.ERRORS.PRICE_MUST_BE_FINITE_NUMBER));
   }
 
   for (const field of ['isActive', 'isDelete'] as const) {
     const value = raw[field];
     if (value !== undefined && value !== null && !isBoolean(value)) {
-      errors.push(domainError(field, `Deal ${field} must be a boolean when present.`));
+      const message = field === 'isActive'
+        ? DEALS_CONSTANTS.MODEL.ERRORS.IS_ACTIVE_MUST_BE_BOOLEAN
+        : DEALS_CONSTANTS.MODEL.ERRORS.IS_DELETE_MUST_BE_BOOLEAN;
+      errors.push(domainError(field, message));
     }
   }
 
