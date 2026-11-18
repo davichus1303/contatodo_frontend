@@ -1,0 +1,56 @@
+<h2 mat-dialog-title>
+  {{ mode === 'create' ? i18nService.translate('DEALS_CATALOG.DIALOG.CREATE_TITLE') : i18nService.translate('DEALS_CATALOG.DIALOG.EDIT_TITLE') }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="deal-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ i18nService.translate('DEALS_CATALOG.DIALOG.PRODUCT') }}</mat-label>
+      <mat-select formControlName="productOid">
+        @for (product of products; track product.id) {
+          <mat-option [value]="product.id">{{ product.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.productOid.hasError('required')) {
+        <mat-error>{{ i18nService.translate('DEALS_CATALOG.DIALOG.PRODUCT_REQUIRED') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <app-unit-of-measure-select
+      [units]="selectableUnits"
+      formControlName="unitOfMeasureOid"
+      [required]="true"
+      [label]="i18nService.translate('DEALS_CATALOG.DIALOG.UNIT_OF_MEASURE')"
+    ></app-unit-of-measure-select>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ i18nService.translate('DEALS_CATALOG.DIALOG.QUANTITY') }}</mat-label>
+      <input matInput type="number" formControlName="quantity" min="0" step="any" />
+      @if (form.controls.quantity.hasError('required')) {
+        <mat-error>{{ i18nService.translate('DEALS_CATALOG.DIALOG.QUANTITY_REQUIRED') }}</mat-error>
+      } @else if (form.controls.quantity.hasError('min')) {
+        <mat-error>{{ i18nService.translate('DEALS_CATALOG.DIALOG.QUANTITY_MIN') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ i18nService.translate('DEALS_CATALOG.DIALOG.PRICE') }}</mat-label>
+      <input matInput type="number" formControlName="price" min="0" step="any" />
+      @if (form.controls.price.hasError('required')) {
+        <mat-error>{{ i18nService.translate('DEALS_CATALOG.DIALOG.PRICE_REQUIRED') }}</mat-error>
+      } @else if (form.controls.price.hasError('min')) {
+        <mat-error>{{ i18nService.translate('DEALS_CATALOG.DIALOG.PRICE_MIN') }}</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" [disabled]="isSaving()">{{ i18nService.translate('DEALS_CATALOG.DIALOG.CANCEL') }}</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="isSubmitDisabled">
+    @if (isSaving()) {
+      <mat-spinner diameter="20"></mat-spinner>
+    }
+    <span>{{ mode === 'create' ? i18nService.translate('DEALS_CATALOG.DIALOG.CREATE') : i18nService.translate('DEALS_CATALOG.DIALOG.SAVE') }}</span>
+  </button>
+</mat-dialog-actions>

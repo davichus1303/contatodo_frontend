@@ -156,7 +156,7 @@ describe('SaleDialogComponent', () => {
     isActive: true
   };
 
-  function build(data: SaleDialogData, units: UnitOfMeasure[] = sampleUnits): void {
+  function build(data: SaleDialogData, units: UnitOfMeasure[] = sampleUnits, offer: unknown = {}): void {
     TestBed.configureTestingModule({
       imports: [SaleDialogComponent],
       providers: [
@@ -174,8 +174,12 @@ describe('SaleDialogComponent', () => {
     httpTesting = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
-    const unitsRequest = httpTesting.expectOne((req) => req.url.endsWith('/units-of-measure'));
+    const unitsRequest = httpTesting.expectOne((req) => req.url.includes('/units-of-measure'));
     unitsRequest.flush({ status: 200, message: 'OK', data: units });
+
+    const offerRequest = httpTesting.expectOne((req) => req.url.includes('/deals/offerByProduct'));
+    offerRequest.flush({ status: 200, message: 'OK', data: offer });
+
     fixture.detectChanges();
   }
 

@@ -46,7 +46,9 @@
     "price": "Precio",
     "selectCompany": "Selecciona una compañía",
     "selectCompanyPrompt": "Selecciona una compañía para ver sus productos disponibles",
-    "errorLoadingCompanies": "Error cargando las compañías"
+    "errorLoadingCompanies": "Error cargando las compañías",
+    "offer": "Oferta",
+    "numOffers": "Num. ofertas"
   },
   "toolbar": {
     "logout": "Cerrar sesión"
@@ -581,5 +583,77 @@
     "CONFIRM_DEACTIVATE_TITLE": "Desactivar unidad de medida",
     "CONFIRM_ACTIVATE_MESSAGE": "Se activará la unidad de medida seleccionada y podrá usarse en el sistema. ¿Deseas continuar?",
     "CONFIRM_DEACTIVATE_MESSAGE": "Se desactivará la unidad de medida seleccionada y no podrá usarse en el sistema. ¿Deseas continuar?"
+  },
+  "DEALS_CATALOG": {
+    "TITLE": "Ofertas",
+    "SUBTITLE": "Administración de ofertas",
+    "SELECT_COMPANY": "Seleccionar compañía",
+    "NEW_BUTTON": "Nueva oferta",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por producto o unidad de medida"
+    },
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "EMPTY_STATE": "No hay ofertas registradas",
+    "FIELDS": {
+      "UNIT_OF_MEASURE": "Unidad de medida",
+      "QUANTITY": "Cantidad",
+      "PRICE": "Precio"
+    },
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Cambiar estado",
+      "ACTIVATE": "Activar",
+      "DEACTIVATE": "Desactivar",
+      "CANCEL": "Cancelar"
+    },
+    "DIALOG": {
+      "CREATE_TITLE": "Nueva oferta",
+      "EDIT_TITLE": "Editar oferta",
+      "PRODUCT": "Producto",
+      "PRODUCT_REQUIRED": "El producto es requerido",
+      "UNIT_OF_MEASURE": "Unidad de medida",
+      "QUANTITY": "Cantidad",
+      "QUANTITY_REQUIRED": "La cantidad es requerida",
+      "QUANTITY_MIN": "La cantidad debe ser mayor o igual a 0",
+      "PRICE": "Precio",
+      "PRICE_REQUIRED": "El precio es requerido",
+      "PRICE_MIN": "El precio debe ser mayor o igual a 0",
+      "CANCEL": "Cancelar",
+      "CREATE": "Crear",
+      "SAVE": "Guardar"
+    },
+    "DELETE_DIALOG": {
+      "TITLE": "Eliminar oferta",
+      "MESSAGE": "¿Está seguro que desea eliminar esta oferta?",
+      "CANCEL": "Cancelar",
+      "DELETE": "Eliminar"
+    },
+    "CONFIRMATION": {
+      "TITLE": "Confirmar cambios",
+      "MESSAGE": "¿Está seguro que desea guardar los cambios?",
+      "CANCEL": "Cancelar",
+      "CONFIRM": "Confirmar"
+    },
+    "MESSAGES": {
+      "CREATED": "Oferta creada correctamente",
+      "UPDATED": "Oferta actualizada correctamente",
+      "DELETED": "Oferta eliminada correctamente",
+      "STATUS_UPDATED": "Estado actualizado correctamente",
+      "ERROR_LOADING": "Error al cargar ofertas",
+      "ERROR_LOADING_COMPANIES": "Error al cargar compañías",
+      "ERROR_CREATING": "Error al crear oferta",
+      "ERROR_UPDATING": "Error al actualizar oferta",
+      "ERROR_DELETING": "Error al eliminar oferta",
+      "ERROR_UPDATING_STATUS": "Error al actualizar el estado"
+    },
+    "CONFIRM_ACTIVATE_TITLE": "Activar oferta",
+    "CONFIRM_DEACTIVATE_TITLE": "Desactivar oferta",
+    "CONFIRM_ACTIVATE_MESSAGE": "Se activará la oferta seleccionada y podrá usarse en el sistema. ¿Deseas continuar?",
+    "CONFIRM_DEACTIVATE_MESSAGE": "Se desactivará la oferta seleccionada y no podrá usarse en el sistema. ¿Deseas continuar?"
   }
 }

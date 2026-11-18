@@ -31,6 +31,17 @@
   gap: 16px;
 }
 
+.offer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.offer-toggle {
+  display: flex;
+  align-items: center;
+}
+
 .calculations {
   margin-top: 16px;
   padding: 16px;
