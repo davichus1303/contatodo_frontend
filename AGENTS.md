@@ -60,6 +60,8 @@ Current state: **268/268 tests**. If you add domain logic or mapping logic, add 
 - Path aliases: `@core/**` and `@shared/**` (configured in `tsconfig.json`).
 - Standalone components; Material imports module by module, only what is used.
 - No `console.*` or TODOs in shipped code.
+- Constants grouped by domain (`general.constants.ts`, `sales.constants.ts`…). No magic strings/numbers in code. When generating code that requires fixed values, look them up in `general.constants.ts` (or the appropriate domain constants file) and use them; if the value does not exist yet, add it to `general.constants.ts`.
+- If a method exceeds 15 lines and its responsibilities can be delegated to reusable methods, extract them. If extraction is not feasible, report which method remains long and why.
 - Comments: public TSDoc and legacy-fidelity notes only; zero narrative comments. Never comment the fields of an interface, type or DTO: document the declaration as a whole and keep the field list clean.
 - i18n: texts come from `assets/i18n/es.json` via `I18nService.translate('KEY')` — never hardcode strings in templates.
 - New routes: register them in `app.routes.ts` with `canActivate: [AuthGuard]` except login.
