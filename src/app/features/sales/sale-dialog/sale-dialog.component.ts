@@ -20,6 +20,7 @@ import { Deal } from '@core/domain/models/deal.model';
 import { CreateSaleRequest } from '@core/application/dto/create-sale-request.dto';
 import { UnitOfMeasureSelectComponent } from '@shared/components/unit-of-measure-select/unit-of-measure-select.component';
 import { SALES_CONSTANTS } from '@shared/constants/sales.constants';
+import { GENERAL_CONSTANTS } from '@shared/constants/general.constants';
 import { formatCurrency as formatCurrencyUtil } from '@shared/utils/format.utils';
 import { calculateProfit as calculateProfitUtil } from '../sales.utils';
 import { I18nService } from '@core/i18n/i18n.service';
@@ -175,7 +176,7 @@ export class SaleDialogComponent {
   readonly isLoading = signal<boolean>(false);
   readonly units = signal<readonly UnitOfMeasure[]>([]);
   readonly selectedUnitOid = signal<string | null>(null);
-  readonly quantityValue = signal<number>(1);
+  readonly quantityValue = signal<number>(GENERAL_CONSTANTS.NUMBERS.ONE);
   readonly totalSalePriceValue = signal<number>(0);
   readonly offer = signal<Deal | null>(null);
   readonly offerEnabled = signal<boolean>(false);
@@ -306,10 +307,10 @@ export class SaleDialogComponent {
   ) {
     this.saleForm = this.fb.group({
       unitOfMeasureOid: [null, [Validators.required]],
-      offerCount: [1, [Validators.required, Validators.min(1)]],
-      quantity: [1, [Validators.required, Validators.min(1)]],
-      totalSalePrice: ['', [Validators.required, Validators.min(0)]],
-      notes: ['']
+      offerCount: [GENERAL_CONSTANTS.NUMBERS.ONE, [Validators.required, Validators.min(GENERAL_CONSTANTS.NUMBERS.ONE)]],
+      quantity: [GENERAL_CONSTANTS.NUMBERS.ONE, [Validators.required, Validators.min(GENERAL_CONSTANTS.NUMBERS.ONE)]],
+      totalSalePrice: [GENERAL_CONSTANTS.EMPTY, [Validators.required, Validators.min(0)]],
+      notes: [GENERAL_CONSTANTS.EMPTY]
     });
 
     this.saleForm.setValidators([
@@ -389,7 +390,7 @@ export class SaleDialogComponent {
   private applyOffer(offer: Deal): void {
     this.saleForm.patchValue({
       unitOfMeasureOid: offer.unitOfMeasureOid,
-      offerCount: 1
+      offerCount: GENERAL_CONSTANTS.NUMBERS.ONE
     }, { emitEvent: false });
     this.saleForm.get('unitOfMeasureOid')?.disable({ emitEvent: false });
     this.saleForm.get('quantity')?.disable({ emitEvent: false });
@@ -408,8 +409,8 @@ export class SaleDialogComponent {
       return;
     }
 
-    const rawCount = Number(this.saleForm.get('offerCount')?.value ?? 1);
-    const count = Number.isFinite(rawCount) && rawCount > 0 ? rawCount : 1;
+    const rawCount = Number(this.saleForm.get('offerCount')?.value ?? GENERAL_CONSTANTS.NUMBERS.ONE);
+    const count = Number.isFinite(rawCount) && rawCount > 0 ? rawCount : GENERAL_CONSTANTS.NUMBERS.ONE;
     const quantity = offer.quantity * count;
     const totalSalePrice = offer.price * count;
 
@@ -432,13 +433,13 @@ export class SaleDialogComponent {
     const initialUnitOid = this.getInitialUnitOid();
     this.saleForm.patchValue({
       unitOfMeasureOid: initialUnitOid,
-      quantity: 1,
-      totalSalePrice: '',
-      offerCount: 1
+      quantity: GENERAL_CONSTANTS.NUMBERS.ONE,
+      totalSalePrice: GENERAL_CONSTANTS.EMPTY,
+      offerCount: GENERAL_CONSTANTS.NUMBERS.ONE
     }, { emitEvent: false });
 
     this.selectedUnitOid.set(initialUnitOid);
-    this.quantityValue.set(1);
+    this.quantityValue.set(GENERAL_CONSTANTS.NUMBERS.ONE);
     this.totalSalePriceValue.set(0);
 
     this.saleForm.get('quantity')?.updateValueAndValidity({ emitEvent: false });
