@@ -40,7 +40,13 @@ describe('SalesService', () => {
   });
 
   it('should create a sale through a POST and map the response', () => {
-    const request: CreateSaleRequest = { productOid: 'p1', quantity: 2, totalSalePrice: 30 };
+    const request: CreateSaleRequest = {
+      productOid: 'p1',
+      quantity: 2,
+      unitOfMeasureOid: 'uom-1',
+      isPack: false,
+      totalSalePrice: 30
+    };
     httpMock.post.and.returnValue(of({ status: 200, message: 'OK', data: rawSale }));
 
     let sale: Sale | undefined;

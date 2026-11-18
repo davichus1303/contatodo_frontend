@@ -23,11 +23,13 @@ export const PRODUCT_DESCRIPTION_MAX_LENGTH = 500;
  * Resolved unit of measure attached to a product.
  *
  * <p>Only the available-products endpoint includes this detail, and it is
- * built as an inner join against the active units of the company.</p>
+ * built as an inner join against the active units of the company. The optional
+ * `isPack` flag marks the units that represent a pack.</p>
  */
 export interface ProductUnitOfMeasureDetail {
   readonly oid: string;
   readonly name: string;
+  readonly isPack?: boolean;
 }
 
 /**
@@ -173,6 +175,9 @@ function normalizeUnitOfMeasures(raw: unknown, errors: DomainError[]): readonly 
 /**
  * Normalizes the resolved unit details of a product.
  *
+ * <p>Each detail carries the identifier and name, plus the pack flag when the
+ * backend provides it.</p>
+ *
  * @param raw Raw `unitOfMeasureDetails` value.
  * @param errors Collection where validation violations are recorded.
  * @returns Resolved details, or undefined when the field is absent.
@@ -205,10 +210,25 @@ function normalizeUnitOfMeasureDetails(
       continue;
     }
 
-    details.push({
-      oid: (value['oid'] as string).trim(),
-      name: (value['name'] as string).trim()
-    });
+    const isPack = value['isPack'];
+    if (isPack !== undefined && isPack !== null && !isBoolean(isPack)) {
+      errors.push(
+        domainError(
+          'unitOfMeasureDetails',
+          'Product unitOfMeasureDetails isPack must be a boolean when present.'
+        )
+      );
+      continue;
+    }
+
+    const oid = (value['oid'] as string).trim();
+    const name = (value['name'] as string).trim();
+
+    details.push(
+      isPack === undefined || isPack === null
+        ? { oid, name }
+        : { oid, name, isPack }
+    );
   }
 
   return details;
