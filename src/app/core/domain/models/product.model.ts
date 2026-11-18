@@ -23,12 +23,12 @@ export const PRODUCT_DESCRIPTION_MAX_LENGTH = 500;
  * Resolved unit of measure attached to a product.
  *
  * <p>Only the available-products endpoint includes this detail, and it is
- * built as an inner join against the active units of the company.</p>
+ * built as an inner join against the active units of the company. The optional
+ * `isPack` flag marks the units that represent a pack.</p>
  */
 export interface ProductUnitOfMeasureDetail {
   readonly oid: string;
   readonly name: string;
-  /** Whether the unit represents a pack. */
   readonly isPack?: boolean;
 }
 

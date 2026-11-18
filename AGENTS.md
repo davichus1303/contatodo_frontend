@@ -60,7 +60,7 @@ Current state: **268/268 tests**. If you add domain logic or mapping logic, add 
 - Path aliases: `@core/**` and `@shared/**` (configured in `tsconfig.json`).
 - Standalone components; Material imports module by module, only what is used.
 - No `console.*` or TODOs in shipped code.
-- Comments: public TSDoc and legacy-fidelity notes only; zero narrative comments.
+- Comments: public TSDoc and legacy-fidelity notes only; zero narrative comments. Never comment the fields of an interface, type or DTO: document the declaration as a whole and keep the field list clean.
 - i18n: texts come from `assets/i18n/es.json` via `I18nService.translate('KEY')` — never hardcode strings in templates.
 - New routes: register them in `app.routes.ts` with `canActivate: [AuthGuard]` except login.
 

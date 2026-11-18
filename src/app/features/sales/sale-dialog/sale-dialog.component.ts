@@ -128,17 +128,13 @@ function saleQuantityWithinStock(maxQuantity: () => number): ValidatorFn {
 
 /**
  * Data handed to the dialog by the sales page.
+ *
+ * <p>The company identifier is present only when a root session picked a
+ * company explicitly; a session-scoped sale leaves it `null` so the backend
+ * uses its own company claim.</p>
  */
 export interface SaleDialogData {
-  /** Product being sold. */
   readonly product: Product;
-  /**
-   * Company the sale belongs to.
-   *
-   * Present only when a root session picked a company explicitly; a
-   * session-scoped sale leaves it `null` so the backend uses its own
-   * company claim.
-   */
   readonly companyOid: string | null;
 }
 
