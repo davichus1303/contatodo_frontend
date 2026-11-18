@@ -13,6 +13,9 @@ export interface Sale {
   readonly productName?: string;
   readonly userOid: string;
   readonly quantity: number;
+  readonly unitOfMeasureOid?: string;
+  readonly unitOfMeasureName?: string;
+  readonly unitOfMeasureAbbrev?: string;
   readonly totalCost: number;
   readonly originalTotalPrice: number;
   readonly totalSalePrice: number;
@@ -30,7 +33,9 @@ export interface Sale {
  * field must be a finite number. The owning user comes from the backend's
  * `byUserOid` field, falling back to `userOid` for tolerance. The optional
  * `productName` collapses to `undefined` when absent and `notes` defaults to
- * an empty string so partial payloads never leak invalid values.
+ * an empty string so partial payloads never leak invalid values. The unit of
+ * measure fields are optional because legacy sales were registered without a
+ * unit.
  *
  * @param raw Raw payload, typically an API list item.
  * @returns Successful result with the sale, or every violation found.
@@ -81,6 +86,9 @@ export function createSale(raw: unknown): Result<Sale, readonly DomainError[]> {
     productName: optionalString(raw['productName']),
     userOid: (rawUserOid as string).trim(),
     quantity: raw['quantity'] as number,
+    unitOfMeasureOid: optionalString(raw['unitOfMeasureOid']),
+    unitOfMeasureName: optionalString(raw['unitOfMeasureName']),
+    unitOfMeasureAbbrev: optionalString(raw['unitOfMeasureAbbrev']),
     totalCost: raw['totalCost'] as number,
     originalTotalPrice: raw['originalTotalPrice'] as number,
     totalSalePrice: raw['totalSalePrice'] as number,

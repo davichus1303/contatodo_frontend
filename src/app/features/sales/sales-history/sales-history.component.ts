@@ -23,7 +23,7 @@ import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { TotalExpensesResponse } from '@core/application/expenses/expenses.service';
 import { I18nService } from '@core/i18n/i18n.service';
 import { formatCurrency as formatCurrencyUtil, formatDateISO } from '@shared/utils/format.utils';
-import { calculateProfit as calculateProfitUtil, getProfitColorClass as getProfitColorClassUtil } from '../sales.utils';
+import { calculateProfit as calculateProfitUtil, formatSaleQuantity, getProfitColorClass as getProfitColorClassUtil } from '../sales.utils';
 import { SALES_HISTORY_CONSTANTS } from './sales-history.constants';
 
 /** Aggregated metrics shown in the summary panel. */
@@ -317,6 +317,17 @@ export class SalesHistoryComponent implements OnInit {
    */
   getProfitColorClass(profit: number): string {
     return getProfitColorClassUtil(profit);
+  }
+
+  /**
+   * Formats the sold quantity with the abbreviation of the unit of measure
+   * declared in the sale.
+   *
+   * @param sale Sale data.
+   * @returns Quantity followed by the unit abbreviation, or the plain quantity.
+   */
+  formatQuantity(sale: Sale): string {
+    return formatSaleQuantity(sale.quantity, sale.unitOfMeasureAbbrev);
   }
 
   /**

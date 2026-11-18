@@ -22,3 +22,17 @@ export function getProfitColorClass(profit: number): string {
   if (profit < 0) return 'profit-negative';
   return 'profit-neutral';
 }
+
+/**
+ * Formats the sold quantity with the abbreviation of the unit of measure
+ * declared in the sale.
+ *
+ * Legacy sales registered without a unit keep the plain quantity.
+ *
+ * @param quantity Sold quantity.
+ * @param abbrev Abbreviation of the sale unit of measure, when present.
+ * @returns Quantity followed by the unit abbreviation.
+ */
+export function formatSaleQuantity(quantity: number, abbrev?: string): string {
+  return abbrev ? `${quantity}${abbrev}` : `${quantity}`;
+}

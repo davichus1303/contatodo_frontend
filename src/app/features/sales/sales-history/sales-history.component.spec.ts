@@ -34,6 +34,9 @@ describe('SalesHistoryComponent', () => {
       productName: 'Ceviche',
       userOid: 'user-1',
       quantity: 2,
+      unitOfMeasureOid: 'uom-1',
+      unitOfMeasureName: 'Unidad',
+      unitOfMeasureAbbrev: 'u',
       totalCost: 8,
       originalTotalPrice: 20,
       totalSalePrice: 18,
@@ -167,6 +170,17 @@ describe('SalesHistoryComponent', () => {
       expect(grid).toBeTruthy();
       expect(grid.textContent).toContain('Ceviche');
       expect(grid.textContent).toContain('Arroz con pollo');
+    });
+
+    it('should append the unit abbreviation declared in each sale to the quantity', () => {
+      createComponent();
+      flushSales(sampleSales);
+      flushTotalExpenses(0);
+
+      const cards = Array.from(fixture.nativeElement.querySelectorAll('.sale-card')) as Element[];
+      const quantities = cards.map((card) => card.querySelector('.detail-row .value')?.textContent?.trim());
+
+      expect(quantities).toEqual(['2u', '1']);
     });
 
     it('should show the empty state when no sales exist for the range', () => {
