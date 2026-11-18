@@ -73,6 +73,32 @@ describe('createSale', () => {
       expect(result.value.notes).toBe('');
     }
   });
+
+  it('should keep the unit of measure fields when the payload declares them', () => {
+    const result = createSale({
+      ...validSale,
+      unitOfMeasureOid: ' uom-1 ',
+      unitOfMeasureName: ' Unidad ',
+      unitOfMeasureAbbrev: ' u '
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.unitOfMeasureOid).toBe('uom-1');
+      expect(result.value.unitOfMeasureName).toBe('Unidad');
+      expect(result.value.unitOfMeasureAbbrev).toBe('u');
+    }
+  });
+
+  it('should leave the unit of measure fields undefined for legacy sales', () => {
+    const result = createSale(validSale);
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.unitOfMeasureOid).toBeUndefined();
+      expect(result.value.unitOfMeasureAbbrev).toBeUndefined();
+    }
+  });
 });
 
 describe('createAcquisition', () => {
