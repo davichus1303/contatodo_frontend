@@ -34,6 +34,7 @@ describe('SaleDialogComponent', () => {
     name: 'Ceviche',
     description: 'Fish dish',
     unitOfMeasures: ['uom-lt'],
+    unitOfMeasureDetails: [{ oid: 'uom-lt', name: 'Litro', isPack: false }],
     stock: 10,
     code: 'P001',
     realCost: 8,
@@ -47,6 +48,7 @@ describe('SaleDialogComponent', () => {
     name: 'Docena de empanadas',
     description: 'Pack of empanadas',
     unitOfMeasures: ['uom-doc'],
+    unitOfMeasureDetails: [{ oid: 'uom-doc', name: 'Docena', isPack: true }],
     packSize: 12,
     stock: 24,
     code: 'P002',
@@ -61,6 +63,10 @@ describe('SaleDialogComponent', () => {
     name: 'Arroz',
     description: 'Rice',
     unitOfMeasures: ['uom-doc', 'uom-kg'],
+    unitOfMeasureDetails: [
+      { oid: 'uom-doc', name: 'Docena', isPack: true },
+      { oid: 'uom-kg', name: 'Kilogramo', isPack: false }
+    ],
     packSize: 12,
     stock: 24,
     code: 'P003',
@@ -93,10 +99,32 @@ describe('SaleDialogComponent', () => {
     name: 'Cajas de empanadas',
     description: 'Pack-only product',
     unitOfMeasures: ['uom-doc', 'uom-caja'],
+    unitOfMeasureDetails: [
+      { oid: 'uom-doc', name: 'Docena', isPack: true },
+      { oid: 'uom-caja', name: 'Caja', isPack: true }
+    ],
     packSize: 12,
     stock: 24,
     code: 'P005',
     realCost: 24,
+    unitRealCost: 2,
+    unitPublicCost: 3,
+    isActive: true
+  };
+
+  const detailsOnlyProduct: Product = {
+    id: 'product-6',
+    name: 'Harina',
+    description: 'Flour',
+    unitOfMeasures: ['uom-bolsa', 'uom-lb'],
+    unitOfMeasureDetails: [
+      { oid: 'uom-bolsa', name: 'Bolsa', isPack: true },
+      { oid: 'uom-lb', name: 'Libra', isPack: false }
+    ],
+    packSize: 5,
+    stock: 20,
+    code: 'P006',
+    realCost: 10,
     unitRealCost: 2,
     unitPublicCost: 3,
     isActive: true
@@ -139,6 +167,27 @@ describe('SaleDialogComponent', () => {
 
     expect(component.availableUnits().map(unit => unit.id)).toEqual(['uom-doc', 'uom-kg']);
     expect(component.saleForm.get('unitOfMeasureOid')?.value).toBe('uom-kg');
+  });
+
+  it('should offer only the units joined into the product', () => {
+    build({ product: detailsOnlyProduct, companyOid: 'company-9' });
+
+    expect(component.availableUnits().map(unit => unit.id)).toEqual(['uom-bolsa', 'uom-lb']);
+    expect(component.saleForm.get('unitOfMeasureOid')?.value).toBe('uom-lb');
+    expect(component.isPackSelected()).toBeFalse();
+  });
+
+  it('should submit a sale with an active catalog unit when the product declares none', () => {
+    build({ product: noUnitsProduct, companyOid: 'company-9' });
+
+    component.saleForm.patchValue({ unitOfMeasureOid: 'uom-lt', quantity: 2, totalSalePrice: 40 });
+    component.onSave();
+    fixture.detectChanges();
+
+    const request = httpTesting.expectOne((req) => req.url.endsWith('/sales'));
+    expect(request.request.body.unitOfMeasureOid).toBe('uom-lt');
+    expect(request.request.body.isPack).toBeFalse();
+    expect(request.request.body.quantity).toBe(2);
   });
 
   it('should preselect the only unit declared by the product', () => {

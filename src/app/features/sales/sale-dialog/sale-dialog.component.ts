@@ -12,7 +12,7 @@ import { extractApiErrorMessage } from '@core/application/ports/api-error';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SalesService } from '@core/application/sales/sales.service';
 import { UnitOfMeasureCatalogService } from '@core/application/unit-of-measures/unit-of-measure-catalog.service';
-import { Product } from '@core/domain/models/product.model';
+import { Product, ProductUnitOfMeasureDetail } from '@core/domain/models/product.model';
 import { UnitOfMeasure } from '@core/domain/models/unit-of-measure.model';
 import { CreateSaleRequest } from '@core/application/dto/create-sale-request.dto';
 import { UnitOfMeasureSelectComponent } from '@shared/components/unit-of-measure-select/unit-of-measure-select.component';
@@ -145,11 +145,11 @@ export interface SaleDialogData {
 /**
  * Dialog component for creating a sale.
  *
- * <p>The unit of measure is preselected from the product catalog: the units
- * declared by the product are offered, falling back to the full active catalog
- * when the product declares none. When several units are available the first
- * non-pack unit is selected by default, matching how the backend stores stock
- * in base units.</p>
+ * <p>The unit of measure is preselected from the units joined into the
+ * product, so the selector only offers units the product actually declares.
+ * The full active catalog is offered only when the product declares none.
+ * When several units are available the first non-pack unit is selected by
+ * default, matching how the backend stores stock in base units.</p>
  */
 @Component({
   selector: 'app-sale-dialog',
@@ -179,18 +179,24 @@ export class SaleDialogComponent {
   readonly i18nService = inject(I18nService);
 
   /** Active units indexed by identifier. */
-  readonly unitsById = computed<ReadonlyMap<string, UnitOfMeasure>>(
+  readonly catalogUnitsById = computed<ReadonlyMap<string, UnitOfMeasure>>(
     () => new Map(this.units().map(unit => [unit.id, unit] as const))
   );
 
   /**
    * Units offered by the selector.
    *
-   * <p>Only the units declared by the product are offered; when it declares
-   * none, or none of them resolves to an active unit, the full active catalog
-   * is offered instead.</p>
+   * <p>The units joined into the product are authoritative, so the selector
+   * only offers the units the product actually declares. The full active
+   * catalog is offered only when the product declares no units at all.</p>
    */
   readonly availableUnits = computed<readonly UnitOfMeasure[]>(() => {
+    const details = this.data.product.unitOfMeasureDetails ?? [];
+
+    if (details.length > 0) {
+      return this.sortUnits(details.map(detail => this.unitFromDetail(detail)));
+    }
+
     const declared = this.data.product.unitOfMeasures ?? [];
 
     if (declared.length === 0) {
@@ -198,10 +204,27 @@ export class SaleDialogComponent {
     }
 
     const resolved = declared
-      .map(oid => this.unitsById().get(oid))
+      .map(oid => this.catalogUnitsById().get(oid))
       .filter((unit): unit is UnitOfMeasure => unit !== undefined);
 
-    return resolved.length > 0 ? this.sortUnits(resolved) : this.sortedActiveUnits();
+    return this.sortUnits(resolved);
+  });
+
+  /**
+   * Units indexed by identifier.
+   *
+   * <p>Includes the units resolved from the product details even when they are
+   * no longer part of the active catalog, so the selected unit keeps its pack
+   * flag and cost calculations.</p>
+   */
+  readonly unitsById = computed<ReadonlyMap<string, UnitOfMeasure>>(() => {
+    const indexed = new Map(this.catalogUnitsById());
+
+    for (const unit of this.availableUnits()) {
+      indexed.set(unit.id, unit);
+    }
+
+    return indexed;
   });
 
   /** Unit currently selected to register the sale. */
@@ -294,6 +317,7 @@ export class SaleDialogComponent {
         error: () => {
           this.units.set([]);
           this.notifications.error(SALES_CONSTANTS.MESSAGES.ERROR_LOADING_UNITS);
+          this.applyDefaultUnit();
         }
       });
   }
@@ -301,9 +325,9 @@ export class SaleDialogComponent {
   /**
    * Preselects the unit of measure used by the sale.
    *
-   * <p>The first non-pack unit is preferred because stock is stored in base
-   * units; when every option is a pack, the first one is selected. A selection
-   * that is no longer offered is replaced.</p>
+   * <p>The first non-pack unit of the product is preferred because stock is
+   * stored in base units; when every option is a pack, the first one is
+   * selected. A selection that is no longer offered is replaced.</p>
    */
   private applyDefaultUnit(): void {
     const available = this.availableUnits();
@@ -349,6 +373,33 @@ export class SaleDialogComponent {
   private selectedUnitFor(control: AbstractControl): UnitOfMeasure | null {
     const oid = control.get('unitOfMeasureOid')?.value;
     return typeof oid === 'string' ? this.unitsById().get(oid) ?? null : null;
+  }
+
+  /**
+   * Builds a unit of measure from the detail joined into the product.
+   *
+   * <p>The product detail is authoritative for the identity, name and pack
+   * flag; the active catalog enriches the remaining presentation fields when
+   * the unit is still part of it.</p>
+   *
+   * @param detail Unit detail joined into the product.
+   * @returns Unit of measure offered by the selector.
+   */
+  private unitFromDetail(detail: ProductUnitOfMeasureDetail): UnitOfMeasure {
+    const catalogUnit = this.catalogUnitsById().get(detail.oid);
+
+    return {
+      id: detail.oid,
+      name: detail.name,
+      abrev: catalogUnit?.abrev ?? '',
+      isActive: catalogUnit?.isActive ?? true,
+      isDeleted: catalogUnit?.isDeleted ?? false,
+      isDivisible: catalogUnit?.isDivisible ?? false,
+      isPack: detail.isPack ?? catalogUnit?.isPack ?? false,
+      companyOid: catalogUnit?.companyOid,
+      createdDate: catalogUnit?.createdDate,
+      updatedDate: catalogUnit?.updatedDate
+    };
   }
 
   /**

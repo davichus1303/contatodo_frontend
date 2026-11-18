@@ -76,6 +76,36 @@ describe('createProduct', () => {
     }
   });
 
+  it('should map the pack flag of resolved unit details when present', () => {
+    const result = createProduct({
+      ...validProduct,
+      unitOfMeasureDetails: [
+        { oid: 'uom-lt', name: 'Litro', isPack: false },
+        { oid: 'uom-doc', name: 'Docena', isPack: true }
+      ]
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.unitOfMeasureDetails).toEqual([
+        { oid: 'uom-lt', name: 'Litro', isPack: false },
+        { oid: 'uom-doc', name: 'Docena', isPack: true }
+      ]);
+    }
+  });
+
+  it('should reject a non-boolean pack flag in unit details', () => {
+    const result = createProduct({
+      ...validProduct,
+      unitOfMeasureDetails: [{ oid: 'uom-lt', name: 'Litro', isPack: 'yes' }]
+    });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.map((currentError) => currentError.field)).toContain('unitOfMeasureDetails');
+    }
+  });
+
   it('should map a positive pack size', () => {
     const result = createProduct({ ...validProduct, packSize: 12 });
 
