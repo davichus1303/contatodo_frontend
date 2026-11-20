@@ -5,6 +5,7 @@ export const ACQUISITIONS_CONSTANTS = {
   MESSAGES: {
     ERROR_LOADING_ACQUISITIONS: 'Error loading acquisitions',
     ERROR_LOADING_PRODUCTS: 'Error loading products',
+    ERROR_LOADING_UNITS: 'Error loading units of measure',
     ACQUISITION_REGISTERED_SUCCESSFULLY: 'Acquisition registered successfully',
     ERROR_REGISTERING_ACQUISITION: 'Error registering acquisition'
   },

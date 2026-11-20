@@ -4,15 +4,18 @@ import { of, throwError } from 'rxjs';
 import { AcquisitionsComponent } from './acquisitions.component';
 import { AcquisitionsService } from '@core/application/acquisitions/acquisitions.service';
 import { CompaniesService } from '@core/application/companies/companies.service';
+import { UnitOfMeasureCatalogService } from '@core/application/unit-of-measures/unit-of-measure-catalog.service';
 import { CompanySelectionService } from '@core/application/companies/company-selection.service';
 import { PermissionService } from '@core/application/permissions/permission.service';
 import { NotificationService } from '@core/application/notifications/notification.service';
 import { I18nService } from '@core/i18n/i18n.service';
 import { Company } from '@core/domain/models/company.model';
 import { Acquisition } from '@core/domain/models/acquisition.model';
+import { UnitOfMeasure } from '@core/domain/models/unit-of-measure.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { Router } from '@angular/router';
 import { ACQUISITIONS_CONSTANTS } from '@shared/constants/acquisitions.constants';
+import { STORAGE_PORT_STUB_PROVIDER } from '@shared/testing/ports.stub';
 
 const companiesData: Company[] = [
   { id: 'company-1', name: 'VichoBox', isActive: true, isDeleted: false },
@@ -24,12 +27,19 @@ const acquisitionsData: Acquisition[] = [
     id: 'a1',
     productName: 'Arroz',
     acquisitionType: 'Mercancia',
+    unitOfMeasure: 'uom-kg',
+    unitOfMeasureOid: 'uom-kg',
+    packSize: 12,
     quantity: 5,
     realCost: 50,
     unitRealCost: 10,
     unitPublicCost: 15,
     acquisitionDate: '2026-08-21T10:00:00'
   }
+];
+
+const unitsData: UnitOfMeasure[] = [
+  { id: 'uom-kg', name: 'Kilogramo', abrev: 'kg', isActive: true, isDeleted: false, isDivisible: true, isPack: false }
 ];
 
 describe('AcquisitionsComponent', () => {
@@ -53,10 +63,17 @@ describe('AcquisitionsComponent', () => {
       providers: [
         { provide: AcquisitionsService, useValue: { getAcquisitions: getAcquisitionsSpy } },
         { provide: CompaniesService, useValue: { getActiveCompanies: getActiveCompaniesSpy } },
+        {
+          provide: UnitOfMeasureCatalogService,
+          useValue: {
+            getHistoricalUnits: jasmine.createSpy('getHistoricalUnits').and.returnValue(of(unitsData))
+          }
+        },
         { provide: PermissionService, useValue: { isRoot: () => false, hasAccessByLink: () => of(true) } },
         { provide: NotificationService, useValue: { success: jasmine.createSpy('success'), error: errorSpy } },
         { provide: I18nService, useValue: { translate: (key: string) => key } },
         { provide: Router, useValue: { navigate: jasmine.createSpy('navigate') } },
+        STORAGE_PORT_STUB_PROVIDER,
         provideAnimationsAsync()
       ]
     });
@@ -81,6 +98,12 @@ describe('AcquisitionsComponent', () => {
   it('should keep the subtitle and hide the company selector for a company session', () => {
     expect(fixture.nativeElement.querySelector('mat-select')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('ACQUISITIONS.SUBTITLE');
+  });
+
+  it('should resolve and render the acquisition unit and pack size', () => {
+    expect(component.getUnitName(acquisitionsData[0])).toBe('Kilogramo');
+    expect(fixture.nativeElement.textContent).toContain('ACQUISITIONS.UNIT_OF_MEASURE');
+    expect(fixture.nativeElement.textContent).toContain('ACQUISITIONS.PACK_SIZE');
   });
 
   it('should leave the date range enabled for a company session', () => {
@@ -143,10 +166,17 @@ describe('AcquisitionsComponent (root session)', () => {
       providers: [
         { provide: AcquisitionsService, useValue: { getAcquisitions: getAcquisitionsSpy } },
         { provide: CompaniesService, useValue: { getActiveCompanies: getActiveCompaniesSpy } },
+        {
+          provide: UnitOfMeasureCatalogService,
+          useValue: {
+            getHistoricalUnits: jasmine.createSpy('getHistoricalUnits').and.returnValue(of(unitsData))
+          }
+        },
         { provide: PermissionService, useValue: { isRoot: () => true, hasAccessByLink: () => of(true) } },
         { provide: NotificationService, useValue: { success: jasmine.createSpy('success'), error: errorSpy } },
         { provide: I18nService, useValue: { translate: (key: string) => key } },
         { provide: Router, useValue: { navigate: jasmine.createSpy('navigate') } },
+        STORAGE_PORT_STUB_PROVIDER,
         provideAnimationsAsync()
       ]
     });

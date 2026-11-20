@@ -1,6 +1,13 @@
 import { DomainError, domainError } from '../errors/domain-error';
 import { err, ok, Result } from '../result';
-import { isBoolean, isFiniteNumber, isNonEmptyString, isRecord, optionalString } from '../validation/primitive.rules';
+import {
+  isBoolean,
+  isFiniteNumber,
+  isNonEmptyString,
+  isRecord,
+  optionalNumber,
+  optionalString
+} from '../validation/primitive.rules';
 
 /**
  * Maximum accepted length for a product name (mirrors backend constraint).
@@ -13,12 +20,28 @@ export const PRODUCT_NAME_MAX_LENGTH = 100;
 export const PRODUCT_DESCRIPTION_MAX_LENGTH = 500;
 
 /**
+ * Resolved unit of measure attached to a product.
+ *
+ * <p>Only the available-products endpoint includes this detail, and it is
+ * built as an inner join against the active units of the company. The optional
+ * `isPack` flag marks the units that represent a pack.</p>
+ */
+export interface ProductUnitOfMeasureDetail {
+  readonly oid: string;
+  readonly name: string;
+  readonly isPack?: boolean;
+}
+
+/**
  * Product entity of the catalog domain.
  */
 export interface Product {
   readonly id: string;
   readonly name: string;
   readonly description: string;
+  readonly unitOfMeasures: readonly string[];
+  readonly unitOfMeasureDetails?: readonly ProductUnitOfMeasureDetail[];
+  readonly packSize?: number;
   readonly stock: number;
   readonly code: string;
   readonly realCost: number;
@@ -35,7 +58,7 @@ export interface Product {
  * and `name` must be non-empty strings and the monetary/stock fields must be
  * finite numbers. Text fields are normalized (trimmed) and the status flag is
  * coerced to a boolean; the optional `urlPhoto` collapses to `undefined` when
- * absent.
+ * absent and the optional `packSize` must be a positive integer when present.
  *
  * @param raw Raw payload, typically an API list item.
  * @returns Successful result with the product, or every violation found.
@@ -57,7 +80,9 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
   const numericFields = ['stock', 'realCost', 'unitRealCost', 'unitPublicCost'] as const;
   for (const field of numericFields) {
     const v = (raw as any)[field];
-    if (v !== null && v !== undefined && !isFiniteNumber(v)) {
+    const isRequired = field === 'stock';
+    const isMissing = v === null || v === undefined;
+    if ((isRequired && isMissing) || (!isMissing && !isFiniteNumber(v))) {
       errors.push(domainError(field, `Product ${field} must be a finite number.`));
     }
   }
@@ -72,10 +97,21 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
   if (urlPhotoValue !== undefined && urlPhotoValue !== null && typeof urlPhotoValue !== 'string') {
     errors.push(domainError('urlPhoto', 'Product urlPhoto must be a string when present.'));
   }
+  const packSize = raw['packSize'];
+  if (
+    packSize !== undefined &&
+    packSize !== null &&
+    (!isFiniteNumber(packSize) || !Number.isInteger(packSize) || packSize <= 0)
+  ) {
+    errors.push(domainError('packSize', 'Product packSize must be a positive integer when present.'));
+  }
   const isActive = raw['isActive'];
   if (isActive !== undefined && isActive !== null && !isBoolean(isActive)) {
     errors.push(domainError('isActive', 'Product isActive must be a boolean when present.'));
   }
+
+  const unitOfMeasures = normalizeUnitOfMeasures(raw['unitOfMeasures'], errors);
+  const unitOfMeasureDetails = normalizeUnitOfMeasureDetails(raw['unitOfMeasureDetails'], errors);
 
   if (errors.length > 0) {
     return err(errors);
@@ -85,6 +121,9 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     id: (raw['id'] as string).trim(),
     name: (raw['name'] as string).trim(),
     description: optionalString(raw['description']) ?? '',
+    unitOfMeasures,
+    unitOfMeasureDetails,
+    packSize: optionalNumber(raw['packSize']),
     stock: raw['stock'] as number,
     code: optionalString(raw['code']) ?? '',
     realCost: (raw['realCost'] === null || raw['realCost'] === undefined ? 0 : raw['realCost']) as number,
@@ -93,4 +132,104 @@ export function createProduct(raw: unknown): Result<Product, readonly DomainErro
     urlPhoto: optionalString(raw['urlPhoto']),
     isActive: raw['isActive'] === true
   });
+}
+
+/**
+ * Normalizes the product unit identifiers.
+ *
+ * <p>The field is optional for backward compatibility with historical
+ * documents, but when present it must be an array of strings. Entries are
+ * trimmed and collapsed to unique, non-empty identifiers.</p>
+ *
+ * @param raw Raw `unitOfMeasures` value.
+ * @param errors Collection where validation violations are recorded.
+ * @returns Normalized unit identifiers.
+ */
+function normalizeUnitOfMeasures(raw: unknown, errors: DomainError[]): readonly string[] {
+  if (raw === undefined || raw === null) {
+    return [];
+  }
+
+  if (!Array.isArray(raw)) {
+    errors.push(domainError('unitOfMeasures', 'Product unitOfMeasures must be an array when present.'));
+    return [];
+  }
+
+  const units: string[] = [];
+
+  for (const value of raw) {
+    if (typeof value !== 'string') {
+      errors.push(domainError('unitOfMeasures', 'Product unitOfMeasures must contain strings.'));
+      continue;
+    }
+
+    const trimmed = value.trim();
+    if (trimmed.length > 0 && !units.includes(trimmed)) {
+      units.push(trimmed);
+    }
+  }
+
+  return units;
+}
+
+/**
+ * Normalizes the resolved unit details of a product.
+ *
+ * <p>Each detail carries the identifier and name, plus the pack flag when the
+ * backend provides it.</p>
+ *
+ * @param raw Raw `unitOfMeasureDetails` value.
+ * @param errors Collection where validation violations are recorded.
+ * @returns Resolved details, or undefined when the field is absent.
+ */
+function normalizeUnitOfMeasureDetails(
+  raw: unknown,
+  errors: DomainError[]
+): readonly ProductUnitOfMeasureDetail[] | undefined {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+
+  if (!Array.isArray(raw)) {
+    errors.push(
+      domainError('unitOfMeasureDetails', 'Product unitOfMeasureDetails must be an array when present.')
+    );
+    return undefined;
+  }
+
+  const details: ProductUnitOfMeasureDetail[] = [];
+
+  for (const value of raw) {
+    if (!isRecord(value) || !isNonEmptyString(value['oid']) || !isNonEmptyString(value['name'])) {
+      errors.push(
+        domainError(
+          'unitOfMeasureDetails',
+          'Product unitOfMeasureDetails must contain oid and name strings.'
+        )
+      );
+      continue;
+    }
+
+    const isPack = value['isPack'];
+    if (isPack !== undefined && isPack !== null && !isBoolean(isPack)) {
+      errors.push(
+        domainError(
+          'unitOfMeasureDetails',
+          'Product unitOfMeasureDetails isPack must be a boolean when present.'
+        )
+      );
+      continue;
+    }
+
+    const oid = (value['oid'] as string).trim();
+    const name = (value['name'] as string).trim();
+
+    details.push(
+      isPack === undefined || isPack === null
+        ? { oid, name }
+        : { oid, name, isPack }
+    );
+  }
+
+  return details;
 }

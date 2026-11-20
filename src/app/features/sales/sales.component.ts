@@ -69,10 +69,11 @@ export class SalesComponent implements OnInit {
    * selected, because the backend rejects an unscoped query.
    */
   readonly visibleProducts = computed(() => {
+    const products = this.filteredProducts();
     if (this.canSelectCompany && !this.companyOid) {
       return [];
     }
-    return this.filteredProducts();
+    return products;
   });
 
   constructor(

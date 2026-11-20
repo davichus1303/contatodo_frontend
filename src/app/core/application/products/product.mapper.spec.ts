@@ -5,6 +5,8 @@ describe('mapProducts', () => {
     id: 'p1',
     name: 'Ceviche',
     description: 'Fish dish',
+    unitOfMeasures: ['uom-lt'],
+    packSize: 12,
     stock: 10,
     code: 'P001',
     realCost: 8,
@@ -22,6 +24,8 @@ describe('mapProducts', () => {
     if (result.ok) {
       expect(result.value.length).toBe(2);
       expect(result.value[0].name).toBe('Ceviche');
+      expect(result.value[0].unitOfMeasures).toEqual(['uom-lt']);
+      expect(result.value[0].packSize).toBe(12);
       expect(result.value[1].urlPhoto).toBeUndefined();
     }
   });

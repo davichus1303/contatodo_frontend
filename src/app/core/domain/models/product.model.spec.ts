@@ -4,6 +4,7 @@ const validProduct = {
   id: 'p1',
   name: 'Ceviche',
   description: 'Fish dish',
+  unitOfMeasures: ['uom-lt', 'uom-kg'],
   stock: 10,
   code: 'P001',
   realCost: 8,
@@ -23,8 +24,126 @@ describe('createProduct', () => {
       expect(result.value.id).toBe('p1');
       expect(result.value.name).toBe('Ceviche');
       expect(result.value.stock).toBe(10);
+      expect(result.value.unitOfMeasures).toEqual(['uom-lt', 'uom-kg']);
+      expect(result.value.unitOfMeasureDetails).toBeUndefined();
       expect(result.value.urlPhoto).toBe('https://cdn.example.com/p1.png');
       expect(result.value.isActive).toBeTrue();
+    }
+  });
+
+  it('should normalize and deduplicate unit identifiers', () => {
+    const result = createProduct({
+      ...validProduct,
+      unitOfMeasures: [' uom-lt ', '', 'uom-lt', 'uom-kg']
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.unitOfMeasures).toEqual(['uom-lt', 'uom-kg']);
+    }
+  });
+
+  it('should default unit identifiers to an empty list when absent', () => {
+    const { unitOfMeasures, ...withoutUnits } = validProduct;
+
+    const result = createProduct(withoutUnits);
+
+    expect(unitOfMeasures).toEqual(['uom-lt', 'uom-kg']);
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.unitOfMeasures).toEqual([]);
+    }
+  });
+
+  it('should reject unit identifiers that are not strings', () => {
+    const result = createProduct({ ...validProduct, unitOfMeasures: ['uom-lt', 3] });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.map((currentError) => currentError.field)).toContain('unitOfMeasures');
+    }
+  });
+
+  it('should map the resolved unit details when present', () => {
+    const result = createProduct({
+      ...validProduct,
+      unitOfMeasureDetails: [{ oid: ' uom-lt ', name: ' Litro ' }]
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.unitOfMeasureDetails).toEqual([{ oid: 'uom-lt', name: 'Litro' }]);
+    }
+  });
+
+  it('should map the pack flag of resolved unit details when present', () => {
+    const result = createProduct({
+      ...validProduct,
+      unitOfMeasureDetails: [
+        { oid: 'uom-lt', name: 'Litro', isPack: false },
+        { oid: 'uom-doc', name: 'Docena', isPack: true }
+      ]
+    });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.unitOfMeasureDetails).toEqual([
+        { oid: 'uom-lt', name: 'Litro', isPack: false },
+        { oid: 'uom-doc', name: 'Docena', isPack: true }
+      ]);
+    }
+  });
+
+  it('should reject a non-boolean pack flag in unit details', () => {
+    const result = createProduct({
+      ...validProduct,
+      unitOfMeasureDetails: [{ oid: 'uom-lt', name: 'Litro', isPack: 'yes' }]
+    });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.map((currentError) => currentError.field)).toContain('unitOfMeasureDetails');
+    }
+  });
+
+  it('should map a positive pack size', () => {
+    const result = createProduct({ ...validProduct, packSize: 12 });
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.packSize).toBe(12);
+    }
+  });
+
+  it('should leave the pack size undefined when absent', () => {
+    const result = createProduct(validProduct);
+
+    expect(result.ok).toBeTrue();
+    if (result.ok) {
+      expect(result.value.packSize).toBeUndefined();
+    }
+  });
+
+  it('should reject pack sizes that are not positive integers', () => {
+    for (const packSize of [0, -1, 1.5, '12']) {
+      const result = createProduct({ ...validProduct, packSize });
+
+      expect(result.ok).toBeFalse();
+      if (!result.ok) {
+        expect(result.error.map((currentError) => currentError.field)).toContain('packSize');
+      }
+    }
+  });
+
+  it('should reject malformed unit details', () => {
+    const result = createProduct({
+      ...validProduct,
+      unitOfMeasureDetails: [{ oid: 'uom-lt' }]
+    });
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.map((currentError) => currentError.field)).toContain('unitOfMeasureDetails');
     }
   });
 

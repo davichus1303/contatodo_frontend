@@ -7,11 +7,15 @@ import { decodeJwtPayload } from './jwt-utils';
  * @returns Token string in {@code header.payload.signature} form.
  */
 function buildToken(payload: unknown): string {
-  const encode = (value: unknown): string =>
-    btoa(JSON.stringify(value))
+  const encode = (value: unknown): string => {
+    const bytes = new TextEncoder().encode(JSON.stringify(value));
+    const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join('');
+
+    return btoa(binary)
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
+  };
 
   return `${encode({ alg: 'HS256' })}.${encode(payload)}.fake-signature`;
 }

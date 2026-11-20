@@ -76,6 +76,12 @@ form {
       }
     }
   }
+
+  .unit-of-measure-hint {
+    margin: -8px 0 0;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.6);
+  }
 }
 
 @media (max-width: 768px) {

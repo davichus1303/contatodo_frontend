@@ -36,6 +36,8 @@ describe('ProductsComponent', () => {
       id: '1',
       name: 'Ceviche',
       description: 'Fish dish',
+      unitOfMeasures: ['uom-lt'],
+      packSize: 12,
       stock: 10,
       code: 'P001',
       realCost: 8,
@@ -47,6 +49,7 @@ describe('ProductsComponent', () => {
       id: '2',
       name: 'Arroz con pollo',
       description: 'Rice with chicken',
+      unitOfMeasures: ['uom-kg'],
       stock: 0,
       code: 'P002',
       realCost: 6,
@@ -150,6 +153,13 @@ describe('ProductsComponent', () => {
 
       const visibleNames = component.filteredProducts().map((product: Product) => product.name);
       expect(visibleNames).toEqual(['Ceviche']);
+    });
+
+    it('should render the pack size when the product declares one', () => {
+      createComponent();
+      flushProducts(sampleProducts);
+
+      expect(fixture.nativeElement.textContent).toContain('PRODUCTS.CARDS.PACK_SIZE');
     });
 
     it('should sort products by price ascending and toggle to descending', () => {
@@ -269,6 +279,7 @@ describe('ProductsComponent', () => {
       formSubmit.emit({
         name: 'Empanada',
         description: 'Baked pastry',
+        unitOfMeasures: ['uom-lt'],
         stock: 5,
         realCost: 2,
         unitRealCost: 2,
@@ -298,6 +309,7 @@ describe('ProductsComponent', () => {
       formSubmit.emit({
         name: 'Ceviche',
         description: 'Fish dish',
+        unitOfMeasures: ['uom-lt'],
         stock: 9,
         realCost: 8,
         unitRealCost: 8,

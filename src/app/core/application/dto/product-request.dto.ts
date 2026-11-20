@@ -1,6 +1,8 @@
 export interface ProductFormPayload {
   name: string;
   description: string;
+  unitOfMeasures: string[];
+  packSize?: number;
   stock: number;
   code?: string;
   realCost: number;

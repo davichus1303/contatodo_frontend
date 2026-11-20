@@ -1,0 +1,23 @@
+<mat-form-field [appearance]="appearance" class="unit-of-measure-select">
+  <mat-label>{{ labelText }}</mat-label>
+
+  <mat-select
+    [value]="value()"
+    [multiple]="multiple"
+    [disabled]="disabled()"
+    [placeholder]="placeholderText"
+    (selectionChange)="onSelectionChange($event)"
+    (openedChange)="onOpenedChange($event)">
+    @for (unit of sortedUnits; track unit.id) {
+      <mat-option [value]="unit.id">{{ unit.name }} ({{ unit.abrev }})</mat-option>
+    }
+  </mat-select>
+
+  @if (showEmptyHint) {
+    <mat-hint>{{ emptyMessageText }}</mat-hint>
+  }
+</mat-form-field>
+
+@if (showRequiredError) {
+  <p class="unit-of-measure-select__error" role="alert">{{ requiredMessageText }}</p>
+}

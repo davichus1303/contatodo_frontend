@@ -23,6 +23,9 @@
     "stock": "Stock",
     "publicPrice": "Precio Público",
     "realCost": "Costo Real",
+    "unitOfMeasure": "Unidad de medida",
+    "unitsPerPack": "Unidades por paquete",
+    "availablePacks": "Empaques disponibles",
     "quantity": "Cantidad",
     "finalSalePrice": "Precio Final de Venta",
     "notes": "Notas (opcional)",
@@ -32,6 +35,7 @@
     "cancel": "Cancelar",
     "quantityRequired": "Cantidad es requerida",
     "quantityMin": "Cantidad debe ser al menos 1",
+    "insufficientStock": "La cantidad supera el stock disponible",
     "salePriceRequired": "Precio de venta es requerido",
     "salePriceMin": "Precio de venta debe ser mayor a 0",
     "saleWithoutProfit": "El precio de venta debe ser mayor al costo total",
@@ -42,7 +46,9 @@
     "price": "Precio",
     "selectCompany": "Selecciona una compañía",
     "selectCompanyPrompt": "Selecciona una compañía para ver sus productos disponibles",
-    "errorLoadingCompanies": "Error cargando las compañías"
+    "errorLoadingCompanies": "Error cargando las compañías",
+    "offer": "Oferta",
+    "numOffers": "Num. ofertas"
   },
   "toolbar": {
     "logout": "Cerrar sesión"
@@ -113,9 +119,11 @@
     },
     "CARDS": {
       "STOCK": "Stock",
+      "PACK_SIZE": "Unidades por paquete",
       "CODE": "Código",
       "REAL_COST": "Costo real",
-      "UNIT_PUBLIC_COST": "Precio público"
+      "UNIT_PUBLIC_COST": "Precio público",
+      "UNITS": "Unidades de medida"
     },
     "MODAL": {
       "CREATE_TITLE": "Crear nuevo producto",
@@ -128,6 +136,10 @@
       "REAL_COST": "Costo real",
       "UNIT_REAL_COST": "Costo unitario",
       "UNIT_PUBLIC_COST": "Precio público unitario",
+      "UNITS": "Unidades de medida",
+      "PACK_SIZE": "Unidades base por paquete",
+      "PACK_SIZE_HINT": "Cantidad de unidades base que contiene un paquete",
+      "PACK_SIZE_INVALID": "El tamaño del paquete debe ser un entero mayor que cero",
       "ACTIVE": "Activo",
       "CANCEL": "Cancelar",
       "CREATE": "Crear",
@@ -161,7 +173,9 @@
     "TOTAL_EXPENSES": "Gastos Totales",
     "NO_ACQUISITIONS_FOUND": "No se encontraron adquisiciones para el rango de fechas seleccionado",
     "TYPE": "Tipo",
+    "UNIT_OF_MEASURE": "Unidad de medida",
     "QUANTITY": "Cantidad",
+    "PACK_SIZE": "Unidades por paquete",
     "REAL_COST": "Costo Real",
     "UNIT_REAL_COST": "Costo Unitario Real",
     "UNIT_PUBLIC_COST": "Costo Unitario Público",
@@ -177,11 +191,18 @@
       "CODE": "Código",
       "INITIAL_STOCK": "Stock Inicial",
       "PHOTO_URL": "URL de Foto (opcional)",
+      "PRODUCT_UNITS": "Unidades de medida del producto",
+      "PACK_SIZE": "Unidades base por paquete",
+      "PACK_SIZE_HINT": "Cantidad de unidades base que contiene un paquete",
+      "PACK_SIZE_INVALID": "El tamaño del paquete debe ser un entero mayor que cero",
+      "ACQUISITION_UNIT": "Unidad de medida de la adquisición",
       "CURRENT_PRODUCT_INFO": "Información del Producto Actual",
       "CURRENT_STOCK": "Stock Actual",
       "CURRENT_REAL_COST": "Costo Real Actual",
       "CURRENT_UNIT_REAL_COST": "Costo Unitario Real Actual",
       "CURRENT_UNIT_PUBLIC_COST": "Costo Unitario Público Actual",
+      "CURRENT_PACK_SIZE": "Unidades por paquete actuales",
+      "EXISTING_PACK_SIZE_HINT": "Se usará el tamaño de paquete registrado en el producto:",
       "ACQUISITION_TYPE": "Tipo de Adquisición",
       "REAL_COST": "Costo Real",
       "UNIT_REAL_COST": "Costo Unitario Real",
@@ -199,6 +220,7 @@
     "MESSAGES": {
       "ERROR_LOADING_ACQUISITIONS": "Error cargando adquisiciones",
       "ERROR_LOADING_PRODUCTS": "Error cargando productos",
+      "ERROR_LOADING_UNITS": "Error cargando unidades de medida",
       "ERROR_LOADING_COMPANIES": "Error cargando las compañías",
       "ACQUISITION_REGISTERED_SUCCESSFULLY": "Adquisición registrada exitosamente",
       "ERROR_REGISTERING_ACQUISITION": "Error registrando adquisición"
@@ -477,5 +499,161 @@
       "DELETE_ERROR": "Error eliminando el usuario",
       "ERROR_LOADING_ROLES": "Error cargando los roles"
     }
+  },
+  "UNIT_OF_MEASURE_CATALOG": {
+    "TITLE": "Unidades de medida",
+    "SUBTITLE": "Administración de unidades de medida",
+    "SELECT_COMPANY": "Seleccionar compañía",
+    "NEW": "Nueva unidad de medida",
+    "NEW_BUTTON": "Nueva unidad de medida",
+    "SELECTOR": {
+      "LABEL": "Unidad de medida",
+      "PLACEHOLDER": "Seleccione una unidad de medida",
+      "REQUIRED": "La unidad de medida es requerida",
+      "EMPTY": "No hay unidades de medida activas"
+    },
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por nombre o abreviatura"
+    },
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo",
+      "DIVISIBLE": "Divisible",
+      "NOT_DIVISIBLE": "No divisible",
+      "PACK": "Paquete",
+      "BASE_UNIT": "Unidad base"
+    },
+    "EMPTY": "No hay unidades de medida registradas",
+    "EMPTY_STATE": "No hay unidades de medida registradas",
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Cambiar estado",
+      "ACTIVATE": "Activar",
+      "DEACTIVATE": "Desactivar",
+      "CANCEL": "Cancelar"
+    },
+    "TOOLTIP": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "ACTIVATE": "Activar",
+      "DEACTIVATE": "Desactivar"
+    },
+    "DIALOG": {
+      "CREATE_TITLE": "Nueva unidad de medida",
+      "EDIT_TITLE": "Editar unidad de medida",
+      "NAME": "Nombre",
+      "NAME_PLACEHOLDER": "Ej. Kilogramo",
+      "NAME_REQUIRED": "El nombre es requerido",
+      "ABREV": "Abreviatura",
+      "ABREV_PLACEHOLDER": "Ej. kg",
+      "ABREV_REQUIRED": "La abreviatura es requerida",
+      "DIVISIBLE": "Permite venta por fracciones",
+      "IS_PACK": "Es paquete o presentación",
+      "CANCEL": "Cancelar",
+      "CREATE": "Crear",
+      "SAVE": "Guardar"
+    },
+    "DELETE_DIALOG": {
+      "TITLE": "Eliminar unidad de medida",
+      "MESSAGE": "¿Está seguro que desea eliminar esta unidad de medida?",
+      "CANCEL": "Cancelar",
+      "DELETE": "Eliminar"
+    },
+    "CONFIRMATION": {
+      "TITLE": "Confirmar cambios",
+      "MESSAGE": "¿Está seguro que desea guardar los cambios?",
+      "CANCEL": "Cancelar",
+      "CONFIRM": "Confirmar"
+    },
+    "MESSAGES": {
+      "CREATED": "Unidad de medida creada correctamente",
+      "UPDATED": "Unidad de medida actualizada correctamente",
+      "DELETED": "Unidad de medida eliminada correctamente",
+      "STATUS_UPDATED": "Estado actualizado correctamente",
+      "ERROR_LOADING": "Error al cargar unidades de medida",
+      "ERROR_LOADING_COMPANIES": "Error al cargar compañías",
+      "ERROR_CREATING": "Error al crear unidad de medida",
+      "ERROR_UPDATING": "Error al actualizar unidad de medida",
+      "ERROR_DELETING": "Error al eliminar unidad de medida",
+      "ERROR_UPDATING_STATUS": "Error al actualizar el estado"
+    },
+    "CONFIRM_ACTIVATE_TITLE": "Activar unidad de medida",
+    "CONFIRM_DEACTIVATE_TITLE": "Desactivar unidad de medida",
+    "CONFIRM_ACTIVATE_MESSAGE": "Se activará la unidad de medida seleccionada y podrá usarse en el sistema. ¿Deseas continuar?",
+    "CONFIRM_DEACTIVATE_MESSAGE": "Se desactivará la unidad de medida seleccionada y no podrá usarse en el sistema. ¿Deseas continuar?"
+  },
+  "DEALS_CATALOG": {
+    "TITLE": "Ofertas",
+    "SUBTITLE": "Administración de ofertas",
+    "SELECT_COMPANY": "Seleccionar compañía",
+    "NEW_BUTTON": "Nueva oferta",
+    "SEARCH": {
+      "LABEL": "Buscar",
+      "PLACEHOLDER": "Buscar por producto o unidad de medida"
+    },
+    "STATUS": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "EMPTY_STATE": "No hay ofertas registradas",
+    "FIELDS": {
+      "UNIT_OF_MEASURE": "Unidad de medida",
+      "QUANTITY": "Cantidad",
+      "PRICE": "Precio"
+    },
+    "ACTIONS": {
+      "EDIT": "Editar",
+      "DELETE": "Eliminar",
+      "TOGGLE_STATUS": "Cambiar estado",
+      "ACTIVATE": "Activar",
+      "DEACTIVATE": "Desactivar",
+      "CANCEL": "Cancelar"
+    },
+    "DIALOG": {
+      "CREATE_TITLE": "Nueva oferta",
+      "EDIT_TITLE": "Editar oferta",
+      "PRODUCT": "Producto",
+      "PRODUCT_REQUIRED": "El producto es requerido",
+      "UNIT_OF_MEASURE": "Unidad de medida",
+      "QUANTITY": "Cantidad",
+      "QUANTITY_REQUIRED": "La cantidad es requerida",
+      "QUANTITY_MIN": "La cantidad debe ser mayor o igual a 0",
+      "PRICE": "Precio",
+      "PRICE_REQUIRED": "El precio es requerido",
+      "PRICE_MIN": "El precio debe ser mayor o igual a 0",
+      "CANCEL": "Cancelar",
+      "CREATE": "Crear",
+      "SAVE": "Guardar"
+    },
+    "DELETE_DIALOG": {
+      "TITLE": "Eliminar oferta",
+      "MESSAGE": "¿Está seguro que desea eliminar esta oferta?",
+      "CANCEL": "Cancelar",
+      "DELETE": "Eliminar"
+    },
+    "CONFIRMATION": {
+      "TITLE": "Confirmar cambios",
+      "MESSAGE": "¿Está seguro que desea guardar los cambios?",
+      "CANCEL": "Cancelar",
+      "CONFIRM": "Confirmar"
+    },
+    "MESSAGES": {
+      "CREATED": "Oferta creada correctamente",
+      "UPDATED": "Oferta actualizada correctamente",
+      "DELETED": "Oferta eliminada correctamente",
+      "STATUS_UPDATED": "Estado actualizado correctamente",
+      "ERROR_LOADING": "Error al cargar ofertas",
+      "ERROR_LOADING_COMPANIES": "Error al cargar compañías",
+      "ERROR_CREATING": "Error al crear oferta",
+      "ERROR_UPDATING": "Error al actualizar oferta",
+      "ERROR_DELETING": "Error al eliminar oferta",
+      "ERROR_UPDATING_STATUS": "Error al actualizar el estado"
+    },
+    "CONFIRM_ACTIVATE_TITLE": "Activar oferta",
+    "CONFIRM_DEACTIVATE_TITLE": "Desactivar oferta",
+    "CONFIRM_ACTIVATE_MESSAGE": "Se activará la oferta seleccionada y podrá usarse en el sistema. ¿Deseas continuar?",
+    "CONFIRM_DEACTIVATE_MESSAGE": "Se desactivará la oferta seleccionada y no podrá usarse en el sistema. ¿Deseas continuar?"
   }
 }

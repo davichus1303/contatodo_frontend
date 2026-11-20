@@ -14,6 +14,7 @@ import { I18nService } from '@core/i18n/i18n.service';
 import { Company } from '@core/domain/models/company.model';
 import { User } from '@core/domain/models/user.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
+import { PermissionService } from '@core/application/permissions/permission.service';
 
 describe('CompanyCatalogComponent', () => {
   let component: CompanyCatalogComponent;
@@ -140,6 +141,7 @@ describe('CompanyCatalogComponent', () => {
         { provide: UsersService, useValue: { getContactCandidates: getContactCandidatesSpy, updateUser: updateUserSpy } },
         { provide: NotificationService, useValue: { success: successSpy, error: errorSpy } },
         { provide: I18nService, useValue: { translate: translateSpy } },
+        { provide: PermissionService, useValue: { isRoot: () => false, hasAccessByLink: () => of(true) } },
         provideAnimationsAsync()
       ]
     });

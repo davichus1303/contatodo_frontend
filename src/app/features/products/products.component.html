@@ -80,10 +80,20 @@
             <p>{{ product.description }}</p>
             <div class="product-meta">
               <span><strong>{{ i18nService.translate('PRODUCTS.CARDS.STOCK') }}</strong> {{ product.stock }}</span>
+              @if (product.packSize !== undefined) {
+                <span><strong>{{ i18nService.translate('PRODUCTS.CARDS.PACK_SIZE') }}</strong> {{ product.packSize }}</span>
+              }
               <span><strong>{{ i18nService.translate('PRODUCTS.CARDS.CODE') }}</strong> {{ product.code }}</span>
               <span><strong>{{ i18nService.translate('PRODUCTS.CARDS.REAL_COST') }}</strong> {{ product.realCost }}</span>
               <span><strong>{{ i18nService.translate('PRODUCTS.CARDS.UNIT_PUBLIC_COST') }}</strong> {{ product.unitPublicCost }}</span>
             </div>
+            @if (getUnitNames(product).length > 0) {
+              <div class="product-units" [attr.aria-label]="i18nService.translate('PRODUCTS.CARDS.UNITS')">
+                @for (name of getUnitNames(product); track name) {
+                  <span class="unit-chip">{{ name }}</span>
+                }
+              </div>
+            }
           </mat-card-content>
           <mat-card-actions align="end">
             <button

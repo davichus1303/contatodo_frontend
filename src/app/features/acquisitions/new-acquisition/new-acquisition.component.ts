@@ -12,9 +12,11 @@ import { AcquisitionsService } from '@core/application/acquisitions/acquisitions
 import { ProductsService } from '@core/application/products/products.service';
 import { CompanySelectionService } from '@core/application/companies/company-selection.service';
 import { AcquisitionTypeService } from '@core/application/acquisition-types/acquisition-type.service';
+import { UnitOfMeasureCatalogService } from '@core/application/unit-of-measures/unit-of-measure-catalog.service';
 import { toCreateAcquisitionRequest } from '@core/application/acquisitions/create-acquisition.mapper';
 import { Product } from '@core/domain/models/product.model';
 import { AcquisitionType } from '@core/domain/models/acquisition-type.model';
+import { UnitOfMeasure } from '@core/domain/models/unit-of-measure.model';
 import { ApiResponse } from '@core/application/ports/api-response.interface';
 import { ACQUISITIONS_CONSTANTS } from '@shared/constants/acquisitions.constants';
 import { I18nService } from '@core/i18n/i18n.service';
@@ -47,6 +49,7 @@ export class NewAcquisitionComponent {
   private readonly acquisitionsService = inject(AcquisitionsService);
   private readonly productsService = inject(ProductsService);
   private readonly acquisitionTypeService = inject(AcquisitionTypeService);
+  private readonly unitOfMeasureCatalog = inject(UnitOfMeasureCatalogService);
   private readonly dialog = inject(MatDialog);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
@@ -59,6 +62,7 @@ export class NewAcquisitionComponent {
   /** Reference data for the form. */
   readonly acquisitionTypes = signal<AcquisitionType[]>([]);
   readonly products = signal<Product[]>([]);
+  readonly units = signal<UnitOfMeasure[]>([]);
   /** True while an acquisition is being submitted. */
   readonly isSaving = signal<boolean>(false);
 
@@ -73,6 +77,7 @@ export class NewAcquisitionComponent {
   constructor() {
     this.loadAcquisitionTypes();
     this.loadProducts();
+    this.loadUnits();
   }
 
   /**
@@ -103,6 +108,27 @@ export class NewAcquisitionComponent {
         },
         error: () => {
           this.notifications.error(ACQUISITIONS_CONSTANTS.MESSAGES.ERROR_LOADING_PRODUCTS);
+        }
+      });
+  }
+
+  /**
+   * Loads the active units of measure used by the acquisition form.
+   *
+   * <p>Existing products only offer the units declared in their attributes,
+   * brand-new products declare their units here and non-inventory
+   * acquisitions pick from the full active catalog.</p>
+   */
+  private loadUnits(): void {
+    this.unitOfMeasureCatalog.getActiveUnits(this.companyOid)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (units: UnitOfMeasure[]) => {
+          this.units.set(units);
+        },
+        error: () => {
+          this.units.set([]);
+          this.notifications.error(ACQUISITIONS_CONSTANTS.MESSAGES.ERROR_LOADING_UNITS);
         }
       });
   }
